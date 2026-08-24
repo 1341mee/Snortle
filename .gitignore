@@ -1,0 +1,17 @@
+__pycache__/
+.venv/
+checkpoints/
+lightning_logs/
+views/
+models/snortle_pancake_1.pt
+changer.py
+hf_config.py
+inference.py
+main.py
+train.py
+
+# git lfs track "models/snortle_pancake_1.pt"
+# git add .gitattributes
+# git add .
+# git commit -m "Saved"
+# git push origin main

@@ -19,24 +19,23 @@ torch.set_num_threads(4)
 
 app = FastAPI()
 
-hf_token = st.secrets.get("HF_TOKEN", None)
-
 st.title("Snortle AI")
 
 @st.cache_resource
-def load_model():
+def get_model():
+    token = st.secrets.get("HF_TOKEN", None)
     return hf_hub_download(
-        repo_id = "Snortle-AI/tmodel", 
-        filename = "snortle_pancake_1.pt",
-        local_dir = "models",
-        token = hf_token
+        repo_id="Snortle-AI/tmodel",
+        filename="snortle_pancake_1.pt",
+        local_dir="models",
+        token=token,
     )
 
-file_path = load_model()
+file_path = get_model()
 
 with st.spinner("Downloading model weights..."):
     try:
-        model_path = load_model()
+        model_path = get_model()
         st.success("Model loaded successfully!")
     except Exception as e:
         st.error(f"Failed to load model: {e}")

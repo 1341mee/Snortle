@@ -1,3 +1,4 @@
+import gc
 import streamlit as st
 
 import torch
@@ -64,9 +65,12 @@ model = model_blueprint(tokenizer = tokenizer)
 
 device = torch.device('cpu')
 
-state_dict = torch.load(f"models/{saved}", weights_only = True, map_location = device)
+state_dict = torch.load(f"models/{saved}", weights_only = True, map_location = device, mmap = True)
 
 model.load_state_dict(state_dict)
+del state_dict
+gc.collect()
+
 model.to(device)
 
 model.eval()

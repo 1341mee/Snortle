@@ -1,5 +1,4 @@
 import gc
-import streamlit as st
 
 import torch
 import torch.nn.functional as F
@@ -20,24 +19,12 @@ torch.set_num_threads(4)
 
 app = FastAPI()
 
-st.title("Snortle AI")
-
-@st.cache_resource
 def get_model():
-    token = st.secrets.get("HF_TOKEN", None)
     return hf_hub_download(
         repo_id = "Snortle-AI/tmodel",
         filename = "snortle_pancake_1.pt",
         local_dir = "models",
-        token = token,
     )
-
-with st.spinner("Downloading model weights..."):
-    try:
-        model_path = get_model()
-        st.success("Model loaded successfully!")
-    except Exception as e:
-        st.error(f"Failed to load model: {e}")
 
 model_list = {
     "A" : {

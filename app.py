@@ -25,13 +25,11 @@ st.title("Snortle AI")
 def get_model():
     token = st.secrets.get("HF_TOKEN", None)
     return hf_hub_download(
-        repo_id="Snortle-AI/tmodel",
-        filename="snortle_pancake_1.pt",
-        local_dir="models",
-        token=token,
+        repo_id = "Snortle-AI/tmodel",
+        filename = "snortle_pancake_1.pt",
+        local_dir = "models",
+        token = token,
     )
-
-file_path = get_model()
 
 with st.spinner("Downloading model weights..."):
     try:

@@ -1,9 +1,4 @@
-torch
-transformers
 fastapi
-pydantic
 uvicorn
-huggingface_hub
-xlstm
-datasets
-lightning
+gradio_client
+pydantic

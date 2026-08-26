@@ -165,6 +165,7 @@ def read_root():
                     font-size: 14px;
                     color: rgba(214, 214, 214, 0.75);
                     letter-spacing: 0.2px;
+                    line-height: 1.5;
                 }
             </style>
         </head>

@@ -1,66 +1,16 @@
-import gc
-
-import torch
-import torch.nn.functional as F
-
-from transformers import AutoTokenizer
-
-import model_architectures as model_arc
-
 import time
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from huggingface_hub import hf_hub_download
-
-torch.set_num_threads(4)
+from gradio_client import Client
 
 app = FastAPI()
 
-def get_model():
-    return hf_hub_download(
-        repo_id = "Snortle-AI/tmodel",
-        filename = "snortle_pancake_1.pt",
-        local_dir = "models",
-    )
+client = Client("Snortle-AI/Snortle-Pancake-1")
 
-model_list = {
-    "A" : {
-        "model": "Snortle Pancake 1",
-        "file": "snortle_pancake_1.py",
-        "class": "SnortlePancake1",
-        "saved": "snortle_pancake_1.pt",
-        "tokenizer": "snortle_tokenizers/snortle_pancake_1_tok"
-    }
-}
-
-chosen_model = "A"
-model_file = None
-
-model_file = model_list[chosen_model]["file"]
-model_class = model_list[chosen_model]["class"]
-saved = model_list[chosen_model]["saved"]
-tok_file = model_list[chosen_model]["tokenizer"]
-chosen_model = model_list[chosen_model]["model"]
-
-tokenizer = AutoTokenizer.from_pretrained(tok_file)
-model_blueprint = getattr(model_arc, model_class)
-
-model = model_blueprint(tokenizer = tokenizer)
-
-device = torch.device('cpu')
-
-state_dict = torch.load(f"models/{saved}", weights_only = True, map_location = device, mmap = True)
-
-model.load_state_dict(state_dict)
-del state_dict
-gc.collect()
-
-model.to(device)
-
-model.eval()
+state = ""
 
 class PromptRequest(BaseModel):
     prompt: str
@@ -256,7 +206,7 @@ def read_root():
                         body: JSON.stringify({ prompt: input })
                     });
 
-                    const { response, thinkTime, generationTime, generatedTokens, spent } = await res.json();
+                    const { response, thinkTime, generationTime, generatedTokens, totalTime, spent } = await res.json();
 
                     // clear "Thinking.."
                     bot.textContent = "";
@@ -268,8 +218,9 @@ def read_root():
                     const caption = document.createElement("div");
                     caption.classList.add("bot-caption");
                     caption.textContent =
-                        `Thought for ${thinkTime.toFixed(2)}s · ` +
-                        `${generatedTokens} tokens in ${generationTime.toFixed(2)}s · ` +
+                        `Thought for ${thinkTime.toFixed(2)}s\n` +
+                        `${generatedTokens} tokens in ${generationTime.toFixed(2)}s\n` +
+                        `${totalTime.toFixed(2)}s total\n` +
                         `${spent.toFixed(3)} Snortz Coins`;
 
                     bot.appendChild(replyText);
@@ -312,99 +263,52 @@ def read_root():
 
 print("============ CHAT ============")
 
-model.eval()
-
-max_output = 128
-
-state = None
-reply = ""
-
-gen_token_count = 0
-
-# model = torch.quantization.quantize_dynamic (
-#     model = model,
-#     dtype = torch.qint8
-# )
-
 @app.post("/generate")
 def generate(request: PromptRequest):
     global state
-    global reply
-    global output_ids
 
-    output_ids = []
-    reply = ""
+    user_input = request.prompt
 
-    with torch.inference_mode():
-        user_input = request.prompt
+    if not user_input.strip():
+        print("Invalid Input")
+        return {"response": ""}
 
-        if not user_input.strip():
-            print("Invalid Input")
-            return{"response":""}
+    print("")
+    print("Thinking...")
 
-        print("")
+    start_time = time.perf_counter()
 
-        print("Thinking...")
+    result = client.predict(
+        prompt = user_input,
+        state = state,
+        max_tokens = 128,
+        api_name = "/predict"
+    )
 
-        start_time = time.perf_counter()
+    total_time = time.perf_counter() - start_time
 
-        input_tensor = torch.tensor(tokenizer.encode(user_input), dtype = torch.long).unsqueeze(0)
-        out, state = model(input_tensor, state if state is not None else None)
+    reply = result["output"]
+    think_time = result["think_time"]
+    generation_time = result["generation_time"]
+    gen_token_count = result["gen_token_count"]
+    state = result["state"]
 
-        think_time = time.perf_counter() - start_time
+    print(f"Generated {gen_token_count} token(s) in {generation_time:.2f} seconds.")
+    print(f"Total round-trip: {total_time:.2f} seconds.")
 
-        start_time = time.perf_counter()
+    think_cost = think_time / 30
+    gen_token_cost = gen_token_count / 750
 
-        tok_id = torch.argmax(out[:, -1, :], dim = -1, keepdim = True)
+    print("")
+    print("Snortz Coins Used:")
+    print(f"Thinking: {think_cost:.3f} Snortz Coin(s)")
+    print(f"Generation: {gen_token_cost:.3f} Snortz Coin(s)")
 
-        next_input = tok_id
-
-        reply += tokenizer.decode([tok_id.item()])
-
-        if(tok_id == tokenizer.eos_token_id):
-            gen_token_count = 1
-        else:
-            for t in range(max_output):
-                out, state = model(next_input.to(torch.long), state)
-
-                temperature = 0.75
-                top_k = 20
-
-                values, indices = torch.topk(out[:, -1, :], top_k)
-                probs = F.softmax(values / temperature, dim = -1)
-                choice = torch.multinomial(probs, num_samples = 1)
-                tok_id = indices.gather(-1, choice)
-
-                next_input = tok_id
-
-                gen_token_count = t + 1
-
-                if(tok_id == tokenizer.eos_token_id):
-                    break
-
-                output_ids.append(tok_id.item())
-
-        reply = tokenizer.decode(output_ids)
-
-        generation_time = time.perf_counter() - start_time
-
-        print("\n")
-
-        print(f"Generated {gen_token_count} token(s) in {generation_time:.2f} seconds.")
-
-        think_cost = think_time / 30
-        gen_token_cost = gen_token_count / 750
-
-        print("")
-
-        print("Snortz Coins Used:")
-        print(f"Thinking: {think_cost:.3f} Snortz Coin(s)")
-        print(f"Generation: {gen_token_cost:.3f} Snortz Coin(s)")
-
-        return {
-            "response": reply,
-            "thinkTime": think_time,
-            "generationTime": generation_time,
-            "generatedTokens": gen_token_count,
-            "spent": think_cost + gen_token_cost,
-        }
+    return {
+        "response": reply,
+        "thinkTime": think_time,
+        "generationTime": generation_time,
+        "generatedTokens": gen_token_count,
+        "totalTime": total_time,
+        "spent": think_cost + gen_token_cost,
+    }

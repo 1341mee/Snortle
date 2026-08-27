@@ -1,4 +1,5 @@
 import time
+import threading
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -14,9 +15,15 @@ state = ""
 
 sessions = {}
 
+predict_lock = threading.Lock()
+
 class PromptRequest(BaseModel):
     prompt: str
     session_id: str
+
+@app.get("/ping")
+def ping():
+    return {"status": "awake"}
 
 @app.get("/", response_class = HTMLResponse)
 def read_root():
@@ -292,12 +299,13 @@ def generate(request: PromptRequest):
 
     start_time = time.perf_counter()
 
-    result = client.predict(
-        prompt = user_input,
-        state = state,
-        max_tokens = 128,
-        api_name = "/predict"
-    )
+    with predict_lock:
+        result = client.predict(
+            prompt = user_input,
+            state = state,
+            max_tokens = 128,
+            api_name = "/predict"
+        )
 
     total_time = time.perf_counter() - start_time
 

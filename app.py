@@ -12,8 +12,11 @@ client = Client("Snortle-AI/Snortle-Pancake-1")
 
 state = ""
 
+sessions = {}
+
 class PromptRequest(BaseModel):
     prompt: str
+    session_id: str
 
 @app.get("/", response_class = HTMLResponse)
 def read_root():
@@ -187,6 +190,8 @@ def read_root():
                 const spacer = document.getElementById("spacer");
                 const mainElement = document.getElementById("chat-place")
 
+                const sessionId = Math.random().toString(36).slice(2);
+
                 function scrollDown() {
                     window.scrollTo({
                         top: document.body.scrollHeight,
@@ -201,31 +206,38 @@ def read_root():
                     spacer.before(bot);
                     scrollDown();
 
-                    const res = await fetch('/generate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt: input })
-                    });
+                    try {
+                        const res = await fetch('/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ prompt: input, session_id: sessionId })
+                        });
 
-                    const { response, thinkTime, generationTime, generatedTokens, totalTime, spent } = await res.json();
+                        if (!res.ok) {
+                            throw new Error(`Server returned ${res.status}`);
+                        }
 
-                    // clear "Thinking.."
-                    bot.textContent = "";
+                        const { response, thinkTime, generationTime, generatedTokens, totalTime, spent } = await res.json();
 
-                    const replyText = document.createElement("div");
-                    replyText.classList.add("bot-reply");
-                    replyText.textContent = response;
+                        bot.textContent = "";
 
-                    const caption = document.createElement("div");
-                    caption.classList.add("bot-caption");
-                    caption.textContent =
-                        `Thought for ${thinkTime.toFixed(2)}s\n` +
-                        `${generatedTokens} tokens in ${generationTime.toFixed(2)}s\n` +
-                        `${totalTime.toFixed(2)}s total\n` +
-                        `${spent.toFixed(3)} Snortz Coins`;
+                        const replyText = document.createElement("div");
+                        replyText.classList.add("bot-reply");
+                        replyText.textContent = response;
 
-                    bot.appendChild(replyText);
-                    bot.appendChild(caption);
+                        const caption = document.createElement("div");
+                        caption.classList.add("bot-caption");
+                        caption.textContent =
+                            `Thought for ${thinkTime.toFixed(2)}s\n` +
+                            `${generatedTokens} tokens in ${generationTime.toFixed(2)}s\n` +
+                            `${totalTime.toFixed(2)}s total\n` +
+                            `${spent.toFixed(3)} Snortz Coins`;
+
+                        bot.appendChild(replyText);
+                        bot.appendChild(caption);
+                    } catch (err) {
+                        bot.textContent = "Something went wrong: " + err.message;
+                    }
 
                     scrollDown();
                 }
@@ -266,7 +278,8 @@ print("============ CHAT ============")
 
 @app.post("/generate")
 def generate(request: PromptRequest):
-    global state
+    session_id = request.session_id
+    state = sessions.get(session_id, "")
 
     user_input = request.prompt
 
@@ -304,6 +317,8 @@ def generate(request: PromptRequest):
     print("Snortz Coins Used:")
     print(f"Thinking: {think_cost:.3f} Snortz Coin(s)")
     print(f"Generation: {gen_token_cost:.3f} Snortz Coin(s)")
+
+    sessions[session_id] = result["state"]
 
     return {
         "response": reply,

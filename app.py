@@ -1,5 +1,7 @@
 import time
 import threading
+import datetime
+import requests
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -11,19 +13,33 @@ app = FastAPI()
 
 client = Client("Snortle-AI/Snortle-Pancake-1")
 
-state = ""
-
 sessions = {}
 
 predict_lock = threading.Lock()
 
-class PromptRequest(BaseModel):
-    prompt: str
-    session_id: str
+AWAKE_START_HOUR = 5
+AWAKE_END_HOUR = 24
+PING_URL = "https://snortle.onrender.com/ping"
+
+def self_ping_loop():
+    while True:
+        now = datetime.datetime.utcnow()
+        if AWAKE_START_HOUR <= now.hour < AWAKE_END_HOUR:
+            try:
+                requests.get(PING_URL, timeout = 10)
+            except Exception as e:
+                print(f"Self-ping failed: {e}")
+        time.sleep(300)
+
+threading.Thread(target = self_ping_loop, daemon = True).start()
 
 @app.get("/ping")
 def ping():
     return {"status": "awake"}
+
+class PromptRequest(BaseModel):
+    prompt: str
+    session_id: str
 
 @app.get("/", response_class = HTMLResponse)
 def read_root():

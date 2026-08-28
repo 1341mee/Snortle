@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snortle AI Preview</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: rgb(18, 18, 18);
+            --mini-text-color: white;
+            --big-text-color: rgb(214, 214, 214);
+            --chat-float-color: rgb(30, 30, 30);
+            --input-bg-color: rgb(48, 48, 48);
+        }
+
+        * {
+            font-family: "Quicksand", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+        }
+
+        .title {
+            position: static;
+            top: 0px;
+            display: flex;
+            justify-content: center;
+            color: var(--big-text-color);
+            background-color: var(--chat-float-color);
+            padding: 10px;
+            text-align: center;
+            font-size: 32px;
+        }
+
+        #chat-place {
+            max-width: 800px;
+            height: calc(100vh - 60px);
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 0px;
+        }
+
+        .user-box {
+            display: flex;
+            width: 100%;
+            height: fit-content;
+            justify-content: right;
+        }
+
+        .user {
+            margin-top: 20px;
+            margin-right: 20px;
+            display: flex;
+            float: right;
+            max-width: 650px;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            font-size: 16px;
+            padding: 15px;
+            border-radius: 16px;
+            background-color: var(--chat-float-color);
+            color: var(--mini-text-color);
+        }
+
+        .bot{
+            margin-top: 20px;
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            float: left;
+            max-width: calc(100% - 40px);
+            word-break: break-word;
+            font-size: 17px;
+            border-radius: 15px;
+            color: var(--mini-text-color);
+            white-space: pre-line;
+        }
+
+        form {
+            position: fixed;
+            display: flex;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            margin-right: auto;
+            margin-left: auto;
+            max-width: 750px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chat-input {
+            width: 100%;
+            max-height: 200px;
+            padding: 16px;
+            font-size: 15px;
+            color: var(--mini-text-color);
+            background-color: var(--input-bg-color);
+            border-radius: 20px;
+            border-color: white;
+            border-width: 0px;
+            margin-left: 20px;
+            margin-right: 20px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.4;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #chat-input::-webkit-scrollbar {
+            display: none;
+        }
+
+        #chat-input:focus {
+            outline: none;
+        }
+
+        #spacer {
+            display: flex;
+            width: 100%;
+            height: 100px;
+        }
+
+        .black-out {
+            position: fixed;
+            width: 100vw;
+            height: 75px;
+            bottom: 0px;
+            left: -8px;
+            background-color: var(--bg-color);
+            box-shadow: 0 0px 20px 0px var(--bg-color);
+        }
+
+        .bot-reply {
+            white-space: pre-line;
+        }
+
+        .bot-caption {
+            margin-top: 8px;
+            font-size: 14px;
+            color: rgba(214, 214, 214, 0.75);
+            letter-spacing: 0.2px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Snortle AI Preview</h1>
+    <main id="chat-place">
+        <div id="spacer"></div>
+    </main>
+
+    <div class="black-out">
+        <form id="form">
+            <textarea id="chat-input" autocomplete="off" placeholder="Connecting..." rows="1"></textarea>
+        </form>
+    </div>
+
+    <script type="module">
+        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+        const input = document.getElementById("chat-input");
+        const form = document.getElementById("form");
+        const spacer = document.getElementById("spacer");
+        const blackOut = document.querySelector(".black-out");
+
+        const FORM_BOTTOM_OFFSET = 15;
+        const EXTRA_CLEARANCE = 35;
+
+        const sessionId = Math.random().toString(36).slice(2);
+
+        let client = null;
+
+        async function connect() {
+            try {
+                client = await Client.connect("Snortle-AI/Snortle-Pancake-1");
+                input.placeholder = "Ask something...";
+            } catch (err) {
+                input.placeholder = "Failed to connect. Refresh to retry.";
+                console.error("Gradio connect failed:", err);
+            }
+        }
+
+        connect();
+
+        function scrollDown() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function resizeInput() {
+            input.style.height = "auto";
+            const newHeight = Math.min(input.scrollHeight, 200);
+            input.style.height = newHeight + "px";
+
+            const totalFormHeight = newHeight + FORM_BOTTOM_OFFSET + EXTRA_CLEARANCE;
+            blackOut.style.height = totalFormHeight + "px";
+            spacer.style.height = (totalFormHeight + 25) + "px";
+        }
+
+        resizeInput();
+
+        input.addEventListener("input", resizeInput);
+
+        input.addEventListener("keydown", function(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        async function reply(userInput) {
+            const bot = document.createElement("div");
+            bot.classList.add("bot");
+            bot.textContent = "Thinking...";
+            spacer.before(bot);
+            scrollDown();
+
+            const startTime = performance.now();
+
+            try {
+                if (!client) {
+                    throw new Error("Not connected yet, please wait and try again.");
+                }
+
+                const result = await client.predict("/predict", {
+                    prompt: userInput,
+                    session_id: sessionId,
+                    max_tokens: 128,
+                });
+
+                const totalTime = (performance.now() - startTime) / 1000;
+
+                const data = result.data[0];
+                const response = data.output;
+                const thinkTime = data.think_time;
+                const generationTime = data.generation_time;
+                const generatedTokens = data.gen_token_count;
+
+                const thinkCost = thinkTime / 30;
+                const genTokenCost = generatedTokens / 750;
+                const spent = thinkCost + genTokenCost;
+
+                bot.textContent = "";
+
+                const replyText = document.createElement("div");
+                replyText.classList.add("bot-reply");
+                replyText.textContent = response;
+
+                const caption = document.createElement("div");
+                caption.classList.add("bot-caption");
+                caption.textContent =
+                    `Thought for ${thinkTime.toFixed(2)}s\n` +
+                    `${generatedTokens} tokens in ${generationTime.toFixed(2)}s\n` +
+                    `${totalTime.toFixed(2)}s total\n` +
+                    `${spent.toFixed(3)} Snortz Coins`;
+
+                bot.appendChild(replyText);
+                bot.appendChild(caption);
+            } catch (err) {
+                bot.textContent = "Something went wrong: " + err.message;
+            }
+
+            scrollDown();
+        }
+
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            if (input.value.trim() === '') return;
+
+            const userBox = document.createElement("div");
+            const user = document.createElement("div");
+
+            user.textContent = input.value;
+
+            userBox.classList.add("user-box");
+            user.classList.add("user");
+
+            spacer.before(userBox);
+            userBox.appendChild(user);
+
+            scrollDown();
+
+            const toSend = input.value;
+            input.value = "";
+            resizeInput();
+
+            reply(toSend);
+        });
+
+        scrollDown();
+    </script>
+</body>
+</html>

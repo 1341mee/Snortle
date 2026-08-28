@@ -111,7 +111,7 @@ class Model(L.LightningModule):
             expand = 2,
             head_dim = 96,
             num_heads = 16,
-            num_layers = 32,
+            num_layers = 40,
             n_groups = 8
         )
 
@@ -121,7 +121,7 @@ class Model(L.LightningModule):
             vocab_size = vocab_size,
             num_heads = 8,
             d_model = self.d_model,
-            num_blocks = 8,
+            num_blocks = 12,
         )
 
         self.norm3 = nn.RMSNorm(self.d_model)
@@ -189,11 +189,3 @@ class Model(L.LightningModule):
 
     def configure_optimizers(self):
         return optim.AdamW(self.parameters(), lr = 0.0003, weight_decay = 0.001)
-
-batch_size = 8
-context_length = 512
-target_vocab_size = 16384
-target_tokens = 12_000_000_000 # for 12 billion
-val_examples = 5000
-tokenizer_tokens = 10_000_000 # 10 mil for training the tokenizer
-tokenized = True

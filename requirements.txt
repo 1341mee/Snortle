@@ -1,5 +1,0 @@
-fastapi
-uvicorn
-gradio_client
-pydantic
-requests

@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snortle AI — Low-Pollution AI Chat</title>
+    <meta name="description" content="Snortle AI is a fast, low-pollution AI assistant that runs on efficient CPU inference instead of power-hungry GPUs — smart answers with a lighter footprint.">
+    <meta property="og:title" content="Snortle AI — Low-Pollution AI Chat">
+    <meta property="og:description" content="A fast AI assistant that runs on efficient CPU inference instead of power-hungry GPUs — smart answers with a lighter footprint.">
+    <meta property="og:type" content="website">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: rgb(22, 21, 19);
+            --mini-text-color: rgb(240, 236, 228);
+            --big-text-color: rgb(196, 190, 178);
+            --chat-float-color: rgb(32, 30, 27);
+            --input-bg-color: rgb(46, 43, 39);
+            --accent: rgb(205, 163, 90);
+            --accent-2: rgb(90, 110, 100);
+            --user-bubble: rgb(88, 63, 197);
+            --title-height: 60px;
+            --eco-strip-height: 32px;
+            --panel: rgba(255, 255, 255, 0.03);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --shadow: rgba(0, 0, 0, 0.32);
+        }
+
+        * {
+            font-family: "Quicksand", sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            background: var(--bg-color);
+            color: var(--mini-text-color);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .eco-strip {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            height: var(--eco-strip-height);
+            z-index: 11;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(90deg, rgba(90, 110, 100, 0.9), rgba(90, 110, 100, 0.75));
+            color: rgb(240, 236, 228);
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .eco-strip .eco-strip-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgb(240, 236, 228);
+            animation: eco-strip-blink 1.8s ease-in-out infinite;
+        }
+
+        @keyframes eco-strip-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        .title {
+            position: fixed;
+            top: var(--eco-strip-height);
+            left: 0px;
+            right: 0px;
+            height: var(--title-height);
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            color: var(--mini-text-color);
+            background-color: var(--chat-float-color);
+            font-size: 19px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(178, 138, 74, 0.4);
+        }
+
+        #title-main {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.01em;
+        }
+
+        #title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: calc(var(--title-height) + var(--eco-strip-height) + 48px) 24px 12px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 32px;
+            align-items: center;
+            min-height: calc(100vh - var(--title-height) - var(--eco-strip-height) - 80px);
+        }
+
+        .hero-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .logo-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            width: fit-content;
+            padding: 8px 16px 8px 10px;
+            border-radius: 4px;
+            background: rgba(178, 138, 74, 0.06);
+            border: 1px solid rgba(178, 138, 74, 0.3);
+            animation: slide-fade-in 0.6s ease-out both;
+        }
+
+        .logo-row img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+            border: 1px solid var(--accent);
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 13px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-weight: 700;
+            animation: slide-fade-in 0.6s ease-out 0.1s both;
+        }
+
+        h1 {
+            font-size: clamp(2.6rem, 4.4vw, 4.2rem);
+            line-height: 1.08;
+            color: var(--mini-text-color);
+            letter-spacing: -0.01em;
+            font-weight: 600;
+            animation: slide-fade-in 0.65s ease-out 0.16s both;
+        }
+
+        .accent-text {
+            display: block;
+            color: var(--accent);
+        }
+
+        .lead {
+            max-width: 520px;
+            color: var(--big-text-color);
+            font-size: 17px;
+            line-height: 1.65;
+            animation: slide-fade-in 0.65s ease-out 0.24s both;
+        }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 8px;
+            animation: slide-fade-in 0.65s ease-out 0.38s both;
+        }
+
+        .cta-btn {
+            border: none;
+            border-radius: 4px;
+            padding: 13px 26px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, background-color 0.12s ease;
+        }
+
+        .cta-btn:active {
+            transform: scale(0.98);
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--mini-text-color);
+            border: 1px solid var(--panel-border);
+        }
+
+        .secondary-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .primary-btn {
+            background: var(--accent);
+            color: rgb(24, 22, 19);
+            box-shadow: 0 8px 20px rgba(178, 138, 74, 0.22);
+        }
+
+        .primary-btn:hover {
+            background: rgb(196, 154, 88);
+        }
+
+        .terms-link {
+            color: var(--big-text-color);
+            font-size: 13px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            width: fit-content;
+        }
+
+        .terms-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .eco-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            width: fit-content;
+            padding: 12px 20px 12px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(90, 110, 100, 0.6);
+            background: linear-gradient(90deg, rgba(90, 110, 100, 0.22), rgba(90, 110, 100, 0.06));
+            color: var(--mini-text-color);
+            font-size: 14px;
+            font-weight: 700;
+            animation: eco-pulse 2.6s ease-in-out infinite, slide-fade-in 0.6s ease-out 0.3s both;
+        }
+
+        .eco-badge .eco-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .eco-badge strong {
+            color: var(--accent-2);
+        }
+
+        @keyframes eco-pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(90, 110, 100, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(90, 110, 100, 0);
+            }
+        }
+
+        @keyframes slide-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .meta-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+            animation: slide-fade-in 0.65s ease-out 0.46s both;
+        }
+
+        .meta-item {
+            padding: 9px 14px;
+            border-radius: 4px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel);
+            color: var(--big-text-color);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+
+        .feature-panel {
+            background: var(--chat-float-color);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 26px;
+            box-shadow: 0 14px 40px var(--shadow);
+            animation: slide-fade-in 0.7s ease-out 0.2s both;
+        }
+
+        .feature-box {
+            background: rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 2px solid var(--accent);
+            border-radius: 4px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .feature-box:last-child {
+            margin-bottom: 0;
+            border-left-color: var(--accent-2);
+        }
+
+        .mini-tag {
+            display: inline-block;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            background: rgba(178, 138, 74, 0.12);
+            border: 1px solid rgba(178, 138, 74, 0.28);
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .feature-box h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--mini-text-color);
+            font-weight: 600;
+        }
+
+        .feature-box p {
+            color: var(--big-text-color);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .feature-badges {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .feature-badges span {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 11px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--panel-border);
+            color: var(--big-text-color);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .info-band {
+            max-width: 980px;
+            margin: 0 auto 12px;
+            padding: 22px 26px;
+            border-radius: 6px;
+            border: 1px solid rgba(90, 110, 100, 0.4);
+            background: linear-gradient(90deg, rgba(90, 110, 100, 0.14), rgba(205, 163, 90, 0.06));
+            color: var(--big-text-color);
+            text-align: center;
+            line-height: 1.7;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .info-band .info-band-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+
+        .info-band strong {
+            color: var(--mini-text-color);
+        }
+
+        .info-grid {
+            max-width: 980px;
+            margin: 0 auto 40px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .info-card {
+            padding: 22px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel);
+            color: var(--big-text-color);
+            text-align: left;
+            line-height: 1.65;
+            font-size: 15px;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .info-card .info-card-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            margin-bottom: 10px;
+            border-radius: 50%;
+            background: rgba(205, 163, 90, 0.14);
+            font-size: 15px;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(205, 163, 90, 0.4);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        .info-card strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--mini-text-color);
+        }
+
+        .plans-teaser {
+            max-width: 980px;
+            margin: 8px auto 56px;
+            padding: 0 24px;
+        }
+
+        .plans-teaser-head {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .plans-teaser-head h2 {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .plans-teaser-head p {
+            color: var(--big-text-color);
+            font-size: 14px;
+        }
+
+        .plans-teaser-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .mini-plan {
+            padding: 22px 20px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            background: var(--chat-float-color);
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .mini-plan.featured {
+            border-color: rgba(205, 163, 90, 0.55);
+        }
+
+        .mini-plan:hover {
+            transform: translateY(-3px);
+            border-color: rgba(205, 163, 90, 0.45);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        .mini-plan-name {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .mini-plan-price {
+            color: var(--accent);
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .mini-plan-price span {
+            color: var(--big-text-color);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .mini-plan-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .mini-plan-details div {
+            color: var(--big-text-color);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .mini-plan-link {
+            display: inline-block;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(205, 163, 90, 0.4);
+        }
+
+        .mini-plan-link:hover {
+            border-color: var(--accent);
+        }
+
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 20;
+            padding: 20px;
+        }
+
+        .auth-overlay.visible {
+            display: flex;
+        }
+
+        .auth-modal {
+            width: min(420px, 100%);
+            background: var(--chat-float-color);
+            border: 1px solid rgba(178, 138, 74, 0.35);
+            border-radius: 6px;
+            padding: 24px 22px 18px;
+            box-shadow: 0 20px 55px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid var(--panel-border);
+            background: transparent;
+            color: var(--mini-text-color);
+            cursor: pointer;
+            font-size: 19px;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-header img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+            border: 1px solid var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            font-size: 25px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .modal-header p {
+            color: var(--big-text-color);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field label {
+            color: var(--big-text-color);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .field input {
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid var(--panel-border);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--mini-text-color);
+            padding: 11px 14px;
+            outline: none;
+        }
+
+        .field input[type="range"] {
+            padding: 0;
+            accent-color: var(--accent);
+            height: 6px;
+            cursor: pointer;
+        }
+
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .range-value {
+            min-width: 36px;
+            text-align: center;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(178, 138, 74, 0.12);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .submit-btn {
+            margin-top: 6px;
+            border: none;
+            border-radius: 4px;
+            padding: 13px 18px;
+            background: var(--accent);
+            color: rgb(24, 22, 19);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: rgb(196, 154, 88);
+        }
+
+        @media (max-width: 760px) {
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: auto;
+                padding-top: 12px;
+            }
+
+            .title {
+                font-size: 18px;
+            }
+
+            #title-main {
+                gap: 10px;
+            }
+
+            .page {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            h1 {
+                font-size: 2.6rem;
+            }
+
+            .eco-badge {
+                font-size: 12px;
+                padding: 9px 14px 9px 10px;
+            }
+
+            .eco-strip {
+                font-size: 10.5px;
+                padding: 0 10px;
+                text-align: center;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plans-teaser-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="eco-strip">
+        <span class="eco-strip-dot"></span>
+        Low pollution AI — runs on efficient CPU inference, not power-hungry GPUs
+    </div>
+
+    <h1 class="title">
+        <span id="title-main">
+            <img id="title-icon" src="views/images/snortle.png" alt="Snortle logo">
+            Snortle AI
+        </span>
+    </h1>
+
+    <main class="page">
+        <section class="hero">
+            <div class="hero-copy">
+                <div class="logo-row">
+                    <img src="views/images/snortle.png" alt="Snortle bot icon">
+                    <span>Snortle AI</span>
+                </div>
+
+                <div class="eyebrow">Smart answers. Sharp ideas.</div>
+
+                <h1>
+                    Meet your next
+                    <span class="accent-text">thinking partner.</span>
+                </h1>
+
+                <p class="lead">
+                    Snortle AI helps you brainstorm, write, solve, and explore ideas faster — with a clean, considered conversation experience built for curious minds.
+                </p>
+
+                <div class="eco-badge">
+                    <span class="eco-dot">🌱</span>
+                    <span><strong>Low pollution.</strong> Runs on efficient CPU inference — no expensive GPU footprint.</span>
+                </div>
+
+                <div class="cta-row">
+                    <button class="cta-btn secondary-btn" type="button" data-mode="login">Log in</button>
+                    <button class="cta-btn primary-btn" type="button" data-mode="signup">Get started</button>
+                </div>
+
+                <div class="meta-list">
+                    <span class="meta-item">Fast replies</span>
+                    <span class="meta-item">Creative workflows</span>
+                    <span class="meta-item">Always ready</span>
+                </div>
+
+                <a class="terms-link" href="/terms">Terms of Service</a>
+            </div>
+
+            <aside class="feature-panel" aria-label="Snortle highlights">
+                <div class="feature-box">
+                    <span class="mini-tag">Idea engine</span>
+                    <h3>Turn rough thoughts into clear direction.</h3>
+                    <p>From raw concepts to polished drafts, Snortle helps shape your thinking into something useful and actionable.</p>
+                </div>
+
+                <div class="feature-box">
+                    <span class="mini-tag">Built for momentum</span>
+                    <h3>Keep the conversation moving.</h3>
+                    <p>Ask follow-ups, refine responses, and go deeper without losing context or momentum.</p>
+                    <div class="feature-badges">
+                        <span>Workflow</span>
+                        <span>Research</span>
+                        <span>Writing</span>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <div class="info-band reveal-on-scroll">
+        <span class="info-band-icon">🌱</span>
+        <span><strong>Low pollution.</strong> Snortle runs without expensive GPU inference, using efficient CPU-based processing that stays fast, lightweight, and greener for everyday use.</span>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card reveal-on-scroll" style="transition-delay: 0s;">
+            <span class="info-card-icon">⚡</span>
+            <strong>Efficient by design.</strong>
+            Snortle delivers 2–3x more parameter efficiency than standard models, helping you get more power with less waste.
+        </div>
+        <div class="info-card reveal-on-scroll" style="transition-delay: 0.1s;">
+            <span class="info-card-icon">📚</span>
+            <strong>High-quality data.</strong>
+            Built on carefully curated, high-quality training data to improve accuracy, clarity, and reliability across conversations.
+        </div>
+        <div class="info-card reveal-on-scroll" style="transition-delay: 0.2s;">
+            <span class="info-card-icon">🚀</span>
+            <strong>Fast and responsive.</strong>
+            Optimized for CPU execution, Snortle stays responsive and efficient without the overhead of heavier GPU-first systems.
+        </div>
+    </div>
+
+    <section class="plans-teaser" aria-label="Plan pricing">
+        <div class="plans-teaser-head reveal-on-scroll">
+            <h2>Simple pricing.</h2>
+            <p>Start free. Upgrade any time for more coins and better models.</p>
+        </div>
+
+        <div class="plans-teaser-grid">
+            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0s;">
+                <div class="mini-plan-name">Free</div>
+                <div class="mini-plan-price">$0 <span>/ month</span></div>
+                <div class="mini-plan-details">
+                    <div>Access to free models</div>
+                    <div>50 Snortz Coin allowance</div>
+                    <div>3 Snortz Coins an hour</div>
+                </div>
+            </div>
+
+            <div class="mini-plan featured reveal-on-scroll" style="transition-delay: 0.1s;">
+                <div class="mini-plan-name">Plus</div>
+                <div class="mini-plan-price">$0.49 <span>/ month</span></div>
+                <div class="mini-plan-details">
+                    <div>Access to free and mid-tier models</div>
+                    <div>100 Snortz Coin allowance</div>
+                    <div>8 Snortz Coins an hour</div>
+                </div>
+            </div>
+
+            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0.2s;">
+                <div class="mini-plan-name">Pro</div>
+                <div class="mini-plan-price">$0.99 <span>/ month</span></div>
+                <div class="mini-plan-details">
+                    <div>Access to all models (including top models)</div>
+                    <div>500 Snortz Coin allowance</div>
+                    <div>15 Snortz Coins an hour</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="plans-teaser-head reveal-on-scroll" style="margin-top: 40px;">
+            <h2>Need more coins?</h2>
+            <p>Top up any time — purchased coins never expire.</p>
+        </div>
+
+        <div class="plans-teaser-grid">
+            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0s;">
+                <div class="mini-plan-name">1,000 Snortz Coins</div>
+                <div class="mini-plan-price">$0.49</div>
+            </div>
+
+            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0.1s;">
+                <div class="mini-plan-name">3,000 Snortz Coins</div>
+                <div class="mini-plan-price">$0.99</div>
+            </div>
+
+            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0.2s;">
+                <div class="mini-plan-name">10,000 Snortz Coins</div>
+                <div class="mini-plan-price">$1.99</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="auth-overlay" id="authOverlay" aria-hidden="true">
+        <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+            <button class="close-btn" id="closeAuth" type="button" aria-label="Close">×</button>
+            <div class="modal-header">
+                <img src="views/images/snortle.png" alt="Snortle icon">
+                <h2 id="authTitle">Welcome back</h2>
+                <p id="authSubtitle">Log in to keep the conversation going.</p>
+            </div>
+
+            <form class="auth-form" id="authForm" novalidate>
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" name="username" type="text" autocomplete="username" required>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" required>
+                </div>
+
+                <div class="field hidden" id="confirmPasswordField">
+                    <label for="confirmPassword">Re-enter password</label>
+                    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password">
+                </div>
+
+                <div class="field hidden" id="botCheckField">
+                    <label for="botCheckAnswer" id="botCheckLabel">Bot check</label>
+                    <div class="range-row">
+                        <input id="botCheckAnswer" name="botCheckAnswer" type="range" min="0" max="20" value="0" autocomplete="off">
+                        <span class="range-value" id="botCheckValue">0</span>
+                    </div>
+                </div>
+
+                <button class="submit-btn" id="submitBtn" type="submit">Log in</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const authOverlay = document.getElementById('authOverlay');
+        const authTitle = document.getElementById('authTitle');
+        const authSubtitle = document.getElementById('authSubtitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const confirmPasswordField = document.getElementById('confirmPasswordField');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const botCheckField = document.getElementById('botCheckField');
+        const botCheckLabel = document.getElementById('botCheckLabel');
+        const botCheckAnswer = document.getElementById('botCheckAnswer');
+        const botCheckValue = document.getElementById('botCheckValue');
+        const authForm = document.getElementById('authForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+
+        botCheckAnswer.addEventListener('input', () => {
+            botCheckValue.textContent = botCheckAnswer.value;
+        });
+
+        let authMode = 'login';
+        let botCheckToken = '';
+        let botCheckTarget = null;
+
+        async function loadBotCheck() {
+            const response = await fetch('/api/bot-check');
+            if (!response.ok) {
+                throw new Error('Unable to load the bot check.');
+            }
+
+            const challenge = await response.json();
+            botCheckToken = challenge.token;
+            botCheckTarget = Number(challenge.answer);
+            botCheckAnswer.min = challenge.min;
+            botCheckAnswer.max = challenge.max;
+            botCheckAnswer.value = challenge.min;
+            botCheckValue.textContent = challenge.min;
+            botCheckLabel.textContent = `Bot check: slide to ${botCheckTarget}`;
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode;
+
+            if (mode === 'signup') {
+                authTitle.textContent = 'Create your account';
+                authSubtitle.textContent = 'Join Snortle AI and start your next idea.';
+                submitBtn.textContent = 'Create account';
+                confirmPasswordField.classList.remove('hidden');
+                confirmPassword.setAttribute('required', 'required');
+                botCheckField.classList.remove('hidden');
+                botCheckAnswer.setAttribute('required', 'required');
+            } else {
+                authTitle.textContent = 'Welcome back';
+                authSubtitle.textContent = 'Log in to keep the conversation going.';
+                submitBtn.textContent = 'Log in';
+                confirmPasswordField.classList.add('hidden');
+                confirmPassword.removeAttribute('required');
+                confirmPassword.value = '';
+                botCheckField.classList.add('hidden');
+                botCheckAnswer.removeAttribute('required');
+                botCheckAnswer.value = '';
+            }
+
+            authForm.reset();
+        }
+
+        function openAuth(mode) {
+            setAuthMode(mode);
+            authOverlay.classList.add('visible');
+            authOverlay.setAttribute('aria-hidden', 'false');
+            username.focus();
+
+            if (mode === 'signup') {
+                loadBotCheck().catch((error) => window.alert(error.message));
+            }
+        }
+
+        function closeAuth() {
+            authOverlay.classList.remove('visible');
+            authOverlay.setAttribute('aria-hidden', 'true');
+            authForm.reset();
+        }
+
+        document.querySelector('[data-mode="login"]').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/session-status');
+                const data = await response.json();
+                if (data.loggedIn) {
+                    window.location.href = '/chat';
+                    return;
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+            }
+            openAuth('login');
+        });
+        document.querySelector('[data-mode="signup"]').addEventListener('click', () => openAuth('signup'));
+        document.getElementById('closeAuth').addEventListener('click', closeAuth);
+
+        authOverlay.addEventListener('click', (event) => {
+            if (event.target === authOverlay) {
+                closeAuth();
+            }
+        });
+
+        authForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const enteredUsername = username.value.trim();
+            const enteredPassword = password.value;
+
+            if (!enteredUsername || !enteredPassword) {
+                return;
+            }
+
+            if (authMode === 'signup') {
+                const hasStrongPassword = enteredPassword.length >= 6 && /\d/.test(enteredPassword) && /[a-z]/.test(enteredPassword) && /[A-Z]/.test(enteredPassword) && /[^A-Za-z0-9]/.test(enteredPassword);
+                if (!hasStrongPassword) {
+                    password.setCustomValidity('Use at least 6 characters with a number, lowercase letter, uppercase letter, and punctuation mark.');
+                    password.reportValidity();
+                    return;
+                }
+                password.setCustomValidity('');
+
+                if (!confirmPassword.value.trim()) {
+                    confirmPassword.focus();
+                    return;
+                }
+
+                if (enteredPassword !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                    confirmPassword.reportValidity();
+                    return;
+                }
+
+                if (botCheckTarget === null || Number(botCheckAnswer.value) !== botCheckTarget) {
+                    botCheckAnswer.setCustomValidity('Incorrect answer. Move the slider to the requested number.');
+                    botCheckAnswer.reportValidity();
+                    return;
+                }
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = authMode === 'signup' ? 'Creating...' : 'Logging in...';
+
+            try {
+                const endpoint = authMode === 'signup' ? '/api/signup' : '/api/login';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: enteredUsername,
+                        password: enteredPassword,
+                        botCheckAnswer: authMode === 'signup' ? Number(botCheckAnswer.value) : undefined,
+                        botCheckToken: authMode === 'signup' ? botCheckToken : undefined
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Request failed.');
+                }
+
+                closeAuth();
+                const sessionCheck = await fetch('/api/session-status', { credentials: 'same-origin' });
+                const sessionData = await sessionCheck.json();
+
+                if (sessionData.loggedIn) {
+                    window.location.replace('/chat');
+                    return;
+                }
+
+                window.location.replace('/chat');
+            } catch (error) {
+                window.alert(error.message || 'Something went wrong.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = authMode === 'signup' ? 'Create account' : 'Log in';
+            }
+        });
+
+        const revealTargets = document.querySelectorAll('.reveal-on-scroll');
+        if ('IntersectionObserver' in window && revealTargets.length) {
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+            revealTargets.forEach((target) => revealObserver.observe(target));
+        } else {
+            revealTargets.forEach((target) => target.classList.add('is-visible'));
+        }
+    </script>
+</body>
+</html>

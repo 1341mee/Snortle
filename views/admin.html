@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snortle Admin</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: #f9fafb;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 48px auto;
+      padding: 24px;
+    }
+    h1 {
+      margin-bottom: 24px;
+      font-size: 2rem;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .label {
+      color: #9ca3af;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #111827;
+      border: 1px solid #374151;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid #374151;
+    }
+    th {
+      background: #1f2937;
+      color: #d1d5db;
+    }
+    tr.suspicious {
+      background: rgba(239, 68, 68, 0.12);
+    }
+    .risk {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    .risk.low { background: rgba(34,197,94,0.18); color: #86efac; }
+    .risk.medium { background: rgba(245,158,11,0.18); color: #fcd34d; }
+    .risk.high { background: rgba(239,68,68,0.18); color: #fca5a5; }
+    .error {
+      color: #fca5a5;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Snortle Admin</h1>
+    <div class="summary">
+      <div class="card">
+        <div class="label">Total users</div>
+        <div class="value" id="totalUsers">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Suspicious</div>
+        <div class="value" id="suspiciousUsers">0</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Plan</th>
+          <th>Free coins</th>
+          <th>Paid coins</th>
+          <th>Chats</th>
+          <th>Risk</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody id="userRows"></tbody>
+    </table>
+
+    <div id="errorBox" class="error"></div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminKey = urlParams.get('key');
+
+    async function loadUsers() {
+      try {
+        const response = await fetch(`/api/admin/users?key=${encodeURIComponent(adminKey || '')}`);
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.message || 'Admin access denied');
+        }
+
+        const rows = document.getElementById('userRows');
+        rows.innerHTML = '';
+
+        document.getElementById('totalUsers').textContent = payload.summary.totalUsers;
+        document.getElementById('suspiciousUsers').textContent = payload.summary.suspiciousUsers;
+
+        payload.users.forEach((user) => {
+          const tr = document.createElement('tr');
+          if (user.suspicious) tr.classList.add('suspicious');
+
+          tr.innerHTML = `
+            <td>${user.username}</td>
+            <td>${user.planId}</td>
+            <td>${user.freeSnortzCoins}</td>
+            <td>${user.purchasedSnortzCoins}</td>
+            <td>${user.chatCount}</td>
+            <td><span class="risk ${user.suspicious ? 'high' : 'low'}">${user.suspicious ? 'high' : 'low'}</span></td>
+            <td>${user.createdAt ? new Date(user.createdAt).toLocaleString() : '—'}</td>
+          `;
+          rows.appendChild(tr);
+        });
+      } catch (error) {
+        const errorBox = document.getElementById('errorBox');
+        errorBox.style.display = 'block';
+        errorBox.textContent = error.message;
+      }
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

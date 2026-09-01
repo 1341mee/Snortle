@@ -1,0 +1,125 @@
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 30;
+}
+
+.settings-overlay.visible {
+  display: flex;
+}
+
+.settings-box {
+  position: relative;
+  width: min(360px, calc(100% - 36px));
+  padding: 24px 24px 18px;
+  border: 1px solid rgba(205, 163, 90, 0.4);
+  border-radius: 6px;
+  background: var(--panel, rgba(27, 26, 24, 0.98));
+  color: var(--mini-text-color, #f0ece4);
+  box-sizing: border-box;
+}
+
+.settings-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--mini-text-color, #f0ece4);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.settings-close:hover {
+  color: var(--accent, #d9a55a);
+  border-color: var(--accent, #d9a55a);
+  background: rgba(205, 163, 90, 0.12);
+}
+
+.settings-box h2,
+.settings-box h3 {
+  margin: 0 28px 18px 0;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-box h2 img,
+.settings-box h3 img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+}
+
+.settings-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 14px 0;
+}
+
+.wallet-row,
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  color: var(--muted, rgba(196, 190, 178, 0.82));
+  font-size: 14px;
+}
+
+.wallet-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wallet-row strong,
+.settings-row strong {
+  color: var(--coin, #d9a55a);
+  white-space: nowrap;
+}
+
+.wallet-amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.wallet-amount img {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+}
+
+.logout-btn,
+.settings-btn--danger {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(220, 130, 120, 0.4);
+  color: rgb(230, 180, 170);
+  background: rgba(120, 45, 40, 0.18);
+}
+
+.settings-btn--danger:hover,
+.logout-btn:hover {
+  background: rgba(120, 45, 40, 0.3);
+  border-color: rgba(220, 130, 120, 0.6);
+}
+

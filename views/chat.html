@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snortle AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/views/shared-settings.css">
+
+    <style>
+        :root {
+            --bg-color: rgb(22, 21, 19);
+            --mini-text-color: rgb(240, 236, 228);
+            --big-text-color: rgb(196, 190, 178);
+            --chat-float-color: rgb(32, 30, 27);
+            --input-bg-color: rgb(46, 43, 39);
+            --accent: rgb(205, 163, 90);
+            --accent-2: rgb(90, 110, 100);
+            --user-bubble: rgb(68, 60, 48);
+            --coin-color: rgb(216, 168, 74);
+            --title-height: 60px;
+        }
+
+        * {
+            font-family: "Quicksand", sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overflow: hidden;
+        }
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+        }
+
+        .title {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            height: var(--title-height);
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            color: var(--mini-text-color);
+            background-color: var(--chat-float-color);
+            font-size: 19px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(205, 163, 90, 0.4);
+        }
+
+        #title-main {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+        }
+
+        #coin-counter {
+            grid-column: 3;
+            justify-self: end;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coin-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--coin-color);
+            background-color: var(--input-bg-color);
+            padding: 7px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(216, 168, 74, 0.35);
+            white-space: nowrap;
+        }
+
+        .coin-pill .coin-label {
+            color: var(--big-text-color);
+            font-weight: 600;
+        }
+
+        #coin-icon-wrap {
+            display: none;
+        }
+
+        #coin-icon-wrap {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        #coin-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.1);
+        }
+
+        .chat-shell {
+            margin-left: 260px;
+            height: calc(100vh - var(--title-height));
+            transition: margin-left 0.2s ease;
+        }
+
+        .chat-shell.collapsed {
+            margin-left: 0;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: var(--title-height);
+            left: 0;
+            width: 260px;
+            height: calc(100vh - var(--title-height));
+            background: rgb(14, 13, 12);
+            border-right: 1px solid rgba(205, 163, 90, 0.28);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 14px 12px 18px;
+            transition: transform 0.2s ease;
+            z-index: 8;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 6px 8px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 14px;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--mini-text-color);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .sidebar-brand img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+            border: 1px solid var(--accent);
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: calc(var(--title-height) + 16px);
+            left: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(32, 30, 27, 0.94);
+            color: var(--mini-text-color);
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            z-index: 25;
+            transition: left 0.2s ease, transform 0.15s ease;
+        }
+
+        .sidebar-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        .sidebar-toggle.is-open {
+            left: 268px;
+        }
+
+        .new-chat-btn {
+            border: 1px solid rgba(205, 163, 90, 0.4);
+            border-radius: 4px;
+            background: var(--accent);
+            color: rgb(24, 22, 19);
+            font-weight: 700;
+            padding: 12px 14px;
+            cursor: pointer;
+            margin-bottom: 18px;
+            transition: background-color 0.16s ease, opacity 0.16s ease;
+        }
+
+        .new-chat-btn:hover {
+            background: rgb(224, 184, 112);
+        }
+
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-link {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--big-text-color);
+            padding: 11px 14px;
+            text-align: left;
+            font: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.16s ease, border-color 0.16s ease;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(205, 163, 90, 0.12);
+            border-color: rgba(205, 163, 90, 0.4);
+        }
+
+        .model-picker {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: var(--big-text-color);
+            background: var(--input-bg-color);
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .model-lock {
+            margin: -4px 0 12px;
+            padding: 0 4px;
+            color: rgba(196, 190, 178, 0.62);
+            font-size: 11px;
+        }
+
+        #create-chat-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.58);
+            z-index: 22;
+        }
+
+        #create-chat-overlay.visible {
+            display: flex;
+        }
+
+        #create-chat-box {
+            width: min(420px, 100%);
+            padding: 24px;
+            border: 1px solid rgba(205, 163, 90, 0.4);
+            border-radius: 6px;
+            background: var(--chat-float-color);
+        }
+
+        #create-chat-box h3 {
+            margin-bottom: 8px;
+            font-size: 21px;
+            font-weight: 600;
+        }
+
+        #create-chat-box p {
+            margin-bottom: 18px;
+            color: var(--big-text-color);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #chat-name-input,
+        #create-chat-model {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            color: var(--mini-text-color);
+            background: var(--input-bg-color);
+            font: inherit;
+        }
+
+        .create-chat-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .create-chat-actions button {
+            flex: 1;
+            padding: 11px;
+            border: 0;
+            border-radius: 4px;
+            color: rgb(24, 22, 19);
+            background: var(--accent);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #cancel-chat-btn {
+            color: var(--mini-text-color) !important;
+            background: var(--input-bg-color) !important;
+        }
+
+        .sidebar-section {
+            color: var(--big-text-color);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0 8px 10px;
+            opacity: 0.8;
+        }
+
+        .chat-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 8px;
+            scrollbar-width: none;
+        }
+
+        .chat-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chat-list-empty {
+            margin-top: 10px;
+            color: rgba(196, 190, 178, 0.7);
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 10px 8px;
+        }
+
+        .chat-item {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 6px;
+            padding: 10px 8px;
+            border: 0;
+            border-radius: 4px;
+            color: var(--big-text-color);
+            background: transparent;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .chat-item:hover,
+        .chat-item.active {
+            background: rgba(205, 163, 90, 0.14);
+        }
+
+        .chat-item-row.disabled .chat-item {
+            color: rgba(196, 190, 178, 0.42);
+        }
+
+        .chat-item-row.disabled::after {
+            content: "Plan locked";
+            padding-right: 8px;
+            color: rgba(216, 168, 74, 0.75);
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .chat-item-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-item-row .chat-item {
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
+        .chat-delete {
+            flex: 0 0 28px;
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 4px;
+            color: rgba(220, 160, 150, 0.8);
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .chat-delete:hover {
+            color: white;
+            background: rgba(120, 45, 40, 0.45);
+        }
+
+        #chat-place {
+            max-width: 800px;
+            height: calc(100vh - var(--title-height));
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+        }
+
+        #chat-place::-webkit-scrollbar {
+            display: none;
+        }
+
+        #top-spacer {
+            height: var(--title-height);
+            flex-shrink: 0;
+        }
+
+        #welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 14px;
+            transform: translateY(70px);
+        }
+
+        #welcome-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 100% center;
+            border: 1px solid var(--accent);
+        }
+
+        #welcome h2 {
+            font-size: 23px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        #welcome p {
+            font-size: 15px;
+            color: var(--big-text-color);
+            max-width: 380px;
+            line-height: 1.5;
+        }
+
+        #welcome.hidden {
+            display: none;
+        }
+
+        .user-box {
+            display: flex;
+            width: 100%;
+            height: fit-content;
+            justify-content: right;
+            padding: 0 20px;
+        }
+
+        .user {
+            margin-top: 20px;
+            margin-right: 0;
+            display: flex;
+            float: right;
+            max-width: 650px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            font-size: 16px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: var(--user-bubble);
+            color: var(--mini-text-color);
+        }
+
+        .bot-box {
+            display: flex;
+            width: 100%;
+            justify-content: left;
+            gap: 10px;
+            padding: 0 20px;
+        }
+
+        #bot-avatar {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-top: 20px;
+            object-fit: cover;
+            object-position: 100% center;
+            border: 1px solid var(--accent-2);
+        }
+
+        .bot{
+            margin-top: 20px;
+            margin-left: 0px;
+            margin-right: 0;
+            display: flex;
+            flex-direction: column;
+            max-width: calc(100% - 90px);
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            font-size: 16px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: var(--chat-float-color);
+            border-left: 2px solid var(--accent);
+            color: var(--mini-text-color);
+            white-space: pre-line;
+        }
+
+        form {
+            position: fixed;
+            left: calc(260px + (100vw - 260px) / 2);
+            bottom: 15px;
+            transform: translateX(-50%);
+            width: min(calc(100vw - 260px - 24px), 750px);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 5;
+        }
+
+        .chat-shell.collapsed form {
+            left: 50%;
+            width: min(calc(100vw - 24px), 750px);
+        }
+
+        #chat-input {
+            width: 100%;
+            max-height: 160px;
+            padding: 16px;
+            font-size: 15px;
+            color: var(--mini-text-color);
+            background-color: var(--input-bg-color);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-left: 0;
+            resize: none;
+            overflow-y: auto;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            line-height: 1.4;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #chat-input::-webkit-scrollbar {
+            display: none;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        #gap-blocker {
+            flex-shrink: 0;
+            width: 10px;
+            align-self: stretch;
+            background-color: var(--bg-color);
+        }
+
+        #send-btn {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            margin-right: 0;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--accent);
+            color: rgb(24, 22, 19);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: background-color 0.1s ease, transform 0.1s ease;
+        }
+
+        #send-btn:active {
+            transform: scale(0.94);
+        }
+
+        #send-btn:disabled {
+            background-color: var(--input-bg-color);
+            color: var(--big-text-color);
+            cursor: not-allowed;
+        }
+
+        #send-btn svg {
+            display: block;
+            width: 22px;
+            height: 22px;
+        }
+
+        #send-btn:hover:not(:disabled) {
+            background-color: rgb(224, 184, 112);
+        }
+
+        #spacer {
+            display: flex;
+            width: 100%;
+            height: 210px;
+            flex-shrink: 0;
+        }
+
+        .black-out {
+            position: fixed;
+            left: calc(260px + max(0px, (100vw - 260px - 800px) / 2));
+            width: calc(100vw - 260px);
+            height: 80px;
+            bottom: 0;
+            background: var(--bg-color);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .chat-shell.collapsed .black-out {
+            left: max(0px, (100vw - 800px) / 2);
+            width: min(800px, 100vw);
+        }
+
+        .black-out form {
+            pointer-events: auto;
+        }
+
+        .bot-reply {
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .bot-caption {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--big-text-color);
+            letter-spacing: 0.2px;
+            line-height: 1.6;
+        }
+
+        #popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        #popup-overlay.visible {
+            display: flex;
+        }
+
+        #popup-box {
+            background-color: var(--chat-float-color);
+            border: 1px solid rgba(205, 163, 90, 0.4);
+            border-radius: 6px;
+            padding: 22px 24px;
+            max-width: 320px;
+            text-align: center;
+            color: var(--mini-text-color);
+        }
+
+        #popup-box img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 100% center;
+            margin-bottom: 10px;
+            border: 1px solid var(--accent-2);
+        }
+
+        #popup-box h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--coin-color);
+        }
+
+        #popup-box p {
+            font-size: 14px;
+            color: var(--big-text-color);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        #popup-close {
+            background-color: var(--accent);
+            border: none;
+            color: rgb(24, 22, 19);
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #popup-close:hover {
+            background-color: rgb(224, 184, 112);
+        }
+
+
+        #new-answer {
+            position: fixed;
+            right: 24px;
+            bottom: 228px;
+            z-index: 7;
+            display: none;
+            border: 1px solid var(--accent-2);
+            border-radius: 6px;
+            padding: 10px 15px;
+            color: var(--mini-text-color);
+            background: rgba(32, 30, 27, 0.96);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        #new-answer.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">
+        <span id="title-main">
+            <img id="title-icon" src="/views/images/snortle.png" alt="">
+            Snortle AI
+        </span>
+        <span id="coin-counter">
+            <span class="coin-pill"><span class="coin-label">Free:</span> <span id="free-coin-amount">30.000</span></span>
+            <span class="coin-pill"><span class="coin-label">Paid:</span> <span id="paid-coin-amount">0.000</span></span>
+            <span class="coin-pill"><span class="coin-label">Next:</span> <span id="coin-countdown">--:--:--</span></span>
+        </span>
+    </h1>
+
+    <button class="sidebar-toggle is-open" id="sidebarToggle" aria-label="Toggle sidebar">‹</button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <img src="/views/images/snortle.png" alt="">
+                <span>Snortle AI</span>
+            </div>
+        </div>
+
+        <button class="new-chat-btn" id="newChatBtn" type="button">+ New chat</button>
+        <select class="model-picker" id="planPicker" aria-label="Temporary plan selection"></select>
+        <div class="model-lock">Temporary testing plan selector.</div>
+        <div class="model-picker" id="modelPicker">No chat selected</div>
+        <div class="model-lock">The model is locked when a chat is created.</div>
+        <div class="sidebar-actions">
+            <button class="sidebar-link" id="homeBtn" type="button">Home</button>
+            <button class="sidebar-link" id="plansBtn" type="button">Plans</button>
+            <button class="sidebar-link" id="settingsBtn" type="button">Settings</button>
+        </div>
+        <div class="sidebar-section">Chats</div>
+        <div class="chat-list" id="chatList">
+            <div class="chat-list-empty">Click + New chat to begin.</div>
+        </div>
+    </div>
+
+    <div class="chat-shell" id="chatShell">
+        <main id="chat-place">
+            <div id="top-spacer"></div>
+            <div id="welcome">
+                <img id="welcome-icon" src="/views/images/snortle.png" alt="">
+                <h2>Ready when you are</h2>
+                <p>Ask Snortle anything. Use Snortz Coins (Snore + Hertz).</p>
+            </div>
+            <div id="spacer"></div>
+            <div class="black-out">
+                <form id="form">
+                    <textarea id="chat-input" autocomplete="off" placeholder="Connecting..." rows="1"></textarea>
+                    <div id="gap-blocker"></div>
+                    <button type="submit" id="send-btn" aria-label="Send">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <polyline points="6 11 12 5 18 11"></polyline>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div id="popup-overlay">
+        <div id="popup-box">
+            <img src="/views/images/snortle.png" alt="">
+            <h3 id="popup-title">Almost out of coins</h3>
+            <p id="popup-text">You're under 0.5 Snortz Coins, so you can't send any more prompts right now.</p>
+            <button id="popup-close">Got it</button>
+        </div>
+    </div>
+
+    <div class="settings-overlay" id="settings-overlay" aria-hidden="true">
+        <section id="settings-box" class="settings-box" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+            <button class="settings-close" id="settings-close" type="button" aria-label="Close">×</button>
+            <h3 id="settings-title"><img src="/views/images/snortz-coin.png" alt="Snortz Coin"> Snortz Coin wallets</h3>
+            <div class="wallet-row"><span>Free wallet</span><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="free-wallet-amount">0.000</strong></span></div>
+            <div class="wallet-row"><span>Purchased wallet</span><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="purchased-wallet-amount">0.000</strong></span></div>
+            <div class="settings-divider"></div>
+            <div class="settings-row"><span>Current plan</span><strong id="current-plan">Free</strong></div>
+            <div class="settings-row"><span>Next Snortz Coins</span><strong id="next-coins-time">--:--:--</strong></div>
+            <div class="settings-divider"></div>
+            <button class="logout-btn" id="logout-btn" type="button">Log out</button>
+            <button class="settings-btn--danger" id="delete-account-btn" type="button">Delete account</button>
+        </section>
+    </div>
+
+    <div id="create-chat-overlay" aria-hidden="true">
+        <section id="create-chat-box" role="dialog" aria-modal="true" aria-labelledby="create-chat-title">
+            <h3 id="create-chat-title">Create a chat</h3>
+            <p>Choose a name and model. The model cannot be changed after creation.</p>
+            <input id="chat-name-input" type="text" maxlength="80" placeholder="Chat name" autocomplete="off">
+            <select id="create-chat-model" aria-label="Choose a model"></select>
+            <div class="create-chat-actions">
+                <button id="cancel-chat-btn" type="button">Cancel</button>
+                <button id="confirm-chat-btn" type="button">Create chat</button>
+            </div>
+        </section>
+    </div>
+
+    <button id="new-answer" type="button">New answer ↓</button>
+
+    <script src="/views/shared-settings.js"></script>
+    <script type="module">
+        async function requireAuth() {
+            try {
+                const response = await fetch('/api/session-status');
+                const data = await response.json();
+                if (!data.loggedIn) {
+                    window.location.href = '/';
+                    return false;
+                }
+                return data;
+            } catch (error) {
+                window.location.href = '/';
+                return false;
+            }
+        }
+
+        const sessionData = await requireAuth();
+        if (!sessionData) {
+            throw new Error('Not authenticated');
+        }
+
+        const temporaryPlanSelectorEnabled = Boolean(sessionData.temporaryPlanSelectorEnabled);
+        let freeCoinBalance = Number(sessionData.freeSnortzCoins ?? sessionData.snortzCoins ?? 20);
+        let purchasedCoinBalance = Number(sessionData.purchasedSnortzCoins ?? 0);
+        let coinBalance = freeCoinBalance + purchasedCoinBalance;
+        let nextFreeCoinGrant = sessionData.nextFreeCoinGrant ? Number(sessionData.nextFreeCoinGrant) : null;
+
+        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+        const input = document.getElementById("chat-input");
+        const form = document.getElementById("form");
+        const spacer = document.getElementById("spacer");
+        const freeCoinAmount = document.getElementById("free-coin-amount");
+        const paidCoinAmount = document.getElementById("paid-coin-amount");
+        const coinCountdown = document.getElementById("coin-countdown");
+        const sendBtn = document.getElementById("send-btn");
+        const welcome = document.getElementById("welcome");
+        const popupOverlay = document.getElementById("popup-overlay");
+        const popupTitle = document.getElementById("popup-title");
+        const popupText = document.getElementById("popup-text");
+        const popupClose = document.getElementById("popup-close");
+        const sidebar = document.getElementById("sidebar");
+        const chatShell = document.getElementById("chatShell");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        const newChatBtn = document.getElementById("newChatBtn");
+        const planPicker = document.getElementById("planPicker");
+        const modelPicker = document.getElementById("modelPicker");
+        const temporaryPlanHint = document.querySelector('.model-lock');
+        const createChatOverlay = document.getElementById("create-chat-overlay");
+        const chatNameInput = document.getElementById("chat-name-input");
+        const createChatModel = document.getElementById("create-chat-model");
+        const cancelChatBtn = document.getElementById("cancel-chat-btn");
+        const confirmChatBtn = document.getElementById("confirm-chat-btn");
+        const homeBtn = document.getElementById("homeBtn");
+        const settingsBtn = document.getElementById("settingsBtn");
+        const chatList = document.getElementById("chatList");
+        const settingsOverlay = document.getElementById("settings-overlay");
+        const settingsClose = document.getElementById("settings-close");
+        const freeWalletAmount = document.getElementById("free-wallet-amount");
+        const purchasedWalletAmount = document.getElementById("purchased-wallet-amount");
+        const currentPlan = document.getElementById("current-plan");
+        const nextCoinsTime = document.getElementById("next-coins-time");
+        const logoutBtn = document.getElementById("logout-btn");
+        const deleteAccountBtn = document.getElementById("delete-account-btn");
+        const newAnswer = document.getElementById("new-answer");
+        const chatPlace = document.getElementById("chat-place");
+
+        const LOW_COIN_WARNING_THRESHOLD = 1;
+        const CANNOT_PROMPT_THRESHOLD = 0.5;
+        const HOUR_IN_MS_CLIENT = 60 * 60 * 1000;
+
+        let catalogData = null;
+
+        function updateModelOptions() {
+            createChatModel.innerHTML = '';
+            const plan = catalogData.plans.find((entry) => entry.id === activePlanId) || catalogData.plans[0];
+            catalogData.models.forEach((model) => {
+                const option = document.createElement('option');
+                option.value = model.space;
+                option.textContent = `${model.name} (${model.tier}${model.available === false ? ", test Space" : ""})`;
+                option.disabled = catalogData.modelAccess[model.tier] > plan.modelAccess;
+                createChatModel.appendChild(option);
+            });
+        }
+
+        async function loadModelCatalog() {
+            const response = await fetch('/api/catalog');
+            if (!response.ok) return;
+            catalogData = await response.json();
+            if (planPicker) {
+                if (!temporaryPlanSelectorEnabled) {
+                    planPicker.hidden = true;
+                    if (temporaryPlanHint) temporaryPlanHint.hidden = true;
+                    return;
+                }
+                planPicker.innerHTML = '';
+                catalogData.plans.forEach((plan) => {
+                    const option = document.createElement('option');
+                    option.value = plan.id;
+                    option.textContent = `${plan.name} (temporary)`;
+                    planPicker.appendChild(option);
+                });
+                planPicker.value = activePlanId;
+            }
+            updateModelOptions();
+        }
+
+        function updateLockedModelLabel(modelId) {
+            const option = [...createChatModel.options].find((entry) => entry.value === modelId);
+            modelPicker.textContent = option ? option.textContent : modelId;
+        }
+
+        function activeModelIsUnlocked() {
+            const plan = catalogData?.plans.find((entry) => entry.id === activePlanId);
+            const model = catalogData?.models.find((entry) => entry.space === activeModelId);
+            return !!(plan && model && catalogData.modelAccess[model.tier] <= plan.modelAccess);
+        }
+
+        function activeModelIsAvailable() {
+            const model = catalogData?.models.find((entry) => entry.space === activeModelId);
+            return !!model && model.available !== false;
+        }
+
+        function canSendInActiveChat() {
+            return !!activeChatId && activeModelIsUnlocked();
+        }
+
+            function showNoChatState() {
+                document.querySelector("#welcome h2").textContent = "Create a chat to begin";
+                document.querySelector("#welcome p").textContent = "Click + New chat to name a conversation and choose a model.";
+                welcome.classList.remove("hidden");
+            }
+
+            function showEmptyChatState() {
+                document.querySelector("#welcome h2").textContent = "Ready when you are";
+                document.querySelector("#welcome p").textContent = "Ask Snortle anything. Use Snortz Coins (Snore + Hertz).";
+                welcome.classList.remove("hidden");
+            }
+
+        let sessionId = Math.random().toString(36).slice(2);
+        let activeChatId = null;
+        let activeModelId = "Snortle-AI/Snortle-Pancake-1";
+        let activePlanId = sessionData.planId || "free";
+        let chatMessages = [];
+        const chatMessagesById = new Map();
+
+        let client = null;
+        let isProcessingQueue = false;
+        const requestQueue = [];
+        const pendingChats = new Set();
+        const disabledChats = new Set();
+        const awayChats = new Set();
+        let lowWarningShown = false;
+        let cannotPromptShown = false;
+        let purchasedCoinWarningShown = false;
+
+        function isNearBottom() {
+            const farThreshold = chatPlace.clientHeight;
+            return chatPlace.scrollHeight - chatPlace.scrollTop - chatPlace.clientHeight < farThreshold;
+        }
+
+        chatPlace.addEventListener("scroll", function() {
+            if (activeChatId && pendingChats.has(activeChatId) && !isNearBottom()) {
+                awayChats.add(activeChatId);
+            }
+        });
+
+        newAnswer.addEventListener("click", function() {
+            chatPlace.scrollTo({ top: chatPlace.scrollHeight, behavior: "smooth" });
+            newAnswer.classList.remove("visible");
+            awayChats.delete(activeChatId);
+        });
+
+        function updateSendAvailability() {
+            const outOfCoins = coinBalance < CANNOT_PROMPT_THRESHOLD;
+            sendBtn.disabled = outOfCoins || !canSendInActiveChat() || pendingChats.has(activeChatId);
+        }
+
+        function showPopup(title, text) {
+            popupTitle.textContent = title;
+            popupText.textContent = text;
+            popupOverlay.classList.add("visible");
+        }
+
+        function updateCoinDisplay() {
+            coinBalance = freeCoinBalance + purchasedCoinBalance;
+            freeCoinAmount.textContent = freeCoinBalance.toFixed(3);
+            paidCoinAmount.textContent = purchasedCoinBalance.toFixed(3);
+            freeWalletAmount.textContent = freeCoinBalance.toFixed(3) + " Snortz Coins";
+            purchasedWalletAmount.textContent = purchasedCoinBalance.toFixed(3) + " Snortz Coins";
+
+            if (activePlanId) {
+                const planName = catalogData ? (catalogData.plans.find(p => p.id === activePlanId)?.name || 'Unknown') : 'Unknown';
+                currentPlan.textContent = planName;
+            }
+
+            if (nextFreeCoinGrant) {
+                const msRemaining = nextFreeCoinGrant - Date.now();
+                if (msRemaining <= 0) {
+                    nextCoinsTime.textContent = 'Arriving...';
+                } else {
+                    nextCoinsTime.textContent = formatCountdown(msRemaining);
+                }
+            } else {
+                nextCoinsTime.textContent = '--:--:--';
+            }
+
+            if (coinBalance < CANNOT_PROMPT_THRESHOLD) {
+                input.placeholder = "Out of Snortz Coins";
+                if (!cannotPromptShown) {
+                    cannotPromptShown = true;
+                    showPopup("Almost out of coins", "You're under 0.5 Snortz Coins, so you can't send any more prompts right now.");
+                }
+            } else if (coinBalance < LOW_COIN_WARNING_THRESHOLD) {
+                if (!lowWarningShown) {
+                    lowWarningShown = true;
+                    showPopup("Running low on coins", "You're under 1 Snortz Coin. Keep an eye on your balance.");
+                }
+            }
+
+            updateSendAvailability();
+        }
+
+        function formatCountdown(msRemaining) {
+            const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const pad = (value) => String(value).padStart(2, "0");
+            return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }
+
+        function updateCoinCountdown() {
+            if (!nextFreeCoinGrant) {
+                coinCountdown.textContent = "--:--:--";
+                return;
+            }
+            const msRemaining = nextFreeCoinGrant - Date.now();
+            if (msRemaining <= 0) {
+                coinCountdown.textContent = "Arriving...";
+                return;
+            }
+            coinCountdown.textContent = formatCountdown(msRemaining);
+        }
+
+        setInterval(updateCoinCountdown, 1000);
+
+        popupClose.addEventListener("click", function() {
+            popupOverlay.classList.remove("visible");
+        });
+
+        function bindSettings() {
+            if (!window.SnortleSettings) return false;
+            window.SnortleSettings.bindSettingsModal({
+                overlay: settingsOverlay,
+                trigger: settingsBtn,
+                closeButtons: [settingsClose],
+                onOpen: async () => {
+                    updateCoinDisplay();
+                }
+            });
+            return true;
+        }
+
+        if (!bindSettings()) {
+            window.addEventListener('load', bindSettings, { once: true });
+        }
+
+        logoutBtn.addEventListener("click", async function() {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/';
+        });
+
+        deleteAccountBtn.addEventListener("click", function() {
+            const confirmed = window.confirm('Are you sure? This cannot be undone.');
+            if (!confirmed) return;
+
+            const deleteModal = document.createElement('div');
+            deleteModal.style.cssText = `
+                position: fixed;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 30;
+            `;
+
+            deleteModal.innerHTML = `
+                <div style="width: min(360px, calc(100% - 36px)); padding: 24px; border: 1px solid rgba(205, 163, 90, 0.4); border-radius: 6px; background: var(--chat-float-color); color: var(--mini-text-color);">
+                    <h3 style="margin-bottom: 12px; font-size: 18px; font-weight: 600;">Delete account</h3>
+                    <p style="color: var(--big-text-color); margin-bottom: 16px; font-size: 14px; line-height: 1.5;">Type <strong>delete account</strong> below to confirm. This is permanent.</p>
+                    <input id="delete-confirm-input" type="text" placeholder="Type here..." style="width: 100%; padding: 11px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); margin-bottom: 16px; font-family: inherit;">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; color: var(--big-text-color); font-size: 13px; font-weight: 700; margin-bottom: 8px;">Bot check: slide to <span id="delete-bot-target">10</span></label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input id="delete-bot-check" type="range" min="0" max="20" value="0" style="flex: 1; height: 6px; cursor: pointer; accent-color: var(--accent);">
+                            <span id="delete-bot-value" style="min-width: 30px; text-align: center; color: var(--accent); font-weight: 700; font-size: 14px;">0</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="delete-cancel" type="button" style="flex: 1; padding: 11px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); font-weight: 700; cursor: pointer;">Cancel</button>
+                        <button id="delete-confirm" type="button" style="flex: 1; padding: 11px; border: 0; border-radius: 4px; background: rgb(200, 80, 70); color: white; font-weight: 700; cursor: pointer;">Delete</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(deleteModal);
+            const deleteInput = deleteModal.querySelector('#delete-confirm-input');
+            const botCheckSlider = deleteModal.querySelector('#delete-bot-check');
+            const botCheckValue = deleteModal.querySelector('#delete-bot-value');
+            const botCheckTarget = Math.floor(Math.random() * 21);
+            deleteModal.querySelector('#delete-bot-target').textContent = botCheckTarget;
+            let botCheckValue_ = 0;
+
+            botCheckSlider.addEventListener('input', () => {
+                botCheckValue_ = Number(botCheckSlider.value);
+                botCheckValue.textContent = botCheckValue_;
+            });
+
+            deleteModal.querySelector('#delete-cancel').addEventListener('click', () => {
+                deleteModal.remove();
+            });
+
+            deleteModal.querySelector('#delete-confirm').addEventListener('click', async () => {
+                if (deleteInput.value !== 'delete account') {
+                    window.alert('Please type "delete account" to confirm.');
+                    return;
+                }
+                if (botCheckValue_ !== botCheckTarget) {
+                    window.alert(`Please slide to ${botCheckTarget}.`);
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/delete-account', { method: 'POST' });
+                    if (!response.ok) {
+                        const result = await response.json();
+                        window.alert(result.message || 'Failed to delete account.');
+                        return;
+                    }
+                    window.location.href = '/';
+                } catch (error) {
+                    window.alert('Error deleting account: ' + error.message);
+                }
+            });
+
+            deleteInput.focus();
+        });
+
+        sidebarToggle.addEventListener("click", function() {
+            const isCollapsed = sidebar.classList.toggle("collapsed");
+            chatShell.classList.toggle("collapsed", isCollapsed);
+            sidebarToggle.textContent = isCollapsed ? "›" : "‹";
+            sidebarToggle.classList.toggle("is-open", !isCollapsed);
+            sidebarToggle.style.left = isCollapsed ? "12px" : "268px";
+        });
+
+        newChatBtn.addEventListener("click", function() {
+            chatNameInput.value = "";
+            createChatOverlay.classList.add("visible");
+            createChatOverlay.setAttribute("aria-hidden", "false");
+            chatNameInput.focus();
+        });
+
+        cancelChatBtn.addEventListener("click", function() {
+            createChatOverlay.classList.remove("visible");
+            createChatOverlay.setAttribute("aria-hidden", "true");
+        });
+
+        createChatOverlay.addEventListener("click", function(event) {
+            if (event.target === createChatOverlay) cancelChatBtn.click();
+        });
+
+        confirmChatBtn.addEventListener("click", async function() {
+            const chatName = chatNameInput.value.trim();
+            if (!chatName) {
+                chatNameInput.focus();
+                return;
+            }
+
+            const response = await fetch("/api/chats", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: chatName, modelId: createChatModel.value })
+            });
+            if (!response.ok) return;
+            const result = await response.json();
+            createChatOverlay.classList.remove("visible");
+            createChatOverlay.setAttribute("aria-hidden", "true");
+            activeChatId = result.chat.id;
+            activeModelId = result.chat.modelId;
+            updateLockedModelLabel(activeModelId);
+            sessionId = activeChatId;
+            chatMessages = [];
+            chatMessagesById.set(activeChatId, chatMessages);
+            showEmptyChatState();
+            document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
+            input.value = "";
+            await connect();
+            updateSendAvailability();
+            resizeInput();
+            const listResponse = await fetch("/api/chats");
+            if (listResponse.ok) renderChatList((await listResponse.json()).chats);
+        });
+
+        homeBtn.addEventListener("click", function() {
+            window.location.href = "/";
+        });
+
+        document.getElementById("plansBtn").addEventListener("click", function() {
+            window.location.href = "/plans";
+        });
+
+
+        async function connect() {
+            if (!activeModelId) return;
+            client = null;
+            if (!activeModelIsAvailable()) {
+                input.placeholder = "Model Space unavailable.";
+                return;
+            }
+            try {
+                client = await Client.connect(activeModelId);
+                input.placeholder = "Ask something...";
+            } catch (err) {
+                input.placeholder = "Failed to connect. Refresh to retry.";
+                console.error("Gradio connect failed:", err);
+            }
+        }
+
+        function scrollDown() {
+            chatPlace.scrollTo({
+                top: chatPlace.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function resizeInput() {
+            input.style.height = "auto";
+            const newHeight = Math.min(input.scrollHeight, 160);
+            input.style.height = newHeight + "px";
+        }
+
+        function renderSavedMessage(message) {
+            if (message.role === "user") {
+                const userBox = document.createElement("div");
+                const user = document.createElement("div");
+                userBox.classList.add("user-box");
+                user.classList.add("user");
+                user.textContent = message.content;
+                userBox.appendChild(user);
+                spacer.before(userBox);
+                return;
+            }
+
+            const botBox = document.createElement("div");
+            botBox.classList.add("bot-box");
+            const avatar = document.createElement("img");
+            avatar.id = "bot-avatar";
+            avatar.src = "/views/images/snortle.png";
+            avatar.alt = "";
+            const bot = document.createElement("div");
+            bot.classList.add("bot");
+            const replyText = document.createElement("div");
+            replyText.classList.add("bot-reply");
+            replyText.textContent = message.content;
+            bot.appendChild(replyText);
+            if (message.thinkTime !== undefined) {
+                const caption = document.createElement("div");
+                caption.classList.add("bot-caption");
+                caption.textContent =
+                    `Thought for ${Number(message.thinkTime).toFixed(2)}s\n` +
+                    `${message.generatedTokens} tokens in ${Number(message.generationTime).toFixed(2)}s\n` +
+                    `${Number(message.totalTime).toFixed(2)}s total\n` +
+                    `${Number(message.spent).toFixed(3)} Snortz Coins`;
+                bot.appendChild(caption);
+            }
+            botBox.appendChild(avatar);
+            botBox.appendChild(bot);
+            spacer.before(botBox);
+        }
+
+        function renderChatList(chats) {
+            chatList.innerHTML = "";
+            if (!chats.length) {
+                chatList.innerHTML = '<div class="chat-list-empty">Click + New chat to begin.</div>';
+                showNoChatState();
+                return;
+            }
+
+            chats.forEach((chat) => {
+                const chatRow = document.createElement("div");
+                chatRow.className = "chat-item-row";
+                if (chat.disabled) {
+                    disabledChats.add(chat.id);
+                    chatRow.classList.add("disabled");
+                }
+                const chatButton = document.createElement("button");
+                chatButton.type = "button";
+                chatButton.className = "chat-item" + (chat.id === activeChatId ? " active" : "");
+                chatButton.textContent = chat.title;
+                chatButton.addEventListener("click", () => loadChat(chat.id));
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.className = "chat-delete";
+                deleteButton.setAttribute("aria-label", `Delete ${chat.title}`);
+                deleteButton.textContent = "×";
+                deleteButton.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    const confirmed = window.confirm(`Delete "${chat.title}"? This can't be undone.`);
+                    if (!confirmed) return;
+                    deleteChat(chat.id);
+                });
+
+                chatRow.appendChild(chatButton);
+                chatRow.appendChild(deleteButton);
+                chatList.appendChild(chatRow);
+            });
+        }
+
+        async function deleteChat(chatId) {
+            const response = await fetch(`/api/chats/${chatId}`, { method: "DELETE" });
+            if (!response.ok) return;
+
+            if (chatId === activeChatId) {
+                activeChatId = null;
+                chatMessages = [];
+                document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
+                welcome.classList.remove("hidden");
+            }
+
+            const listResponse = await fetch("/api/chats");
+            const chats = listResponse.ok ? (await listResponse.json()).chats : [];
+            if (chatId === activeChatId || !activeChatId) {
+                if (chats.length) {
+                    await loadChat(chats[0].id);
+                } else {
+                    await loadChats();
+                }
+            } else {
+                renderChatList(chats);
+            }
+        }
+
+        async function processQueue() {
+            if (isProcessingQueue) return;
+            isProcessingQueue = true;
+            while (requestQueue.length) {
+                const request = requestQueue.shift();
+                pendingChats.add(request.chatId);
+                updateSendAvailability();
+                await reply(request);
+                pendingChats.delete(request.chatId);
+                updateSendAvailability();
+            }
+            isProcessingQueue = false;
+            updateSendAvailability();
+        }
+
+        async function saveChat(chatId = activeChatId) {
+            const messages = chatMessagesById.get(chatId) || [];
+            if (!chatId) return;
+            await fetch(`/api/chats/${chatId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages })
+            });
+            const listResponse = await fetch("/api/chats");
+            if (listResponse.ok) renderChatList((await listResponse.json()).chats);
+        }
+
+        async function loadChat(chatId) {
+            const response = await fetch(`/api/chats/${chatId}`);
+            if (!response.ok) return;
+            const result = await response.json();
+            activeChatId = result.chat.id;
+            activeModelId = result.chat.modelId || "Snortle-AI/Snortle-Pancake-1";
+            updateLockedModelLabel(activeModelId);
+            sessionId = activeChatId;
+            chatMessages = result.chat.messages || [];
+            chatMessagesById.set(activeChatId, chatMessages);
+            await connect();
+            document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
+            welcome.classList.toggle("hidden", chatMessages.length > 0);
+            chatMessages.forEach(renderSavedMessage);
+            renderChatList((await (await fetch("/api/chats")).json()).chats);
+            scrollDown();
+        }
+
+        async function loadChats() {
+            const response = await fetch("/api/chats");
+            if (!response.ok) return;
+            const result = await response.json();
+            if (result.chats.length) {
+                await loadChat(result.chats[0].id);
+                return;
+            }
+
+            renderChatList([]);
+            modelPicker.textContent = "No chat selected";
+            showNoChatState();
+            updateSendAvailability();
+        }
+
+        await loadModelCatalog();
+        if (planPicker && temporaryPlanSelectorEnabled) {
+            planPicker.addEventListener("change", async function() {
+                const response = await fetch('/api/set-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ planId: planPicker.value })
+                });
+                if (!response.ok) {
+                    planPicker.value = activePlanId;
+                    return;
+                }
+
+                activePlanId = planPicker.value;
+                updateModelOptions();
+                updateSendAvailability();
+                nextFreeCoinGrant = Date.now() + HOUR_IN_MS_CLIENT;
+                updateCoinCountdown();
+                if (activeChatId && !activeModelIsUnlocked()) {
+                    showPopup("Chat disabled", "This chat is saved, but its model is not included in your current plan.");
+                }
+            });
+        }
+        await loadChats();
+        resizeInput();
+        updateCoinDisplay();
+        updateCoinCountdown();
+
+        input.addEventListener("input", resizeInput);
+
+        input.addEventListener("keydown", function(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat()) return;
+                form.requestSubmit();
+            }
+        });
+
+        async function reply(request) {
+            const { chatId, text: userInput } = request;
+            const targetMessages = chatMessagesById.get(chatId) || [];
+
+            const botBox = document.createElement("div");
+            botBox.classList.add("bot-box");
+
+            const avatar = document.createElement("img");
+            avatar.id = "bot-avatar";
+            avatar.src = "/views/images/snortle.png";
+            avatar.alt = "";
+
+            const bot = document.createElement("div");
+            bot.classList.add("bot");
+            bot.textContent = "Thinking...";
+
+            botBox.appendChild(avatar);
+            botBox.appendChild(bot);
+            spacer.before(botBox);
+            scrollDown();
+
+            const startTime = performance.now();
+
+            try {
+                if (!activeModelIsAvailable()) {
+                    throw new Error("This model's Hugging Face Space is unavailable.");
+                }
+                if (!client) {
+                    throw new Error("Not connected yet, please wait and try again.");
+                }
+
+                const result = await client.predict("/predict", {
+                    prompt: userInput,
+                    session_id: chatId,
+                    max_tokens: 128,
+                });
+
+                const totalTime = (performance.now() - startTime) / 1000;
+
+                const data = result.data[0];
+                const response = data.output;
+                const thinkTime = data.think_time;
+                const generationTime = data.generation_time;
+                const generatedTokens = data.gen_token_count;
+
+                const thinkCost = thinkTime / 30;
+                const genTokenCost = generatedTokens / 750;
+                const spent = thinkCost + genTokenCost;
+
+                const freeSpent = Math.min(freeCoinBalance, spent);
+                const purchasedSpent = spent - freeSpent;
+                freeCoinBalance -= freeSpent;
+                purchasedCoinBalance = Math.max(0, purchasedCoinBalance - purchasedSpent);
+                updateCoinDisplay();
+
+                if (purchasedSpent > 0 && !purchasedCoinWarningShown) {
+                    purchasedCoinWarningShown = true;
+                    showPopup("Using purchased coins", "You've used up your free Snortz Coins for now, so we've started drawing from your purchased wallet.");
+                }
+
+                const coinUpdate = await fetch('/api/update-coins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        freeSnortzCoins: freeCoinBalance,
+                        purchasedSnortzCoins: purchasedCoinBalance
+                    })
+                });
+                if (!coinUpdate.ok) {
+                    console.error('Failed to save Snortz Coins.');
+                }
+
+                bot.textContent = "";
+
+                const replyText = document.createElement("div");
+                replyText.classList.add("bot-reply");
+                replyText.textContent = response;
+
+                const caption = document.createElement("div");
+                caption.classList.add("bot-caption");
+                caption.textContent =
+                    `Thought for ${thinkTime.toFixed(2)}s\n` +
+                    `${generatedTokens} tokens in ${generationTime.toFixed(2)}s\n` +
+                    `${totalTime.toFixed(2)}s total\n` +
+                    `${spent.toFixed(3)} Snortz Coins`;
+
+                bot.appendChild(replyText);
+                bot.appendChild(caption);
+                targetMessages.push({
+                    role: "assistant",
+                    content: response,
+                    thinkTime,
+                    generationTime,
+                    generatedTokens,
+                    totalTime,
+                    spent
+                });
+                chatMessagesById.set(chatId, targetMessages);
+                await saveChat(chatId);
+            } catch (err) {
+                bot.textContent = "Something went wrong: " + err.message;
+            }
+
+            if (activeChatId === chatId && awayChats.has(chatId)) {
+                newAnswer.classList.add("visible");
+            } else {
+                scrollDown();
+            }
+        }
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat()) return;
+            if (pendingChats.has(activeChatId)) return;
+            if (input.value.trim() === '') return;
+
+            welcome.classList.add("hidden");
+
+            const userBox = document.createElement("div");
+            const user = document.createElement("div");
+
+            user.textContent = input.value;
+
+            userBox.classList.add("user-box");
+            user.classList.add("user");
+
+            spacer.before(userBox);
+            userBox.appendChild(user);
+
+            chatMessages.push({ role: "user", content: user.textContent });
+            chatMessagesById.set(activeChatId, chatMessages);
+            await saveChat();
+
+            scrollDown();
+
+            const toSend = input.value;
+            input.value = "";
+            resizeInput();
+
+            requestQueue.push({ chatId: activeChatId, text: toSend });
+            processQueue();
+        });
+
+        scrollDown();
+    </script>
+</body>
+</html>

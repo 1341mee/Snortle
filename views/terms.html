@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snortle Terms of Service</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: rgb(22, 21, 19);
+            --panel: rgb(32, 30, 27);
+            --text: rgb(240, 236, 228);
+            --muted: rgb(196, 190, 178);
+            --accent: rgb(205, 163, 90);
+            --accent-2: rgb(90, 110, 100);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: "Quicksand", sans-serif;
+        }
+
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 0 28px;
+            background-color: var(--panel);
+            border-bottom: 1px solid rgba(205, 163, 90, 0.4);
+        }
+
+        .brand {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .brand img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+        }
+
+        .home-link {
+            grid-column: 3;
+            justify-self: end;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 9px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            transition: color 0.16s ease, border-color 0.16s ease;
+        }
+
+        .home-link:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        .page {
+            width: min(760px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 100px 0 60px;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: clamp(28px, 4.5vw, 42px);
+            line-height: 1.1;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .updated {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 40px;
+        }
+
+        section.term {
+            margin-bottom: 30px;
+            padding-left: 14px;
+            border-left: 2px solid rgba(205, 163, 90, 0.3);
+        }
+
+        section.term h2 {
+            font-size: 17px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        section.term p {
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        @media (max-width: 760px) {
+            .topbar {
+                padding: 0 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img src="/views/images/snortle.png" alt="">
+            <span>Snortle AI</span>
+        </div>
+        <a class="home-link" href="/">Home</a>
+    </header>
+
+    <main class="page">
+        <div class="eyebrow">Legal</div>
+        <h1>Terms of Service</h1>
+        <div class="updated">Last updated: 8/30/2026</div>
+
+        <section class="term">
+            <h2>1. Ownership of Generated Content</h2>
+            <p>Anything you generate using Snortle AI belongs to you. We don't claim ownership over your outputs.</p>
+        </section>
+
+        <section class="term">
+            <h2>2. No Attribution Required</h2>
+            <p>You're not required to credit Snortle AI when you use, publish, or share content you generate here.</p>
+        </section>
+
+        <section class="term">
+            <h2>3. Distillation & Reuse</h2>
+            <p>You're free to use generated content however you like, including for training, fine-tuning, or distilling other models.</p>
+        </section>
+
+        <section class="term">
+            <h2>4. As-Is Basis</h2>
+            <p>Content is provided "as is," with no guarantees about accuracy or originality. You're responsible for how you use it, including compliance with applicable laws.</p>
+        </section>
+
+        <section class="term">
+            <h2>5. Changes to These Terms</h2>
+            <p>We may update these terms from time to time. Continued use of Snortle AI after changes means you accept the updated terms.</p>
+        </section>
+    </main>
+</body>
+</html>

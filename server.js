@@ -7,8 +7,8 @@ const catalog = require('./catalog');
 const { summarizeUsers } = require('./adminRisk');
 const { getPersistedState, persistState } = require('./data/mongoStore');
 
-const hostname = '127.0.0.1';
-const port = 3001;
+const hostname = '0.0.0.0';
+const port = Number(process.env.PORT) || 3001;
 const rootDir = __dirname;
 const dataFile = path.join(rootDir, 'data', 'store.json');
 const adminAccessKey = process.env.ADMIN_ACCESS_KEY || 'snortle-admin';

@@ -13,9 +13,8 @@
   "type": "commonjs",
   "dependencies": {
     "dotenv": "^17.4.2",
-    "mongodb": "^7.6.0"
-  },
-  "devDependencies": {
+    "mongodb": "^7.6.0",
     "mongodb-memory-server": "^11.2.0"
-  }
+  },
+  "devDependencies": {}
 }

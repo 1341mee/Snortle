@@ -846,6 +846,13 @@
             <div class="settings-row"><span>Current plan</span><strong id="current-plan">Free</strong></div>
             <div class="settings-row"><span>Next Snortz Coins</span><strong id="next-coins-time">--:--:--</strong></div>
             <div class="settings-divider"></div>
+            <label class="settings-theme" for="theme-select">Theme
+                <select id="theme-select">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="green">Eco green</option>
+                </select>
+            </label>
             <button class="logout-btn" id="logout-btn" type="button">Log out</button>
             <button class="settings-btn--danger" id="delete-account-btn" type="button">Delete account</button>
         </section>
@@ -931,6 +938,7 @@
         const nextCoinsTime = document.getElementById("next-coins-time");
         const logoutBtn = document.getElementById("logout-btn");
         const deleteAccountBtn = document.getElementById("delete-account-btn");
+        const themeSelect = document.getElementById("theme-select");
         const newAnswer = document.getElementById("new-answer");
         const chatPlace = document.getElementById("chat-place");
 
@@ -1128,6 +1136,7 @@
                     updateCoinDisplay();
                 }
             });
+            window.SnortleSettings.bindThemeSelector(themeSelect);
             return true;
         }
 

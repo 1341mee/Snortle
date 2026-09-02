@@ -488,6 +488,13 @@
             <div class="settings-row"><span>Current plan</span><strong id="currentPlan">Free</strong></div>
             <div class="settings-row"><span>Next Snortz Coins</span><strong id="settingsNextGrantCountdown">--:--:--</strong></div>
             <div class="settings-divider"></div>
+            <label class="settings-theme" for="themeSelect">Theme
+                <select id="themeSelect">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="green">Eco green</option>
+                </select>
+            </label>
             <button class="logout-btn" id="logoutBtn" type="button">Log out</button>
             <button class="settings-btn--danger" id="deleteAccountBtn" type="button">Delete account</button>
         </section>
@@ -591,6 +598,7 @@
         const currentPlan = document.getElementById('currentPlan');
         const logoutBtn = document.getElementById('logoutBtn');
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const themeSelect = document.getElementById('themeSelect');
 
         let nextFreeCoinGrant = null;
 
@@ -656,6 +664,7 @@
                     await loadWallets();
                 }
             });
+            window.SnortleSettings.bindThemeSelector(themeSelect);
             return true;
         }
 

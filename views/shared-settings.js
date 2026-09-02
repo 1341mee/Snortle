@@ -1,4 +1,23 @@
 (function () {
+  const THEME_STORAGE_KEY = 'snortle-theme';
+
+  function applyTheme(theme) {
+    const allowedThemes = ['dark', 'light', 'green'];
+    const nextTheme = allowedThemes.includes(theme) ? theme : 'dark';
+    document.documentElement.dataset.theme = nextTheme;
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    return nextTheme;
+  }
+
+  function bindThemeSelector(selector) {
+    if (!selector) return;
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+    selector.value = applyTheme(savedTheme);
+    selector.addEventListener('change', () => applyTheme(selector.value));
+  }
+
+  applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || 'dark');
+
   function openModal(overlay) {
     if (!overlay) return;
     overlay.classList.add('visible');
@@ -54,6 +73,7 @@
 
   window.SnortleSettings = {
     bindSettingsModal,
+    bindThemeSelector,
     open: openModal,
     close: closeModal
   };

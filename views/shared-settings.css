@@ -21,6 +21,8 @@
 :root[data-theme='light'] {
   --bg-color: #f5f7f4;
   --bg: #f5f7f4;
+  --text: #26332f;
+  --muted: #53625d;
   --mini-text-color: #26332f;
   --big-text-color: #53625d;
   --chat-float-color: #ffffff;
@@ -43,6 +45,8 @@
 :root[data-theme='green'] {
   --bg-color: #10251d;
   --bg: #10251d;
+  --text: #e6f3e8;
+  --muted: #b7d0bd;
   --mini-text-color: #e6f3e8;
   --big-text-color: #b7d0bd;
   --chat-float-color: #17372b;
@@ -103,6 +107,41 @@
 :root[data-theme='green'] .topbar {
   background: var(--chat-float-color);
   color: var(--mini-text-color);
+}
+
+:root[data-theme='light'] .model-picker,
+:root[data-theme='light'] .settings-theme select {
+  color: #263d34;
+  background: #ffffff;
+  border-color: #a9c0b4;
+}
+
+:root[data-theme='light'] .model-lock,
+:root[data-theme='light'] .sidebar-section,
+:root[data-theme='light'] .chat-list-empty {
+  color: #40584e;
+  opacity: 1;
+}
+
+:root[data-theme='light'] .chat-item {
+  color: #304a3e;
+}
+
+:root[data-theme='light'] .chat-item-row.disabled .chat-item {
+  color: #60776c;
+}
+
+:root[data-theme='light'] .chat-item-row.disabled::after {
+  color: #82601c;
+}
+
+:root[data-theme='light'] .sidebar-brand {
+  color: #263d34;
+}
+
+:root[data-theme='light'] .sidebar-link,
+:root[data-theme='light'] .sidebar-toggle {
+  font-weight: 600;
 }
 
 .settings-overlay {

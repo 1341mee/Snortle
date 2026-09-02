@@ -231,7 +231,7 @@ const server = http.createServer(async (req, res) => {
     });
     saveStore();
 
-    const newSessionToken = createSession(trimmedUsername, STARTING_FREE_SNORTZ_COINS, 2, DEFAULT_PLAN_ID);
+    const newSessionToken = createSession(trimmedUsername, STARTING_FREE_SNORTZ_COINS, 0, DEFAULT_PLAN_ID);
     res.setHeader('Set-Cookie', `session=${newSessionToken}; Path=/; HttpOnly; SameSite=Lax`);
     return sendJson(res, 201, { success: true, message: 'Account created successfully.' });
   }

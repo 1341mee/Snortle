@@ -1074,7 +1074,7 @@
             if (nextFreeCoinGrant) {
                 const msRemaining = nextFreeCoinGrant - Date.now();
                 if (msRemaining <= 0) {
-                    nextCoinsTime.textContent = 'Arriving...';
+                    nextCoinsTime.textContent = 'Updating...';
                 } else {
                     nextCoinsTime.textContent = formatCountdown(msRemaining);
                 }
@@ -1114,10 +1114,31 @@
             }
             const msRemaining = nextFreeCoinGrant - Date.now();
             if (msRemaining <= 0) {
-                coinCountdown.textContent = "Arriving...";
+                coinCountdown.textContent = "Updating...";
+                refreshSessionCoins();
                 return;
             }
             coinCountdown.textContent = formatCountdown(msRemaining);
+        }
+
+        let coinRefreshInFlight = false;
+
+        async function refreshSessionCoins() {
+            if (coinRefreshInFlight) return;
+            coinRefreshInFlight = true;
+            try {
+                const response = await fetch('/api/session-status');
+                const data = await response.json();
+                if (!response.ok || !data.loggedIn) return;
+                freeCoinBalance = Number(data.freeSnortzCoins || 0);
+                purchasedCoinBalance = Number(data.purchasedSnortzCoins || 0);
+                nextFreeCoinGrant = data.nextFreeCoinGrant ? Number(data.nextFreeCoinGrant) : null;
+                updateCoinDisplay();
+            } catch (error) {
+                console.error('Failed to refresh Snortz Coins.', error);
+            } finally {
+                coinRefreshInFlight = false;
+            }
         }
 
         setInterval(updateCoinCountdown, 1000);

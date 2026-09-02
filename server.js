@@ -224,7 +224,7 @@ const server = http.createServer(async (req, res) => {
       passwordHash,
       salt,
       freeSnortzCoins: STARTING_FREE_SNORTZ_COINS,
-      purchasedSnortzCoins: 2,
+      purchasedSnortzCoins: 0,
       chats: [],
       planId: DEFAULT_PLAN_ID,
       lastFreeCoinGrant: Date.now()

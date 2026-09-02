@@ -1,3 +1,7 @@
+:root {
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+}
+
 .settings-theme {
   display: flex;
   flex-direction: column;
@@ -142,6 +146,68 @@
 :root[data-theme='light'] .sidebar-link,
 :root[data-theme='light'] .sidebar-toggle {
   font-weight: 600;
+}
+
+:root[data-theme='light'] .plan {
+  border-color: #cbd9d2;
+}
+
+:root[data-theme='light'] .plan.plus {
+  border-color: #c49a4f;
+}
+
+:root[data-theme='light'] .plan.pro {
+  border-color: #78a68e;
+}
+
+:root[data-theme='light'] .detail {
+  color: #304a3e;
+  background: #edf3ef;
+  border-color: #a9c4b5;
+}
+
+:root[data-theme='light'] .coin-rule {
+  color: #40584e;
+  background: #eef4f0;
+}
+
+:root[data-theme='light'] .coin-package {
+  border-color: #c6d9ce;
+}
+
+:root[data-theme='light'] .settings-box .logout-btn {
+  color: #304a3e;
+  background: #e8f0eb;
+  border-color: #a9c4b5;
+}
+
+:root[data-theme='light'] .settings-box .logout-btn:hover {
+  background: #d8e8de;
+  border-color: #287a62;
+}
+
+:root[data-theme='light'] .settings-box .settings-btn--danger {
+  color: #8d342d;
+  background: #fff0ee;
+  border-color: #e0aaa4;
+}
+
+:root[data-theme='light'] .settings-box .settings-btn--danger:hover {
+  background: #ffe3df;
+  border-color: #b94f45;
+}
+
+:root[data-theme='light'] #delete-confirm-input,
+:root[data-theme='light'] #delete-cancel {
+  color: #26332f !important;
+  background: #ffffff !important;
+  border-color: #a9c4b5 !important;
+}
+
+:root[data-theme='light'] #delete-modal,
+:root[data-theme='light'] #delete-modal > div {
+  color: #26332f !important;
+  background: #ffffff !important;
 }
 
 .settings-overlay {

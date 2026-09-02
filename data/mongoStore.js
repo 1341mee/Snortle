@@ -24,7 +24,12 @@ async function startMemoryMongoIfNeeded() {
 async function getMongoClient() {
   if (!mongoClient) {
     const uri = await startMemoryMongoIfNeeded();
-    mongoClient = new MongoClient(uri);
+    mongoClient = new MongoClient(uri, {
+      family: 4,
+      connectTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 15000,
+      maxPoolSize: 10
+    });
   }
   return mongoClient;
 }

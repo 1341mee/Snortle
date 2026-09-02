@@ -227,6 +227,7 @@ const server = http.createServer(async (req, res) => {
       purchasedSnortzCoins: 0,
       chats: [],
       planId: DEFAULT_PLAN_ID,
+      theme: 'dark',
       lastFreeCoinGrant: Date.now()
     });
     saveStore();
@@ -283,8 +284,25 @@ const server = http.createServer(async (req, res) => {
       planId: isLoggedIn ? plan.id : null,
       hourlyFreeCoins: isLoggedIn ? plan.hourlyFreeCoins : 0,
       temporaryPlanSelectorEnabled: isLoggedIn && (sessionData.username === 'admin' || !!catalog.temporaryPlanSelectorEnabled),
+      theme: isLoggedIn ? (users.get(sessionData.username)?.theme || 'dark') : 'dark',
       nextFreeCoinGrant: isLoggedIn ? sessionData.lastFreeCoinGrant + HOUR_IN_MS : null
     });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/theme') {
+    const sessionData = getAuthenticatedSession(req);
+    if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
+
+    const { theme } = await parseBody(req);
+    if (!['dark', 'light', 'green'].includes(theme)) {
+      return sendJson(res, 400, { success: false, message: 'Unknown theme.' });
+    }
+
+    const user = users.get(sessionData.username);
+    if (!user) return sendJson(res, 404, { success: false, message: 'User not found.' });
+    user.theme = theme;
+    await saveStore();
+    return sendJson(res, 200, { success: true, theme });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/catalog') {

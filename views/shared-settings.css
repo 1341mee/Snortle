@@ -32,6 +32,11 @@
   --user-bubble: #d7ebe2;
   --coin-color: #a46b16;
   --coin: #a46b16;
+  --sidebar-bg: #e8efeb;
+  --sidebar-control: #f8faf9;
+  --sidebar-border: #c7d8cf;
+  --sidebar-muted: #53635d;
+  --nav-text: #30433b;
   color-scheme: light;
 }
 
@@ -49,7 +54,55 @@
   --user-bubble: #2e6048;
   --coin-color: #e6c86e;
   --coin: #e6c86e;
+  --sidebar-bg: #0c1d16;
+  --sidebar-control: #17372b;
+  --sidebar-border: #35614d;
+  --sidebar-muted: #b7d0bd;
+  --nav-text: #e6f3e8;
   color-scheme: dark;
+}
+
+:root[data-theme='light'] .sidebar,
+:root[data-theme='green'] .sidebar {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+}
+
+:root[data-theme='light'] .sidebar-header,
+:root[data-theme='green'] .sidebar-header {
+  border-color: var(--sidebar-border);
+}
+
+:root[data-theme='light'] .sidebar-brand,
+:root[data-theme='green'] .sidebar-brand,
+:root[data-theme='light'] .sidebar-section,
+:root[data-theme='green'] .sidebar-section {
+  color: var(--sidebar-muted);
+}
+
+:root[data-theme='light'] .sidebar-link,
+:root[data-theme='green'] .sidebar-link,
+:root[data-theme='light'] .sidebar-toggle,
+:root[data-theme='green'] .sidebar-toggle {
+  color: var(--nav-text);
+  background: var(--sidebar-control);
+  border-color: var(--sidebar-border);
+}
+
+:root[data-theme='light'] .sidebar-link:hover,
+:root[data-theme='green'] .sidebar-link:hover,
+:root[data-theme='light'] .sidebar-toggle:hover,
+:root[data-theme='green'] .sidebar-toggle:hover {
+  border-color: var(--accent);
+  background: var(--input-bg-color);
+}
+
+:root[data-theme='light'] .title,
+:root[data-theme='green'] .title,
+:root[data-theme='light'] .topbar,
+:root[data-theme='green'] .topbar {
+  background: var(--chat-float-color);
+  color: var(--mini-text-color);
 }
 
 .settings-overlay {

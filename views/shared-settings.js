@@ -1,22 +1,37 @@
 (function () {
-  const THEME_STORAGE_KEY = 'snortle-theme';
-
   function applyTheme(theme) {
     const allowedThemes = ['dark', 'light', 'green'];
     const nextTheme = allowedThemes.includes(theme) ? theme : 'dark';
     document.documentElement.dataset.theme = nextTheme;
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
     return nextTheme;
   }
 
-  function bindThemeSelector(selector) {
+  async function bindThemeSelector(selector) {
     if (!selector) return;
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
-    selector.value = applyTheme(savedTheme);
-    selector.addEventListener('change', () => applyTheme(selector.value));
+    try {
+      const response = await fetch('/api/session-status');
+      const session = await response.json();
+      selector.value = applyTheme(session.theme || 'dark');
+    } catch (error) {
+      selector.value = applyTheme('dark');
+      console.error('Could not load saved theme:', error);
+    }
+    selector.addEventListener('change', async () => {
+      const theme = applyTheme(selector.value);
+      try {
+        const response = await fetch('/api/theme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ theme })
+        });
+        if (!response.ok) throw new Error('Theme could not be saved.');
+      } catch (error) {
+        console.error('Could not save theme:', error);
+      }
+    });
   }
 
-  applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || 'dark');
+  applyTheme('dark');
 
   function openModal(overlay) {
     if (!overlay) return;

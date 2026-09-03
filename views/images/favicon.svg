@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Snortle AI">
+  <g transform="translate(-8, -8) scale(1.25)">
+    <path d="M 15 38 C 15 25, 35 22, 50 28 C 62 33, 68 38, 68 42 C 68 46, 60 52, 45 55 C 30 58, 15 52, 15 38 Z" fill="#b8860b" transform="translate(10, -8) scale(-1, 1)" transform-origin="center"/>
+    <circle cx="43" cy="26" r="4" fill="#ffffff"/>
+    <path d="M 50 37 Q 53 37 56.9 35" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" transform="rotate(10 52.5 35.5)"/>
+  </g>
+</svg>

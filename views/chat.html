@@ -2052,19 +2052,72 @@
                     throw new Error("Not connected yet, please wait and try again.");
                 }
 
-                const result = await client.predict("/predict", {
+                // submit() returns an async iterable that yields messages
+                // as the Gradio generator function yields values.
+                const submission = client.submit("/predict", {
                     prompt: userInput,
                     session_id: chatId,
                     max_tokens: 128,
                 });
 
+                let lastData = null;
+                let botReplyEl = null;
+                let botBoxEl = null;
+
+                for await (const message of submission) {
+                    // Skip status messages (e.g. "generating", "queue", etc.)
+                    if (message.type === "status") continue;
+
+                    const data = message.data && message.data[0];
+                    if (!data) continue;
+                    lastData = data;
+
+                    // Only update the live UI if the user is still viewing this chat.
+                    if (activeChatId === chatId) {
+                        // Create the bot message element on first chunk,
+                        // or recreate it if it was removed by a chat switch.
+                        if (!botBoxEl || !botBoxEl.isConnected) {
+                            // Remove the thinking indicator for this message.
+                            document.querySelectorAll(".thinking-box").forEach(t => t.remove());
+
+                            botBoxEl = document.createElement("div");
+                            botBoxEl.classList.add("bot-box");
+
+                            const avatar = document.createElement("img");
+                            avatar.id = "bot-avatar";
+                            avatar.src = "/views/images/snortle.png";
+                            avatar.alt = "";
+
+                            const bot = document.createElement("div");
+                            bot.classList.add("bot");
+
+                            botReplyEl = document.createElement("div");
+                            botReplyEl.classList.add("bot-reply");
+
+                            bot.appendChild(botReplyEl);
+                            botBoxEl.appendChild(avatar);
+                            botBoxEl.appendChild(bot);
+
+                            spacer.before(botBoxEl);
+                        }
+
+                        // data.output is the accumulated text so far (all chunks joined).
+                        botReplyEl.textContent = data.output || "";
+                        scrollDown();
+                    }
+                }
+
+                if (!lastData) {
+                    throw new Error("No response received from the model.");
+                }
+
                 const totalTime = (performance.now() - startTime) / 1000;
 
-                const data = result.data[0];
-                const response = data.output;
-                const thinkTime = data.think_time;
-                const generationTime = data.generation_time;
-                const generatedTokens = data.gen_token_count;
+                // Extract metadata from the final streamed message.
+                const response = lastData.output || "";
+                const thinkTime = lastData.think_time || 0;
+                const generationTime = lastData.generation_time || 0;
+                const generatedTokens = lastData.gen_token_count || 0;
 
                 const thinkCost = thinkTime / 30;
                 const genTokenCost = generatedTokens / 750;
@@ -2108,6 +2161,8 @@
                 if (activeChatId === chatId) {
                     unreadChats.delete(chatId);
                     const wasNearBottom = isNearBottom();
+                    // Re-render all messages so the metadata caption (think time,
+                    // token count, cost) appears below the response.
                     document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
                     targetMessages.forEach(renderSavedMessage);
                     if (wasNearBottom) {

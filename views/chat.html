@@ -23,6 +23,15 @@
             --user-bubble: rgb(68, 60, 48);
             --coin-color: rgb(216, 168, 74);
             --title-height: 60px;
+            --sidebar-w: 60px;
+        }
+
+        body.sidebar-expanded {
+            --sidebar-w: 260px;
+        }
+
+        body.sidebar-collapsed {
+            --sidebar-w: 0px;
         }
 
         * {
@@ -125,7 +134,7 @@
         }
 
         .chat-shell {
-            margin-left: 260px;
+            margin-left: var(--sidebar-w);
             height: calc(100vh - var(--title-height));
             transition: margin-left 0.2s ease;
         }
@@ -138,7 +147,7 @@
             position: fixed;
             top: var(--title-height);
             left: 0;
-            width: 260px;
+            width: var(--sidebar-w);
             height: calc(100vh - var(--title-height));
             background: rgb(14, 13, 12);
             border-right: 1px solid rgba(205, 163, 90, 0.28);
@@ -146,12 +155,32 @@
             flex-direction: column;
             overflow: hidden;
             padding: 14px 12px 18px;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, width 0.2s ease;
             z-index: 8;
         }
 
         .sidebar.collapsed {
             transform: translateX(-100%);
+        }
+
+        .sidebar .label,
+        .sidebar .brand-text,
+        .sidebar .sidebar-section,
+        .sidebar .chat-list,
+        .sidebar .model-picker,
+        .sidebar .model-lock {
+            opacity: 0;
+            white-space: nowrap;
+            transition: opacity 0.15s ease;
+        }
+
+        body.sidebar-expanded .sidebar .label,
+        body.sidebar-expanded .sidebar .brand-text,
+        body.sidebar-expanded .sidebar .sidebar-section,
+        body.sidebar-expanded .sidebar .chat-list,
+        body.sidebar-expanded .sidebar .model-picker,
+        body.sidebar-expanded .sidebar .model-lock {
+            opacity: 1;
         }
 
         .sidebar-header {
@@ -185,7 +214,7 @@
         .sidebar-toggle {
             position: fixed;
             top: calc(var(--title-height) + 16px);
-            left: 12px;
+            left: calc(var(--sidebar-w) + 8px);
             width: 34px;
             height: 34px;
             border-radius: 4px;
@@ -203,11 +232,15 @@
             border-color: var(--accent);
         }
 
-        .sidebar-toggle.is-open {
-            left: 268px;
+        body.sidebar-collapsed .sidebar-toggle {
+            left: 12px;
         }
 
         .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             border: 1px solid rgba(205, 163, 90, 0.4);
             border-radius: 4px;
             background: var(--accent);
@@ -230,6 +263,9 @@
         }
 
         .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             width: 100%;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 4px;
@@ -295,6 +331,7 @@
             margin-bottom: 8px;
             font-size: 21px;
             font-weight: 600;
+            color: var(--mini-text-color);
         }
 
         #create-chat-box p {
@@ -389,6 +426,45 @@
         .chat-item:hover,
         .chat-item.active {
             background: rgba(205, 163, 90, 0.14);
+        }
+
+        .chat-item.pending,
+        .chat-item.unread {
+            position: relative;
+        }
+
+        .chat-item.pending::after,
+        .chat-item.unread::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            margin-top: -4px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .thinking-box {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .thinking-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+            border: 1px solid var(--accent);
+            animation: pulse-thinking 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-thinking {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
 
         .chat-item-row.disabled .chat-item {
@@ -551,10 +627,10 @@
 
         form {
             position: fixed;
-            left: calc(260px + (100vw - 260px) / 2);
+            left: calc(var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2);
             bottom: 15px;
             transform: translateX(-50%);
-            width: min(calc(100vw - 260px - 24px), 750px);
+            width: min(calc(100vw - var(--sidebar-w) - 24px), 750px);
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -647,8 +723,8 @@
 
         .black-out {
             position: fixed;
-            left: calc(260px + max(0px, (100vw - 260px - 800px) / 2));
-            width: calc(100vw - 260px);
+            left: calc(var(--sidebar-w) + max(0px, (100vw - var(--sidebar-w) - 800px) / 2));
+            width: calc(100vw - var(--sidebar-w));
             height: 80px;
             bottom: 0;
             background: var(--bg-color);
@@ -745,11 +821,94 @@
         }
 
 
-        #new-answer {
+        .connection-error {
             position: fixed;
             right: 24px;
-            bottom: 228px;
+            bottom: 140px;
             z-index: 7;
+            display: none;
+            border: 1px solid rgba(200, 80, 70, 0.5);
+            border-radius: 6px;
+            padding: 10px 15px;
+            color: rgb(240, 180, 170);
+            background: rgba(45, 20, 20, 0.96);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+            max-width: 300px;
+        }
+
+        .connection-error.visible {
+            display: block;
+        }
+
+        #form.no-chat {
+            display: none;
+        }
+
+        .black-out.no-chat {
+            display: none;
+        }
+
+        .no-chat-overlay {
+            position: fixed;
+            left: calc(var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2);
+            width: min(calc(100vw - var(--sidebar-w) - 24px), 750px);
+            bottom: 20px;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: none;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(205, 163, 90, 0.4);
+            background: var(--input-bg-color);
+            color: var(--mini-text-color);
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .no-chat-overlay.visible {
+            display: block;
+        }
+
+        .no-chat-overlay button {
+            margin-top: 12px;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 4px;
+            background: var(--accent);
+            color: rgb(24, 22, 19);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .no-chat-overlay button:hover {
+            background: rgb(224, 184, 112);
+        }
+
+        #answer-notification-container {
+            position: fixed;
+            left: calc(var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2);
+            bottom: 100px;
+            transform: translateX(-50%);
+            width: min(calc(100vw - var(--sidebar-w) - 24px), 750px);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        .chat-shell.collapsed #answer-notification-container {
+            left: 50%;
+            width: min(calc(100vw - 24px), 750px);
+        }
+
+        #answer-notification-container > * {
+            pointer-events: auto;
+        }
+
+        #new-answer {
+            position: relative;
             display: none;
             border: 1px solid var(--accent-2);
             border-radius: 6px;
@@ -758,10 +917,177 @@
             background: rgba(32, 30, 27, 0.96);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
         }
 
         #new-answer.visible {
+            display: inline-block;
+        }
+
+        #scroll-to-bottom-btn {
+            position: relative;
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-2);
+            background: rgba(32, 30, 27, 0.96);
+            color: var(--mini-text-color);
+            cursor: pointer;
+            font-size: 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        #scroll-to-bottom-btn.visible {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #new-answer {
+            position: relative;
+            right: auto;
+            bottom: auto;
+            display: none;
+            border: 1px solid var(--accent-2);
+            border-radius: 6px;
+            padding: 10px 15px;
+            color: var(--mini-text-color);
+            background: rgba(32, 30, 27, 0.96);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+
+        #new-answer.visible {
+            display: inline-block;
+        }
+
+        #scroll-to-bottom-btn {
+            position: relative;
+            right: auto;
+            bottom: auto;
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-2);
+            background: rgba(32, 30, 27, 0.96);
+            color: var(--mini-text-color);
+            cursor: pointer;
+            font-size: 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        #scroll-to-bottom-btn.visible {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ---------- Sidebar rail fixes ---------- */
+        .sidebar {
+            padding: 14px 10px 18px;
+        }
+
+        .sidebar .icon {
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-brand img {
+            flex-shrink: 0;
+        }
+
+        .chat-initial {
+            display: none;
+        }
+
+        /* Narrow rail (not hovered): remove everything that doesn't fit */
+        body:not(.sidebar-expanded) .sidebar .label,
+        body:not(.sidebar-expanded) .sidebar .brand-text,
+        body:not(.sidebar-expanded) .sidebar .sidebar-section,
+        body:not(.sidebar-expanded) .sidebar .model-picker,
+        body:not(.sidebar-expanded) .sidebar .model-lock,
+        body:not(.sidebar-expanded) .sidebar .chat-list-empty,
+        body:not(.sidebar-expanded) .sidebar .chat-delete,
+        body:not(.sidebar-expanded) .sidebar .chat-title,
+        body:not(.sidebar-expanded) .sidebar .chat-item-row.disabled::after {
+            display: none;
+        }
+
+        /* Center the logo, New chat, and the Home/Plans/Settings buttons */
+        body:not(.sidebar-expanded) .sidebar .sidebar-header {
+            padding: 6px 0 14px;
+            justify-content: center;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .sidebar-brand {
+            gap: 0;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .new-chat-btn,
+        body:not(.sidebar-expanded) .sidebar .sidebar-link {
+            padding: 11px 0;
+            gap: 0;
+            justify-content: center;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .new-chat-btn .icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        /* Chats become little boxes showing the first letter */
+        body:not(.sidebar-expanded) .sidebar .chat-list {
+            opacity: 1;
+            padding: 0;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .chat-initial {
             display: block;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .chat-item-row {
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .chat-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 39px;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        body:not(.sidebar-expanded) .sidebar .chat-item:hover,
+        body:not(.sidebar-expanded) .sidebar .chat-item.active {
+            border-color: var(--accent);
+            background: rgba(205, 163, 90, 0.14);
+        }
+
+        body:not(.sidebar-expanded) .sidebar .chat-item.pending::after,
+        body:not(.sidebar-expanded) .sidebar .chat-item.unread::after {
+            top: 5px;
+            right: 5px;
+            margin-top: 0;
+        }
+
+        body:not(.sidebar-expanded) .sidebar .chat-item-row.disabled .chat-item {
+            opacity: 0.45;
         }
     </style>
 </head>
@@ -784,19 +1110,20 @@
         <div class="sidebar-header">
             <div class="sidebar-brand">
                 <img src="/views/images/snortle.png" alt="">
-                <span>Snortle AI</span>
+                <span class="brand-text">Snortle AI</span>
             </div>
         </div>
 
-        <button class="new-chat-btn" id="newChatBtn" type="button">+ New chat</button>
+        <button class="new-chat-btn" id="newChatBtn" type="button"><span class="icon">+</span><span class="label">New chat</span></button>
         <select class="model-picker" id="planPicker" aria-label="Temporary plan selection"></select>
         <div class="model-lock">Temporary testing plan selector.</div>
         <div class="model-picker" id="modelPicker">No chat selected</div>
         <div class="model-lock">The model is locked when a chat is created.</div>
         <div class="sidebar-actions">
-            <button class="sidebar-link" id="homeBtn" type="button">Home</button>
-            <button class="sidebar-link" id="plansBtn" type="button">Plans</button>
-            <button class="sidebar-link" id="settingsBtn" type="button">Settings</button>
+            <button class="sidebar-link" id="homeBtn" type="button"><span class="icon">🏠</span><span class="label">Home</span></button>
+            <button class="sidebar-link" id="chatBtn" type="button"><span class="icon">💬</span><span class="label">Chat</span></button>
+            <button class="sidebar-link" id="plansBtn" type="button"><span class="icon">💳</span><span class="label">Plans</span></button>
+            <button class="sidebar-link" id="settingsBtn" type="button"><span class="icon">⚙️</span><span class="label">Settings</span></button>
         </div>
         <div class="sidebar-section">Chats</div>
         <div class="chat-list" id="chatList">
@@ -813,7 +1140,12 @@
                 <p>Ask Snortle anything. Use Snortz Coins (Snore + Hertz).</p>
             </div>
             <div id="spacer"></div>
-            <div class="black-out">
+        </main>
+        <div id="answer-notification-container">
+            <button id="new-answer" type="button">New answer ↓</button>
+            <button id="scroll-to-bottom-btn" type="button" aria-label="Scroll to bottom">↓</button>
+        </div>
+        <div class="black-out">
                 <form id="form">
                     <textarea id="chat-input" autocomplete="off" placeholder="Connecting..." rows="1"></textarea>
                     <div id="gap-blocker"></div>
@@ -872,7 +1204,11 @@
         </section>
     </div>
 
-    <button id="new-answer" type="button">New answer ↓</button>
+    <div id="connection-error" class="connection-error">Connection error. Please refresh the page.</div>
+    <div class="no-chat-overlay" id="no-chat-overlay">
+        <p>No chat selected. Create a new chat to start chatting.</p>
+        <button id="no-chat-new-btn" type="button">+ New chat</button>
+    </div>
 
     <script src="/views/shared-settings.js"></script>
     <script type="module">
@@ -942,10 +1278,16 @@
         const themeSelect = document.getElementById("theme-select");
         const newAnswer = document.getElementById("new-answer");
         const chatPlace = document.getElementById("chat-place");
+        const scrollToBottomBtn = document.getElementById("scroll-to-bottom-btn");
+        const connectionError = document.getElementById("connection-error");
+        const noChatOverlay = document.getElementById("no-chat-overlay");
+        const noChatNewBtn = document.getElementById("no-chat-new-btn");
 
         const LOW_COIN_WARNING_THRESHOLD = 1;
         const CANNOT_PROMPT_THRESHOLD = 0.5;
         const HOUR_IN_MS_CLIENT = 60 * 60 * 1000;
+        const MAX_PROMPT_LENGTH = 5000;
+        const SCROLL_THRESHOLD = 100;
 
         let catalogData = null;
 
@@ -1007,12 +1349,28 @@
                 document.querySelector("#welcome h2").textContent = "Create a chat to begin";
                 document.querySelector("#welcome p").textContent = "Click + New chat to name a conversation and choose a model.";
                 welcome.classList.remove("hidden");
+                form.classList.add("no-chat");
+                document.querySelector(".black-out").classList.add("no-chat");
+                noChatOverlay.classList.add("visible");
             }
 
             function showEmptyChatState() {
                 document.querySelector("#welcome h2").textContent = "Ready when you are";
                 document.querySelector("#welcome p").textContent = "Ask Snortle anything. Use Snortz Coins (Snore + Hertz).";
                 welcome.classList.remove("hidden");
+                form.classList.remove("no-chat");
+                document.querySelector(".black-out").classList.remove("no-chat");
+                noChatOverlay.classList.remove("visible");
+            }
+
+            function updateNoChatState() {
+                if (!activeChatId) {
+                    showNoChatState();
+                } else {
+                    form.classList.remove("no-chat");
+                    document.querySelector(".black-out").classList.remove("no-chat");
+                    noChatOverlay.classList.remove("visible");
+                }
             }
 
         let sessionId = Math.random().toString(36).slice(2);
@@ -1028,30 +1386,95 @@
         const pendingChats = new Set();
         const disabledChats = new Set();
         const awayChats = new Set();
+        const unreadChats = new Set();
         let lowWarningShown = false;
         let cannotPromptShown = false;
         let purchasedCoinWarningShown = false;
+        let messageCountOnLastScroll = 0;
 
         function isNearBottom() {
-            const farThreshold = chatPlace.clientHeight;
+            const farThreshold = SCROLL_THRESHOLD;
             return chatPlace.scrollHeight - chatPlace.scrollTop - chatPlace.clientHeight < farThreshold;
         }
 
+        function isAtBottom() {
+            return chatPlace.scrollHeight - chatPlace.scrollTop - chatPlace.clientHeight <= 10;
+        }
+
+        function updateScrollButtonVisibility() {
+            if (activeChatId) {
+                const chatMessages = chatMessagesById.get(activeChatId) || [];
+                const isThinking = chatMessages.some(m => m.role === "assistant" && m.content === "thinking");
+                const shouldShow = !isAtBottom() && (pendingChats.has(activeChatId) || awayChats.has(activeChatId) || isThinking);
+                scrollToBottomBtn.classList.toggle("visible", shouldShow);
+            } else {
+                scrollToBottomBtn.classList.remove("visible");
+            }
+        }
+
+        function updateNewAnswerVisibility() {
+            if (activeChatId) {
+                const chatMessages = chatMessagesById.get(activeChatId) || [];
+                const isThinking = chatMessages.some(m => m.role === "assistant" && m.content === "thinking");
+                const shouldShow = awayChats.has(activeChatId) && !isNearBottom() && !isThinking;
+                newAnswer.classList.toggle("visible", shouldShow);
+            } else {
+                newAnswer.classList.remove("visible");
+            }
+        }
+
         chatPlace.addEventListener("scroll", function() {
-            if (activeChatId && pendingChats.has(activeChatId) && !isNearBottom()) {
+            if (!activeChatId) return;
+            
+            const currentMessageCount = (chatMessagesById.get(activeChatId) || []).length;
+            const nearBottom = isNearBottom();
+            const isPending = pendingChats.has(activeChatId);
+            
+            if (!nearBottom && (isPending || currentMessageCount > messageCountOnLastScroll)) {
                 awayChats.add(activeChatId);
             }
+            
+            if (nearBottom) {
+                awayChats.delete(activeChatId);
+                messageCountOnLastScroll = currentMessageCount;
+            }
+            
+            updateScrollButtonVisibility();
+            updateNewAnswerVisibility();
         });
 
         newAnswer.addEventListener("click", function() {
             chatPlace.scrollTo({ top: chatPlace.scrollHeight, behavior: "smooth" });
             newAnswer.classList.remove("visible");
             awayChats.delete(activeChatId);
+            setTimeout(() => {
+                updateScrollButtonVisibility();
+                updateNewAnswerVisibility();
+            }, 200);
+        });
+
+        scrollToBottomBtn.addEventListener("click", function() {
+            chatPlace.scrollTo({ top: chatPlace.scrollHeight, behavior: "smooth" });
+            awayChats.delete(activeChatId);
+            setTimeout(() => {
+                updateScrollButtonVisibility();
+                updateNewAnswerVisibility();
+            }, 200);
         });
 
         function updateSendAvailability() {
             const outOfCoins = coinBalance < CANNOT_PROMPT_THRESHOLD;
-            sendBtn.disabled = outOfCoins || !canSendInActiveChat() || pendingChats.has(activeChatId);
+            const hasActiveChat = !!activeChatId && canSendInActiveChat();
+            const isPending = pendingChats.has(activeChatId);
+            sendBtn.disabled = outOfCoins || !hasActiveChat || isPending;
+        }
+
+        function checkPromptLength(prompt) {
+            if (prompt.length > MAX_PROMPT_LENGTH) {
+                showPopup("Prompt too long", `Prompts cannot exceed ${MAX_PROMPT_LENGTH} characters. Please shorten your message.`);
+                return false;
+            }
+            return true;
         }
 
         function showPopup(title, text) {
@@ -1251,9 +1674,18 @@
         sidebarToggle.addEventListener("click", function() {
             const isCollapsed = sidebar.classList.toggle("collapsed");
             chatShell.classList.toggle("collapsed", isCollapsed);
+            document.body.classList.toggle("sidebar-collapsed", isCollapsed);
             sidebarToggle.textContent = isCollapsed ? "›" : "‹";
             sidebarToggle.classList.toggle("is-open", !isCollapsed);
-            sidebarToggle.style.left = isCollapsed ? "12px" : "268px";
+        });
+
+        sidebar.addEventListener("mouseenter", function() {
+            if (!sidebar.classList.contains("collapsed")) {
+                document.body.classList.add("sidebar-expanded");
+            }
+        });
+        sidebar.addEventListener("mouseleave", function() {
+            document.body.classList.remove("sidebar-expanded");
         });
 
         newChatBtn.addEventListener("click", function() {
@@ -1312,20 +1744,31 @@
             window.location.href = "/plans";
         });
 
+        document.getElementById("chatBtn").addEventListener("click", function() {
+            window.location.href = "/chat";
+        });
+
+        noChatNewBtn.addEventListener("click", function() {
+            newChatBtn.click();
+        });
+
 
         async function connect() {
             if (!activeModelId) return;
             client = null;
             if (!activeModelIsAvailable()) {
                 input.placeholder = "Model Space unavailable.";
+                connectionError.classList.add("visible");
                 return;
             }
             try {
                 client = await Client.connect(activeModelId);
                 input.placeholder = "Ask something...";
+                connectionError.classList.remove("visible");
             } catch (err) {
                 input.placeholder = "Failed to connect. Refresh to retry.";
                 console.error("Gradio connect failed:", err);
+                connectionError.classList.add("visible");
             }
         }
 
@@ -1362,19 +1805,32 @@
             avatar.alt = "";
             const bot = document.createElement("div");
             bot.classList.add("bot");
-            const replyText = document.createElement("div");
-            replyText.classList.add("bot-reply");
-            replyText.textContent = message.content;
-            bot.appendChild(replyText);
-            if (message.thinkTime !== undefined) {
-                const caption = document.createElement("div");
-                caption.classList.add("bot-caption");
-                caption.textContent =
-                    `Thought for ${Number(message.thinkTime).toFixed(2)}s\n` +
-                    `${message.generatedTokens} tokens in ${Number(message.generationTime).toFixed(2)}s\n` +
-                    `${Number(message.totalTime).toFixed(2)}s total\n` +
-                    `${Number(message.spent).toFixed(3)} Snortz Coins`;
-                bot.appendChild(caption);
+            
+            if (message.content === "thinking") {
+                const thinkingBox = document.createElement("div");
+                thinkingBox.classList.add("thinking-box");
+                const thinkingImg = document.createElement("img");
+                thinkingImg.src = "/views/images/snortle.png";
+                thinkingImg.alt = "Thinking...";
+                thinkingImg.classList.add("thinking-img");
+                thinkingBox.appendChild(thinkingImg);
+                spacer.before(thinkingBox);
+                return;
+            } else {
+                const replyText = document.createElement("div");
+                replyText.classList.add("bot-reply");
+                replyText.textContent = message.content;
+                bot.appendChild(replyText);
+                if (message.thinkTime !== undefined) {
+                    const caption = document.createElement("div");
+                    caption.classList.add("bot-caption");
+                    caption.textContent =
+                        `Thought for ${Number(message.thinkTime).toFixed(2)}s\n` +
+                        `${message.generatedTokens} tokens in ${Number(message.generationTime).toFixed(2)}s\n` +
+                        `${Number(message.totalTime).toFixed(2)}s total\n` +
+                        `${Number(message.spent).toFixed(3)} Snortz Coins`;
+                    bot.appendChild(caption);
+                }
             }
             botBox.appendChild(avatar);
             botBox.appendChild(bot);
@@ -1396,10 +1852,25 @@
                     disabledChats.add(chat.id);
                     chatRow.classList.add("disabled");
                 }
+                const isPending = pendingChats.has(chat.id);
+                const chatMessages = chatMessagesById.get(chat.id) || [];
+                const isThinking = chatMessages.some(m => m.role === "assistant" && m.content === "thinking");
+                
                 const chatButton = document.createElement("button");
                 chatButton.type = "button";
-                chatButton.className = "chat-item" + (chat.id === activeChatId ? " active" : "");
-                chatButton.textContent = chat.title;
+                chatButton.className = "chat-item" + (chat.id === activeChatId ? " active" : "") + (isPending || isThinking ? " pending" : "") + (unreadChats.has(chat.id) ? " unread" : "");
+                chatButton.title = chat.title;
+
+                const initial = document.createElement("span");
+                initial.className = "chat-initial";
+                initial.textContent = chat.title.trim().charAt(0).toUpperCase() || "?";
+
+                const titleSpan = document.createElement("span");
+                titleSpan.className = "chat-title";
+                titleSpan.textContent = chat.title;
+
+                chatButton.appendChild(initial);
+                chatButton.appendChild(titleSpan);
                 chatButton.addEventListener("click", () => loadChat(chat.id));
 
                 const deleteButton = document.createElement("button");
@@ -1407,6 +1878,7 @@
                 deleteButton.className = "chat-delete";
                 deleteButton.setAttribute("aria-label", `Delete ${chat.title}`);
                 deleteButton.textContent = "×";
+                deleteButton.disabled = isPending || isThinking;
                 deleteButton.addEventListener("click", (event) => {
                     event.stopPropagation();
                     const confirmed = window.confirm(`Delete "${chat.title}"? This can't be undone.`);
@@ -1427,7 +1899,7 @@
             if (chatId === activeChatId) {
                 activeChatId = null;
                 chatMessages = [];
-                document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
+                document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
                 welcome.classList.remove("hidden");
             }
 
@@ -1454,6 +1926,7 @@
                 await reply(request);
                 pendingChats.delete(request.chatId);
                 updateSendAvailability();
+                await renderChatList((await (await fetch("/api/chats")).json()).chats);
             }
             isProcessingQueue = false;
             updateSendAvailability();
@@ -1472,6 +1945,8 @@
         }
 
         async function loadChat(chatId) {
+            const wasPending = pendingChats.has(activeChatId);
+            
             const response = await fetch(`/api/chats/${chatId}`);
             if (!response.ok) return;
             const result = await response.json();
@@ -1479,13 +1954,32 @@
             activeModelId = result.chat.modelId || "Snortle-AI/Snortle-Pancake-1";
             updateLockedModelLabel(activeModelId);
             sessionId = activeChatId;
-            chatMessages = result.chat.messages || [];
+            
+            let serverMessages = result.chat.messages || [];
+            const existingMessages = chatMessagesById.get(chatId) || [];
+            
+            chatMessages = [...serverMessages];
+            
+            existingMessages.forEach((localMsg, index) => {
+                if (localMsg.content === "thinking" && index >= chatMessages.length) {
+                    chatMessages.push(localMsg);
+                }
+            });
+            
             chatMessagesById.set(activeChatId, chatMessages);
+            unreadChats.delete(activeChatId);
             await connect();
-            document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
+            document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
             welcome.classList.toggle("hidden", chatMessages.length > 0);
             chatMessages.forEach(renderSavedMessage);
             renderChatList((await (await fetch("/api/chats")).json()).chats);
+            
+            awayChats.delete(activeChatId);
+            messageCountOnLastScroll = chatMessages.length;
+            updateNoChatState();
+            updateScrollButtonVisibility();
+            updateNewAnswerVisibility();
+            
             scrollDown();
         }
 
@@ -1494,7 +1988,9 @@
             if (!response.ok) return;
             const result = await response.json();
             if (result.chats.length) {
-                await loadChat(result.chats[0].id);
+                const wantedId = new URLSearchParams(window.location.search).get("chat");
+                const wanted = result.chats.find((c) => String(c.id) === wantedId);
+                await loadChat(wanted ? wanted.id : result.chats[0].id);
                 return;
             }
 
@@ -1537,31 +2033,14 @@
         input.addEventListener("keydown", function(event) {
             if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
-                if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat()) return;
+                if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId) return;
                 form.requestSubmit();
             }
         });
 
         async function reply(request) {
-            const { chatId, text: userInput } = request;
+            const { chatId, text: userInput, thinkingIndex } = request;
             const targetMessages = chatMessagesById.get(chatId) || [];
-
-            const botBox = document.createElement("div");
-            botBox.classList.add("bot-box");
-
-            const avatar = document.createElement("img");
-            avatar.id = "bot-avatar";
-            avatar.src = "/views/images/snortle.png";
-            avatar.alt = "";
-
-            const bot = document.createElement("div");
-            bot.classList.add("bot");
-            bot.textContent = "Thinking...";
-
-            botBox.appendChild(avatar);
-            botBox.appendChild(bot);
-            spacer.before(botBox);
-            scrollDown();
 
             const startTime = performance.now();
 
@@ -1614,23 +2093,7 @@
                     console.error('Failed to save Snortz Coins.');
                 }
 
-                bot.textContent = "";
-
-                const replyText = document.createElement("div");
-                replyText.classList.add("bot-reply");
-                replyText.textContent = response;
-
-                const caption = document.createElement("div");
-                caption.classList.add("bot-caption");
-                caption.textContent =
-                    `Thought for ${thinkTime.toFixed(2)}s\n` +
-                    `${generatedTokens} tokens in ${generationTime.toFixed(2)}s\n` +
-                    `${totalTime.toFixed(2)}s total\n` +
-                    `${spent.toFixed(3)} Snortz Coins`;
-
-                bot.appendChild(replyText);
-                bot.appendChild(caption);
-                targetMessages.push({
+                targetMessages[thinkingIndex] = {
                     role: "assistant",
                     content: response,
                     thinkTime,
@@ -1638,26 +2101,59 @@
                     generatedTokens,
                     totalTime,
                     spent
-                });
+                };
                 chatMessagesById.set(chatId, targetMessages);
                 await saveChat(chatId);
+                
+                if (activeChatId === chatId) {
+                    unreadChats.delete(chatId);
+                    const wasNearBottom = isNearBottom();
+                    document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
+                    targetMessages.forEach(renderSavedMessage);
+                    if (wasNearBottom) {
+                        scrollDown();
+                        awayChats.delete(chatId);
+                    } else {
+                        awayChats.add(chatId);
+                    }
+                } else {
+                    unreadChats.add(chatId);
+                }
             } catch (err) {
-                bot.textContent = "Something went wrong: " + err.message;
+                targetMessages[thinkingIndex] = {
+                    role: "assistant",
+                    content: "Something went wrong: " + err.message
+                };
+                chatMessagesById.set(chatId, targetMessages);
+                await saveChat(chatId);
+                
+                if (activeChatId === chatId) {
+                    unreadChats.delete(chatId);
+                    const wasNearBottom = isNearBottom();
+                    document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
+                    targetMessages.forEach(renderSavedMessage);
+                    if (wasNearBottom) {
+                        scrollDown();
+                        awayChats.delete(chatId);
+                    } else {
+                        awayChats.add(chatId);
+                    }
+                } else {
+                    unreadChats.add(chatId);
+                }
             }
 
-            if (activeChatId === chatId && awayChats.has(chatId)) {
-                newAnswer.classList.add("visible");
-            } else {
-                scrollDown();
-            }
+            updateNewAnswerVisibility();
+            updateScrollButtonVisibility();
         }
 
         form.addEventListener("submit", async function(event) {
             event.preventDefault();
 
-            if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat()) return;
+            if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId) return;
             if (pendingChats.has(activeChatId)) return;
             if (input.value.trim() === '') return;
+            if (!checkPromptLength(input.value)) return;
 
             welcome.classList.add("hidden");
 
@@ -1676,13 +2172,22 @@
             chatMessagesById.set(activeChatId, chatMessages);
             await saveChat();
 
+            if (isAtBottom()) {
+                messageCountOnLastScroll = chatMessages.length;
+            }
+
             scrollDown();
 
             const toSend = input.value;
             input.value = "";
             resizeInput();
+            
+            const thinkingIndex = chatMessages.length;
+            chatMessages.push({ role: "assistant", content: "thinking" });
+            chatMessagesById.set(activeChatId, chatMessages);
+            renderSavedMessage(chatMessages[thinkingIndex]);
 
-            requestQueue.push({ chatId: activeChatId, text: toSend });
+            requestQueue.push({ chatId: activeChatId, text: toSend, thinkingIndex });
             processQueue();
         });
 

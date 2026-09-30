@@ -44,7 +44,7 @@ const catalog = {
       price: 0.49,
       billing: 'month',
       modelAccess: MODEL_ACCESS.mid,
-      hourlyFreeCoins: 6,
+      hourlyFreeCoins: 5,
       coinAllowance: PLUS_COIN_ALLOWANCE,
       accessLabel: 'Access to free and mid-tier models'
     }),
@@ -54,7 +54,7 @@ const catalog = {
       price: 0.99,
       billing: 'month',
       modelAccess: MODEL_ACCESS.top,
-      hourlyFreeCoins: 10,
+      hourlyFreeCoins: 8,
       coinAllowance: PRO_COIN_ALLOWANCE,
       accessLabel: 'Access to all models (including top models)'
     })

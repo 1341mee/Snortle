@@ -1,0 +1,329 @@
+/* Snortle themes. Put this file in /views/ */
+
+/* ---------- Dark (default) ---------- */
+:root {
+    --accent-text: rgb(205, 163, 90);
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --soft-fill: rgba(255, 255, 255, 0.03);
+    --muted: rgba(196, 190, 178, 0.75);
+    --sidebar-bg: rgb(14, 13, 12);
+    --float-bg: rgba(32, 30, 27, 0.96);
+    --on-accent: rgb(24, 22, 19);
+    --accent-hover: rgb(224, 184, 112);
+    --hover-bg: rgba(205, 163, 90, 0.12);
+    --active-bg: rgba(205, 163, 90, 0.14);
+    --overlay: rgba(0, 0, 0, 0.6);
+    --danger-text: rgb(220, 120, 110);
+    --error-bg: rgba(45, 20, 20, 0.96);
+    --error-text: rgb(240, 180, 170);
+}
+
+/* ---------- Light (warm cream + gold) ---------- */
+html[data-theme="light"] {
+    --bg-color: rgb(250, 245, 233);
+    --mini-text-color: rgb(44, 36, 22);
+    --big-text-color: rgb(98, 84, 60);
+    --chat-float-color: rgb(255, 251, 241);
+    --input-bg-color: rgb(243, 235, 216);
+    --accent: rgb(201, 150, 50);
+    --accent-text: rgb(133, 89, 10);
+    --accent-2: rgb(90, 110, 100);
+    --user-bubble: rgb(246, 232, 200);
+    --coin-color: rgb(150, 100, 8);
+    --card-bg: rgba(255, 252, 243, 0.9);
+    --card-border: rgba(160, 120, 40, 0.22);
+    --danger-color: rgb(185, 55, 45);
+    --danger-bg: rgba(200, 80, 70, 0.08);
+    --danger-border: rgba(185, 55, 45, 0.4);
+    --line: rgba(120, 85, 20, 0.16);
+    --line-strong: rgba(120, 85, 20, 0.3);
+    --soft-fill: rgba(160, 120, 40, 0.06);
+    --muted: rgb(112, 96, 68);
+    --sidebar-bg: rgb(245, 236, 216);
+    --float-bg: rgba(255, 251, 241, 0.97);
+    --on-accent: rgb(40, 28, 8);
+    --accent-hover: rgb(218, 168, 70);
+    --hover-bg: rgba(201, 150, 50, 0.16);
+    --active-bg: rgba(201, 150, 50, 0.24);
+    --overlay: rgba(60, 40, 10, 0.45);
+    --danger-text: rgb(165, 40, 30);
+    --error-bg: rgb(253, 236, 233);
+    --error-text: rgb(150, 35, 25);
+}
+
+/* ---------- Eco green ---------- */
+html[data-theme="green"] {
+    --bg-color: rgb(17, 31, 25);
+    --mini-text-color: rgb(232, 244, 236);
+    --big-text-color: rgb(178, 204, 188);
+    --chat-float-color: rgb(25, 43, 34);
+    --input-bg-color: rgb(35, 58, 45);
+    --accent: rgb(122, 201, 142);
+    --accent-2: rgb(90, 150, 115);
+    --accent-text: rgb(122, 201, 142);
+    --user-bubble: rgb(38, 72, 53);
+    --coin-color: rgb(226, 196, 92);
+    --card-bg: rgba(25, 43, 34, 0.8);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --line: rgba(255, 255, 255, 0.1);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --muted: rgb(160, 188, 170);
+    --sidebar-bg: rgb(12, 24, 19);
+    --float-bg: rgba(25, 43, 34, 0.96);
+    --on-accent: rgb(8, 28, 16);
+    --accent-hover: rgb(150, 220, 168);
+    --hover-bg: rgba(122, 201, 142, 0.14);
+    --active-bg: rgba(122, 201, 142, 0.2);
+}
+
+/* ---------- Overrides for hardcoded colors ---------- */
+html .sidebar { background: var(--sidebar-bg); }
+html .sidebar-header { border-bottom-color: var(--line); }
+html .sidebar-toggle { background: var(--float-bg); border-color: var(--line-strong); }
+html .sidebar-link { background: var(--soft-fill); border-color: var(--line); color: var(--big-text-color); }
+html .sidebar-link:hover { background: var(--hover-bg); }
+html .sidebar-link.active { background: var(--active-bg); color: var(--mini-text-color); }
+html .sidebar:not(:hover) .chat-item { border-color: var(--line); background: var(--soft-fill); }
+html .chat-item:hover,
+html .chat-item.active,
+html .sidebar:not(:hover) .chat-item:hover,
+html .sidebar:not(:hover) .chat-item.active { background: var(--active-bg); }
+
+/* Small gray texts */
+html .wallet-label .label-desc { color: var(--muted); opacity: 1; }
+html .coin-rule { color: var(--muted); background: var(--soft-fill); }
+html .detail { color: var(--muted); background: var(--input-bg-color); border-color: var(--line-strong); }
+html .chat-list-empty,
+html .model-lock { color: var(--muted); }
+html .chat-item-row.disabled .chat-item { color: var(--muted); opacity: 0.7; }
+html .chat-item-row.disabled::after { color: var(--coin-color); }
+html .bot-caption { color: var(--muted); border-top-color: var(--line); }
+html #chat-input::placeholder,
+html input::placeholder { color: var(--muted); opacity: 1; }
+html select option { background: var(--input-bg-color); color: var(--mini-text-color); }
+
+/* Borders and fills */
+html .settings-row,
+html .wallet-row { border-bottom-color: var(--line); }
+html .settings-theme select,
+html .modal-box input[type="text"],
+html #chat-name-input,
+html #create-chat-model,
+html .model-picker { border-color: var(--line-strong); }
+html .btn-logout { border-color: var(--line-strong); }
+html .btn-logout:hover { background: var(--hover-bg); }
+html #chat-input { border-color: var(--line-strong); }
+html #chat-input:focus { border-color: var(--accent); }
+html .coin-tooltip-divider,
+html .coin-progress-bar { background: var(--line); }
+html .bot { border: 1px solid var(--line); border-left: 2px solid var(--accent); }
+html #new-answer,
+html #scroll-to-bottom-btn { background: var(--float-bg); }
+html .modal-overlay,
+html #popup-overlay,
+html #create-chat-overlay { background: var(--overlay); }
+
+/* Danger and error */
+html .danger-card h3 { color: var(--danger-text); }
+html .chat-delete { color: var(--danger-text); }
+html .chat-delete:hover { color: var(--danger-text); background: var(--danger-bg); }
+html .connection-error { background: var(--error-bg); color: var(--error-text); }
+
+/* Accent buttons: text color that works on each theme's accent */
+html .new-chat-btn,
+html .choose,
+html #send-btn,
+html .create-chat-actions button,
+html .no-chat-overlay button,
+html #popup-close { color: var(--on-accent); }
+html .new-chat-btn:hover,
+html .choose:hover:not(:disabled),
+html #send-btn:hover:not(:disabled),
+html .no-chat-overlay button:hover,
+html #popup-close:hover { background: var(--accent-hover); }
+html #send-btn:disabled { background: var(--input-bg-color); color: var(--muted); }
+
+/* Accent-colored text (readable gold on every theme) */
+html .settings-card h3,
+html .eyebrow,
+html .details-title,
+html .model-badge,
+html .bot-check-value,
+html #welcome h2 { color: var(--accent-text); }
+html .danger-card h3 { color: var(--danger-text); }
+
+/* Overlays must sit above the sidebar toggle button (z-index 25) */
+html #create-chat-overlay,
+html #popup-overlay,
+html .modal-overlay { z-index: 40; }
+
+/* ---------- Futuristic (deep purple + neon cyan) ---------- */
+html[data-theme="futuristic"] {
+    --bg-color: rgb(10, 8, 28);
+    --mini-text-color: rgb(232, 236, 255);
+    --big-text-color: rgb(170, 176, 224);
+    --chat-float-color: rgb(20, 16, 46);
+    --input-bg-color: rgb(32, 26, 70);
+    --accent: rgb(0, 229, 200);
+    --accent-text: rgb(70, 240, 218);
+    --accent-2: rgb(168, 85, 247);
+    --user-bubble: rgb(62, 34, 118);
+    --coin-color: rgb(110, 205, 255);
+    --card-bg: rgba(20, 16, 46, 0.85);
+    --card-border: rgba(140, 120, 255, 0.28);
+    --line: rgba(140, 120, 255, 0.2);
+    --line-strong: rgba(140, 120, 255, 0.38);
+    --soft-fill: rgba(140, 120, 255, 0.07);
+    --muted: rgb(150, 156, 208);
+    --sidebar-bg: rgb(7, 5, 20);
+    --float-bg: rgba(20, 16, 46, 0.96);
+    --on-accent: rgb(6, 10, 30);
+    --accent-hover: rgb(120, 255, 236);
+    --hover-bg: rgba(0, 229, 200, 0.12);
+    --active-bg: rgba(168, 85, 247, 0.25);
+    --overlay: rgba(5, 3, 20, 0.72);
+}
+html[data-theme="futuristic"] .title { border-bottom-color: rgba(0, 229, 200, 0.6); box-shadow: 0 2px 18px rgba(0, 229, 200, 0.15); }
+html[data-theme="futuristic"] .sidebar { border-right-color: rgba(168, 85, 247, 0.55); }
+html[data-theme="futuristic"] .new-chat-btn,
+html[data-theme="futuristic"] .choose,
+html[data-theme="futuristic"] #send-btn { border-color: transparent; box-shadow: 0 0 14px rgba(0, 229, 200, 0.4); }
+html[data-theme="futuristic"] .coin-display,
+html[data-theme="futuristic"] .coin-tooltip,
+html[data-theme="futuristic"] .coin-package,
+html[data-theme="futuristic"] #popup-box,
+html[data-theme="futuristic"] #create-chat-box,
+html[data-theme="futuristic"] .no-chat-overlay,
+html[data-theme="futuristic"] .model-badge { border-color: rgba(0, 229, 200, 0.4); }
+html[data-theme="futuristic"] .plan.plus { border-color: rgba(0, 229, 200, 0.6); }
+html[data-theme="futuristic"] .plan.pro { border-color: rgba(168, 85, 247, 0.7); }
+html[data-theme="futuristic"] .coin-rule { border-left-color: var(--accent-2); }
+
+/* ---------- Phones ---------- */
+@media (max-width: 700px) {
+    /* Sidebar becomes a slide-out drawer (no hover) */
+    html .sidebar,
+    html .sidebar:hover {
+        width: 260px;
+        height: calc(100vh - var(--title-height));
+        height: calc(100dvh - var(--title-height));
+        padding: 14px 12px 18px;
+        z-index: 35;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+    }
+    html .sidebar .label,
+    html .sidebar .brand-text,
+    html .sidebar .chat-title,
+    html .sidebar .chat-list,
+    html .sidebar .model-picker,
+    html .sidebar .model-lock,
+    html .sidebar .sidebar-section { opacity: 1; }
+
+    html .sidebar:not(:hover) .label,
+    html .sidebar:not(:hover) .brand-text,
+    html .sidebar:not(:hover) .chat-title { display: inline; }
+    html .sidebar:not(:hover) .sidebar-section,
+    html .sidebar:not(:hover) .chat-list-empty,
+    html .sidebar:not(:hover) .model-picker,
+    html .sidebar:not(:hover) .model-lock,
+    html .sidebar:not(:hover) .chat-delete { display: block; }
+    html .sidebar:not(:hover) .chat-item-row.disabled::after { display: inline; }
+    html .sidebar:not(:hover) .chat-initial { display: none; }
+    html .sidebar [hidden] { display: none !important; }
+
+    html .sidebar:not(:hover) .sidebar-header { padding: 6px 8px 14px; justify-content: flex-start; }
+    html .sidebar:not(:hover) .sidebar-brand { gap: 10px; }
+    html .sidebar:not(:hover) .new-chat-btn { padding: 12px 14px; gap: 8px; }
+    html .sidebar:not(:hover) .sidebar-link { padding: 11px 14px; gap: 10px; justify-content: flex-start; }
+    html .sidebar:not(:hover) .new-chat-btn .icon { font-size: inherit; }
+    html .sidebar:not(:hover) .chat-list { opacity: 1; padding: 0 8px; }
+    html .sidebar:not(:hover) .chat-item-row { justify-content: flex-start; margin-bottom: 0; }
+    html .sidebar:not(:hover) .chat-item { display: block; height: auto; padding: 10px 8px; border: 0; background: transparent; }
+    html .sidebar:not(:hover) .chat-item.pending::after,
+    html .sidebar:not(:hover) .chat-item.unread::after { top: 50%; right: 8px; margin-top: -4px; }
+
+    /* Toggle button lives inside the title bar */
+    html .sidebar-toggle,
+    html .sidebar:hover ~ .sidebar-toggle,
+    html body.sidebar-collapsed .sidebar-toggle { top: 13px; left: 10px; }
+
+    /* Title bar */
+    html .title { grid-template-columns: minmax(0, 1fr) auto auto; padding-left: 52px; }
+    html #title-model { grid-column: 1; margin-left: 0; margin-right: 8px; min-width: 0; max-width: 100%; }
+    html .model-badge { min-width: 0; max-width: 100%; }
+    html #title-main { display: none; }
+    html #coin-counter { grid-column: 3; margin-right: 10px; }
+
+    /* Content never shifts for the sidebar */
+    html .chat-shell,
+    html .sidebar:hover ~ .chat-shell { margin-left: 0; height: calc(100vh - var(--title-height)); height: calc(100dvh - var(--title-height)); }
+    html #chat-place { height: calc(100vh - var(--title-height)); height: calc(100dvh - var(--title-height)); }
+
+    /* Chat input area uses the full width */
+    html .chat-shell form,
+    html .sidebar:hover ~ .chat-shell form,
+    html .chat-shell.collapsed form,
+    html #answer-notification-container,
+    html .sidebar:hover ~ .chat-shell #answer-notification-container,
+    html .chat-shell.collapsed #answer-notification-container,
+    html .no-chat-overlay,
+    html .sidebar:hover ~ .no-chat-overlay { left: 50% !important; width: calc(100vw - 24px) !important; }
+    html .black-out,
+    html .sidebar:hover ~ .chat-shell .black-out,
+    html .chat-shell.collapsed .black-out { left: 0 !important; width: 100vw !important; }
+
+    /* Messages */
+    html .user-box,
+    html .bot-box { padding: 0 12px; }
+    html .user { max-width: 88%; }
+    html .bot { max-width: calc(100% - 52px); }
+
+    /* 16px inputs so iPhones don't zoom in */
+    html #chat-input,
+    html input[type="text"],
+    html select,
+    html textarea { font-size: 16px !important; }
+
+    /* Plans and settings */
+    html .page { padding-top: calc(var(--title-height) + 24px); }
+    html .plan { min-height: 0; }
+    html .settings-container { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ---------- Coin counter (title bar) ---------- */
+#coin-counter { grid-column: 3; justify-self: end; margin-right: 20px; position: relative; }
+.coin-display { display: flex; align-items: center; gap: 6px; cursor: default; padding: 7px 14px; border-radius: 4px; border: 1px solid rgba(216, 168, 74, 0.35); background-color: var(--input-bg-color); color: var(--coin-color); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.coin-display:hover { background-color: var(--hover-bg); }
+.coin-icon-small { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+.coin-tooltip { position: absolute; top: calc(100% + 8px); right: 0; min-width: 250px; padding: 16px; border-radius: 8px; border: 1px solid rgba(216, 168, 74, 0.3); background: var(--chat-float-color); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s ease, transform 0.15s ease; z-index: 20; }
+#coin-counter:hover .coin-tooltip { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.coin-tooltip-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; color: var(--big-text-color); }
+.coin-tooltip-row strong { color: var(--mini-text-color); font-weight: 700; }
+.coin-tooltip-divider { height: 1px; margin: 6px 0; }
+.coin-progress { margin-top: 10px; }
+.coin-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--big-text-color); margin-bottom: 6px; }
+.coin-progress-bar { height: 6px; border-radius: 3px; overflow: hidden; }
+.coin-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--coin-color)); transition: width 1s linear; width: 0%; }
+
+/* ---------- Copy button, starter prompts, chat search, rename ---------- */
+.copy-btn { align-self: flex-start; margin-top: 10px; padding: 4px 10px; border: 1px solid var(--line-strong); border-radius: 4px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
+.copy-btn:hover { color: var(--accent-text); border-color: var(--accent); }
+
+.starter-prompts { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 560px; margin-top: 8px; padding: 0 16px; }
+.starter-btn { padding: 9px 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--soft-fill); color: var(--big-text-color); font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
+.starter-btn:hover { border-color: var(--accent); color: var(--accent-text); }
+
+.chat-search { width: calc(100% - 16px); margin: 0 8px 10px; padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); font-size: 13px; outline: none; flex-shrink: 0; }
+.chat-search:focus { border-color: var(--accent); }
+.sidebar:not(:hover) .chat-search { display: none; }
+
+.chat-rename { flex: 0 0 28px; width: 28px; height: 28px; border: 0; border-radius: 4px; color: var(--muted); background: transparent; cursor: pointer; }
+.chat-rename:hover { color: var(--accent-text); background: var(--hover-bg); }
+.sidebar:not(:hover) .chat-rename { display: none; }
+
+@media (max-width: 700px) {
+    html .sidebar:not(:hover) .chat-search,
+    html .sidebar:not(:hover) .chat-rename { display: block; }
+    html .chat-search { font-size: 16px; }
+}

@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/views/shared-settings.css">
+    <link rel="stylesheet" href="/views/theme.css">
+    <script src="/views/theme.js"></script>
 
     <style>
         :root {
@@ -1212,6 +1213,7 @@
             <a class="sidebar-link" href="/settings"><span class="icon">⚙️</span><span class="label">Settings</span></a>
         </div>
         <div class="sidebar-section">Chats</div>
+        <input type="text" class="chat-search" id="chatSearch" placeholder="Search chats..." autocomplete="off">
         <div class="chat-list" id="chatList">
             <div class="chat-list-empty">Click + New chat to begin.</div>
         </div>
@@ -1226,7 +1228,8 @@
             <div id="welcome">
                 <img id="welcome-icon" src="/views/images/snortle.png" alt="">
                 <h2>Ready when you are</h2>
-                <p>Ask Snortle anything. Use Snortz Coins (Snore + Hertz).</p>
+                <p>Ask Snortle anything using Snortz Coins.</p>
+                <div class="starter-prompts" id="starter-prompts" style="display: none;"></div>
             </div>
             <div id="spacer"></div>
         </main>
@@ -1277,7 +1280,6 @@
         <button id="no-chat-new-btn" type="button">+ New chat</button>
     </div>
 
-    <script src="/views/shared-settings.js"></script>
     <script type="module">
         async function requireAuth() {
             try {
@@ -1335,6 +1337,15 @@
         const cancelChatBtn = document.getElementById("cancel-chat-btn");
         const confirmChatBtn = document.getElementById("confirm-chat-btn");
         const chatList = document.getElementById("chatList");
+        const starterPrompts = document.getElementById("starter-prompts");
+        
+        starterPrompts.addEventListener("click", function (event) {
+            const btn = event.target.closest(".starter-btn");
+            if (!btn) return;
+            input.value = btn.textContent;
+            form.requestSubmit();
+        });
+
         // These elements may not exist (settings is now a separate page)
         const freeWalletAmount = document.getElementById("free-wallet-amount");
         const purchasedWalletAmount = document.getElementById("purchased-wallet-amount");
@@ -1349,6 +1360,7 @@
         const connectionError = document.getElementById("connection-error");
         const noChatOverlay = document.getElementById("no-chat-overlay");
         const noChatNewBtn = document.getElementById("no-chat-new-btn");
+        const chatSearch = document.getElementById("chatSearch");
 
         const LOW_COIN_WARNING_THRESHOLD = 1;
         const CANNOT_PROMPT_THRESHOLD = 0.0009;
@@ -1357,6 +1369,132 @@
         const SCROLL_THRESHOLD = 100;
 
         let catalogData = null;
+
+        const STARTER_IDEAS = [
+            "Give me 3 ideas for a weekend project",
+            "Explain how rain forms in simple words",
+            "Help me write a polite email",
+            "Tell me a fun fact about space",
+            "Suggest a name for my new pet fish",
+            "How do I stay focused while studying?",
+            "Write a short poem about autumn",
+            "Explain what a black hole is",
+            "Give me a quick healthy snack idea",
+            "What's a good way to learn a new language?",
+            "Tell me a riddle",
+            "Help me plan a birthday surprise",
+            "Why is the sky blue?",
+            "Give me 5 questions for a trivia night",
+            "How do airplanes stay in the air?",
+            "Suggest a short bedtime story idea",
+            "What are some tips for a job interview?",
+            "Explain how a rainbow is made",
+            "Give me a fun challenge to try today",
+            "How can I save money on groceries?",
+            "Write a two-line joke about robots",
+            "What should I cook with rice and eggs?",
+            "Explain how the internet works, simply",
+            "Help me come up with a team name",
+            "Give me a creative drawing prompt",
+            "How do magnets actually work?",
+            "Suggest a good sci-fi book to read",
+            "What exactly is a supernova?",
+            "Help me plan a weekly study schedule",
+            "Write a haiku about winter",
+            "How do bees make honey?",
+            "Give me a 5-minute craft idea",
+            "What's a fun card game to play with friends?",
+            "Tips for getting better sleep before a big test",
+            "Give me a logic puzzle to solve",
+            "How do I start learning how to code?",
+            "Suggest a fun theme for a school dance",
+            "What's the weirdest animal on Earth?",
+            "Help me write a thank-you note to a teacher",
+            "Give me a fun 'Would You Rather' question",
+            "How do I organize my messy desk?",
+            "Write a short fantasy story prompt",
+            "What are some easy home workout exercises?",
+            "Explain the water cycle in simple terms",
+            "Suggest a good movie night theme",
+            "How do volcanoes erupt?",
+            "Give me a recipe for a healthy fruit smoothie",
+            "Tips for overcoming stage fright or public speaking",
+            "What's a fun fact about ancient Egypt?",
+            "Help me brainstorm ideas for a science fair project",
+            "How does a digital camera take pictures?",
+            "Suggest an indoor activity for a rainy afternoon",
+            "Explain what artificial intelligence is",
+            "How do I make a great workout playlist?",
+            "Give me a tough brain teaser",
+            "Tips for taking better notes in class",
+            "Why do leaves change color in the fall?",
+            "Help me set a personal goal for this month",
+            "What's a cool hobby I can start for free?",
+            "Explain how gravity works in space",
+            "Give me an idea for a random act of kindness",
+            "How do I start a conversation with someone new?",
+            "Suggest a catchy title for my history essay",
+            "What is DNA and how does it work?",
+            "Give me 3 tips for better time management",
+            "Write a funny text to send to my best friend",
+            "How do ocean tides work?",
+            "Suggest a name for a fictional planet",
+            "What's a quick dessert I can make in a mug?",
+            "Tips for learning to play the guitar",
+            "Explain what cryptocurrency is in simple terms",
+            "Give me a fun photography challenge",
+            "How to deal with stress before a big exam",
+            "Suggest a podcast topic for teenagers",
+            "What's the deepest part of the ocean like?",
+            "Help me write an apology message to a friend",
+            "How do I make my own digital stickers?",
+            "Give me an interesting fact about the human body",
+            "Explain how electricity gets to our houses",
+            "Suggest a fun DIY room decor idea",
+            "What are the basic rules of photography composition?",
+            "How do I write a good resume with no work experience?",
+            "Give me a prompt to start daily journaling",
+            "Why do humans dream?",
+            "Suggest a fun outdoor game for a large group",
+            "How do I make a budget for my allowance or part-time job?",
+            "Write a short motivational quote for my wall",
+            "What's the difference between a comet and an asteroid?",
+            "Help me plan a budget-friendly weekend outing",
+            "Give me a creative way to wrap a gift",
+            "How does a compass know which way is north?",
+            "Suggest an easy magic trick I can learn",
+            "What's a good way to practice mindfulness?",
+            "Explain how 3D printing works",
+            "Give me a fun topic to debate with my friends",
+            "How do I start a small vegetable garden in pots?",
+            "Suggest a cool science experiment I can do at home safely",
+            "What are some good ways to volunteer in my community?",
+            "Write a short, mysterious opening sentence for a book",
+            "How does noise-canceling headphone technology work?"
+        ];
+
+        function renderStarterPrompts() {
+            const pool = STARTER_IDEAS.slice();
+            starterPrompts.innerHTML = "";
+            for (let i = 0; i < 3; i++) {
+                const index = Math.floor(Math.random() * pool.length);
+                const text = pool.splice(index, 1)[0];
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "starter-btn";
+                btn.textContent = text;
+                starterPrompts.appendChild(btn);
+            }
+        }
+
+        function applyChatSearch() {
+            const term = chatSearch.value.trim().toLowerCase();
+            chatList.querySelectorAll(".chat-item-row").forEach(function (row) {
+                const title = row.querySelector(".chat-item").title.toLowerCase();
+                row.style.display = title.includes(term) ? "" : "none";
+            });
+        }
+        chatSearch.addEventListener("input", applyChatSearch);
 
         function updateModelOptions() {
             createChatModel.innerHTML = '';
@@ -1417,33 +1555,33 @@
             return !!activeChatId && activeModelIsUnlocked();
         }
 
-            function showNoChatState() {
-                document.querySelector("#welcome h2").textContent = "Create a chat to begin";
-                document.querySelector("#welcome p").textContent = "Click + New chat to name a conversation and choose a model.";
-                welcome.classList.remove("hidden");
-                form.classList.add("no-chat");
-                document.querySelector(".black-out").classList.add("no-chat");
-                noChatOverlay.classList.add("visible");
-            }
+        function showNoChatState() {
+            document.querySelector("#welcome h2").textContent = "Create a chat to begin";
+            document.querySelector("#welcome p").textContent = "Click + New chat to name a conversation and choose a model.";
+            welcome.classList.remove("hidden");
+            form.classList.add("no-chat");
+            document.querySelector(".black-out").classList.add("no-chat");
+            noChatOverlay.classList.add("visible");
+        }
 
-            function showEmptyChatState() {
-                document.querySelector("#welcome h2").textContent = "Ready when you are";
-                document.querySelector("#welcome p").textContent = "Ask Snortle anything. Use Snortz Coins (Snore + Hertz).";
-                welcome.classList.remove("hidden");
+        function showEmptyChatState() {
+            document.querySelector("#welcome h2").textContent = "Ready when you are";
+            document.querySelector("#welcome p").textContent = "Ask Snortle anything using Snortz Coins.";
+            welcome.classList.remove("hidden");
+            form.classList.remove("no-chat");
+            document.querySelector(".black-out").classList.remove("no-chat");
+            noChatOverlay.classList.remove("visible");
+        }
+
+        function updateNoChatState() {
+            if (!activeChatId) {
+                showNoChatState();
+            } else {
                 form.classList.remove("no-chat");
                 document.querySelector(".black-out").classList.remove("no-chat");
                 noChatOverlay.classList.remove("visible");
             }
-
-            function updateNoChatState() {
-                if (!activeChatId) {
-                    showNoChatState();
-                } else {
-                    form.classList.remove("no-chat");
-                    document.querySelector(".black-out").classList.remove("no-chat");
-                    noChatOverlay.classList.remove("visible");
-                }
-            }
+        }
 
         let sessionId = Math.random().toString(36).slice(2);
         let activeChatId = null;
@@ -1764,6 +1902,7 @@
         confirmChatBtn.addEventListener("click", async function() {
             const chatName = chatNameInput.value.trim();
             if (!chatName) {
+                chatNameInput.placeholder = "Please type a chat name";
                 chatNameInput.focus();
                 return;
             }
@@ -1879,6 +2018,16 @@
                         `${Number(message.spent).toFixed(3)} Snortz Coins`;
                     bot.appendChild(caption);
                 }
+                const copyBtn = document.createElement("button");
+                copyBtn.type = "button";
+                copyBtn.className = "copy-btn";
+                copyBtn.textContent = "Copy";
+                copyBtn.addEventListener("click", function () {
+                    navigator.clipboard.writeText(message.content);
+                    copyBtn.textContent = "Copied!";
+                    setTimeout(function () { copyBtn.textContent = "Copy"; }, 1500);
+                });
+                bot.appendChild(copyBtn);
             }
             botBox.appendChild(avatar);
             botBox.appendChild(bot);
@@ -1934,8 +2083,37 @@
                     deleteChat(chat.id);
                 });
 
+                const renameButton = document.createElement("button");
+                renameButton.type = "button";
+                renameButton.className = "chat-rename";
+                renameButton.setAttribute("aria-label", `Rename ${chat.title}`);
+                renameButton.textContent = "✎";
+                renameButton.addEventListener("click", async (event) => {
+                    event.stopPropagation();
+                    const newName = window.prompt("Rename chat", chat.title);
+
+                    if (newName === null) return;
+                    if (newName.trim() === "") {
+                        showPopup("Name can't be empty", "Please type a name for your chat.");
+                        return;
+                    }
+
+                    const res = await fetch(`/api/chats/${chat.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ title: newName.trim().slice(0, 80) })
+                    });
+                    if (!res.ok) {
+                        showPopup("Rename failed", "Could not rename this chat.");
+                        return;
+                    }
+                    const listResponse = await fetch("/api/chats");
+                    if (listResponse.ok) renderChatList((await listResponse.json()).chats);
+                });
+
                 chatRow.appendChild(chatButton);
                 chatRow.appendChild(deleteButton);
+                chatRow.appendChild(renameButton);
                 chatList.appendChild(chatRow);
             });
         }
@@ -2019,6 +2197,12 @@
             await connect();
             document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
             welcome.classList.toggle("hidden", chatMessages.length > 0);
+
+            if (chatMessages.length === 0) {
+                renderStarterPrompts();
+                starterPrompts.style.display = "";
+            }
+
             chatMessages.forEach(renderSavedMessage);
             renderChatList((await (await fetch("/api/chats")).json()).chats);
             
@@ -2080,7 +2264,7 @@
         input.addEventListener("input", resizeInput);
 
         input.addEventListener("keydown", function(event) {
-            if (event.key === "Enter" && !event.shiftKey) {
+            if (event.key === "Enter" && !event.shiftKey && !window.matchMedia("(pointer: coarse)").matches) {
                 event.preventDefault();
                 if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId) return;
                 form.requestSubmit();

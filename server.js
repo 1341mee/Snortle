@@ -294,7 +294,7 @@ const server = http.createServer(async (req, res) => {
     if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
 
     const { theme } = await parseBody(req);
-    if (!['dark', 'light', 'green'].includes(theme)) {
+    if (!['dark', 'light', 'green', 'futuristic'].includes(theme)) {
       return sendJson(res, 400, { success: false, message: 'Unknown theme.' });
     }
 
@@ -333,6 +333,35 @@ const server = http.createServer(async (req, res) => {
         suspiciousUsers: accountList.filter((user) => user.suspicious).length
       }
     });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/give-coins') {
+    const { key, username, amount } = await parseBody(req);
+    if (!key || key !== adminAccessKey) {
+      return sendJson(res, 403, { success: false, message: 'Admin access denied.' });
+    }
+
+    const user = users.get(String(username || '').trim());
+    if (!user) return sendJson(res, 404, { success: false, message: 'User not found.' });
+
+    const coins = Number(amount);
+    if (!Number.isFinite(coins) || coins === 0 || Math.abs(coins) > 1000000) {
+      return sendJson(res, 400, { success: false, message: 'Amount must be a number between -1,000,000 and 1,000,000 (not 0).' });
+    }
+
+    const wallets = getWallets(user);
+    const newBalance = Math.max(0, Math.round((wallets.purchasedSnortzCoins + coins) * 1000) / 1000);
+    user.purchasedSnortzCoins = newBalance;
+
+    // Update the user's live login sessions too, so the change isn't overwritten
+    for (const sessionData of sessions.values()) {
+      if (sessionData.username === user.username) {
+        sessionData.purchasedSnortzCoins = newBalance;
+      }
+    }
+
+    saveStore();
+    return sendJson(res, 200, { success: true, username: user.username, purchasedSnortzCoins: newBalance });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/set-plan') {
@@ -385,6 +414,14 @@ const server = http.createServer(async (req, res) => {
     const chats = getUserChats(sessionData.username);
     const now = new Date().toISOString();
     const body = await parseBody(req);
+
+    refreshHourlyCoins(sessionData);
+    const sentFree = Number(body.freeSnortzCoins ?? body.snortzCoins);
+    const sentPurchased = Number(body.purchasedSnortzCoins ?? 0);
+    if (sentFree > sessionData.freeSnortzCoins + 0.001 || sentPurchased > sessionData.purchasedSnortzCoins + 0.001) {
+      return sendJson(res, 400, { success: false, message: 'Balance can only go down.' });
+    }
+
     const selectedModel = catalog.models.find((model) => model.space === body.modelId);
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     if (!title) return sendJson(res, 400, { success: false, message: 'Chat name is required.' });
@@ -443,6 +480,23 @@ const server = http.createServer(async (req, res) => {
     chat.updatedAt = new Date().toISOString();
     saveStore();
     return sendJson(res, 200, { success: true, chat });
+  }
+
+  if (req.method === 'PATCH' && chatMatch) {
+    const sessionData = getAuthenticatedSession(req);
+    if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
+
+    const chat = (getUserChats(sessionData.username) || []).find((entry) => entry.id === chatMatch[1]);
+    if (!chat) return sendJson(res, 404, { success: false, message: 'Chat not found.' });
+
+    const { title } = await parseBody(req);
+    const cleanTitle = typeof title === 'string' ? title.trim().slice(0, 80) : '';
+    if (!cleanTitle) return sendJson(res, 400, { success: false, message: 'Chat name is required.' });
+
+    chat.title = cleanTitle;
+    chat.updatedAt = new Date().toISOString();
+    saveStore();
+    return sendJson(res, 200, { success: true, title: chat.title });
   }
 
   if (req.method === 'DELETE' && chatMatch) {

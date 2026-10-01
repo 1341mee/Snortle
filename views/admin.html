@@ -21,6 +21,10 @@
       margin-bottom: 24px;
       font-size: 2rem;
     }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+    }
     .summary {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -44,6 +48,58 @@
       font-size: 1.8rem;
       font-weight: 700;
     }
+    .give-card {
+      margin-bottom: 24px;
+    }
+    .give-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .give-row input {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #111827;
+      color: #f9fafb;
+      font-size: 1rem;
+      min-width: 0;
+    }
+    #giveUsername {
+      flex: 2 1 200px;
+    }
+    #giveAmount {
+      flex: 1 1 120px;
+    }
+    .give-row button {
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #f59e0b;
+      color: #111827;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .give-row button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .hint {
+      margin-top: 10px;
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+    #giveMessage {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      min-height: 1.2em;
+    }
+    #giveMessage.ok { color: #86efac; }
+    #giveMessage.bad { color: #fca5a5; }
+    .table-scroll {
+      overflow-x: auto;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -59,6 +115,10 @@
       background: #1f2937;
       color: #d1d5db;
     }
+    td.name {
+      cursor: pointer;
+      color: #fcd34d;
+    }
     tr.suspicious {
       background: rgba(239, 68, 68, 0.12);
     }
@@ -71,7 +131,6 @@
       text-transform: uppercase;
     }
     .risk.low { background: rgba(34,197,94,0.18); color: #86efac; }
-    .risk.medium { background: rgba(245,158,11,0.18); color: #fcd34d; }
     .risk.high { background: rgba(239,68,68,0.18); color: #fca5a5; }
     .error {
       color: #fca5a5;
@@ -94,31 +153,58 @@
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Plan</th>
-          <th>Free coins</th>
-          <th>Paid coins</th>
-          <th>Chats</th>
-          <th>Risk</th>
-          <th>Created</th>
-        </tr>
-      </thead>
-      <tbody id="userRows"></tbody>
-    </table>
+    <div class="card give-card">
+      <h2>Give Snortz Coins</h2>
+      <div class="give-row">
+        <input id="giveUsername" type="text" placeholder="Username (or click a name below)" autocomplete="off">
+        <input id="giveAmount" type="number" placeholder="Amount" step="any">
+        <button id="giveBtn" type="button">Give coins</button>
+      </div>
+      <div class="hint">Adds to the purchased wallet. Use a negative number to take coins away. The person must refresh their page to see it.</div>
+      <div id="giveMessage"></div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Plan</th>
+            <th>Free coins</th>
+            <th>Paid coins</th>
+            <th>Chats</th>
+            <th>Risk</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="userRows"></tbody>
+      </table>
+    </div>
 
     <div id="errorBox" class="error"></div>
   </div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const adminKey = urlParams.get('key');
+    const adminKey = urlParams.get('key') || '';
+
+    const giveUsername = document.getElementById('giveUsername');
+    const giveAmount = document.getElementById('giveAmount');
+    const giveBtn = document.getElementById('giveBtn');
+    const giveMessage = document.getElementById('giveMessage');
+
+    // Adds one cell to a row, using textContent so usernames can never run as code
+    function addCell(row, text, className) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (className) td.className = className;
+      row.appendChild(td);
+      return td;
+    }
 
     async function loadUsers() {
       try {
-        const response = await fetch(`/api/admin/users?key=${encodeURIComponent(adminKey || '')}`);
+        const response = await fetch('/api/admin/users?key=' + encodeURIComponent(adminKey));
         const payload = await response.json();
 
         if (!response.ok || !payload.success) {
@@ -135,15 +221,26 @@
           const tr = document.createElement('tr');
           if (user.suspicious) tr.classList.add('suspicious');
 
-          tr.innerHTML = `
-            <td>${user.username}</td>
-            <td>${user.planId}</td>
-            <td>${user.freeSnortzCoins}</td>
-            <td>${user.purchasedSnortzCoins}</td>
-            <td>${user.chatCount}</td>
-            <td><span class="risk ${user.suspicious ? 'high' : 'low'}">${user.suspicious ? 'high' : 'low'}</span></td>
-            <td>${user.createdAt ? new Date(user.createdAt).toLocaleString() : '—'}</td>
-          `;
+          const nameCell = addCell(tr, user.username, 'name');
+          nameCell.title = 'Click to fill the give-coins form';
+          nameCell.addEventListener('click', () => {
+            giveUsername.value = user.username;
+            giveAmount.focus();
+          });
+
+          addCell(tr, user.planId);
+          addCell(tr, user.freeSnortzCoins);
+          addCell(tr, user.purchasedSnortzCoins);
+          addCell(tr, user.chatCount);
+
+          const riskCell = document.createElement('td');
+          const risk = document.createElement('span');
+          risk.className = 'risk ' + (user.suspicious ? 'high' : 'low');
+          risk.textContent = user.suspicious ? 'high' : 'low';
+          riskCell.appendChild(risk);
+          tr.appendChild(riskCell);
+
+          addCell(tr, user.createdAt ? new Date(user.createdAt).toLocaleString() : '—');
           rows.appendChild(tr);
         });
       } catch (error) {
@@ -152,6 +249,45 @@
         errorBox.textContent = error.message;
       }
     }
+
+    function showGiveMessage(text, good) {
+      giveMessage.textContent = text;
+      giveMessage.className = good ? 'ok' : 'bad';
+    }
+
+    giveBtn.addEventListener('click', async () => {
+      const username = giveUsername.value.trim();
+      const amount = Number(giveAmount.value);
+
+      if (!username) {
+        showGiveMessage('Enter a username.', false);
+        return;
+      }
+      if (!giveAmount.value || !Number.isFinite(amount) || amount === 0) {
+        showGiveMessage('Enter an amount (not 0).', false);
+        return;
+      }
+
+      giveBtn.disabled = true;
+      try {
+        const response = await fetch('/api/admin/give-coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: adminKey, username: username, amount: amount })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Failed.');
+        }
+        showGiveMessage(result.username + ' now has ' + result.purchasedSnortzCoins + ' purchased coins.', true);
+        giveAmount.value = '';
+        loadUsers();
+      } catch (error) {
+        showGiveMessage(error.message, false);
+      } finally {
+        giveBtn.disabled = false;
+      }
+    });
 
     loadUsers();
   </script>

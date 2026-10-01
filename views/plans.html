@@ -5,26 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snortle Plans</title>
     <link rel="icon" type="image/svg+xml" href="/views/images/favicon.svg">
-    <link rel="stylesheet" href="/views/shared-settings.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/views/shared-settings.css">
     <style>
         :root {
-            --bg: rgb(22, 21, 19);
-            --panel: rgb(32, 30, 27);
-            --panel-light: rgb(46, 43, 39);
-            --text: rgb(240, 236, 228);
-            --muted: rgb(196, 190, 178);
+            --bg-color: rgb(22, 21, 19);
+            --mini-text-color: rgb(240, 236, 228);
+            --big-text-color: rgb(196, 190, 178);
+            --chat-float-color: rgb(32, 30, 27);
+            --input-bg-color: rgb(46, 43, 39);
             --accent: rgb(205, 163, 90);
             --accent-2: rgb(90, 110, 100);
-            --coin: rgb(216, 168, 74);
+            --coin-color: rgb(216, 168, 74);
             --title-height: 60px;
             --sidebar-w: 60px;
-        }
-
-        body.sidebar-expanded {
-            --sidebar-w: 260px;
+            --card-bg: rgba(32, 30, 27, 0.6);
+            --card-border: rgba(255, 255, 255, 0.07);
         }
 
         body.sidebar-collapsed {
@@ -32,33 +30,189 @@
         }
 
         * {
-            box-sizing: border-box;
-            margin: 0;
             font-family: "Quicksand", sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        html,
-        body {
+        html, body {
             scrollbar-width: none;
             -ms-overflow-style: none;
+            overflow: hidden;
         }
 
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar {
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
             display: none;
         }
 
         body {
-            min-height: 100vh;
-            color: var(--text);
-            background: var(--bg);
+            background-color: var(--bg-color);
+        }
+
+        /* ---------- Title bar ---------- */
+        .title {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            height: var(--title-height);
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            color: var(--mini-text-color);
+            background-color: var(--chat-float-color);
+            font-size: 19px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(205, 163, 90, 0.4);
+        }
+
+        #title-main {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 110% center;
+        }
+
+        #coin-counter {
+            grid-column: 3;
+            justify-self: end;
+            margin-right: 20px;
+            position: relative;
+        }
+
+        .coin-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: default;
+            padding: 7px 14px;
+            border-radius: 4px;
+            border: 1px solid rgba(216, 168, 74, 0.35);
+            background-color: var(--input-bg-color);
+            color: var(--coin-color);
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: background-color 0.15s ease;
+        }
+
+        .coin-display:hover {
+            background-color: rgba(216, 168, 74, 0.12);
+        }
+
+        .coin-icon-small {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .coin-tooltip {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 250px;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(216, 168, 74, 0.3);
+            background: var(--chat-float-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            z-index: 20;
+        }
+
+        #coin-counter:hover .coin-tooltip {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .coin-tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            font-size: 13px;
+            color: var(--big-text-color);
+        }
+
+        .coin-tooltip-row strong {
+            color: var(--mini-text-color);
+            font-weight: 700;
+        }
+
+        .coin-tooltip-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 6px 0;
+        }
+
+        .coin-progress {
+            margin-top: 10px;
+        }
+
+        .coin-progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--big-text-color);
+            margin-bottom: 6px;
+        }
+
+        .coin-progress-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .coin-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--coin-color));
+            transition: width 1s linear;
+            width: 0%;
+        }
+
+        /* ---------- Sidebar ---------- */
+        .chat-shell {
+            margin-left: 60px;
+            height: calc(100vh - var(--title-height));
+            transition: margin-left 0.2s ease;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .chat-shell::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar:hover ~ .chat-shell {
+            margin-left: 260px;
+        }
+
+        .chat-shell.collapsed {
+            margin-left: 0;
         }
 
         .sidebar {
             position: fixed;
             top: var(--title-height);
             left: 0;
-            width: var(--sidebar-w);
+            width: 60px;
             height: calc(100vh - var(--title-height));
             background: rgb(14, 13, 12);
             border-right: 1px solid rgba(205, 163, 90, 0.28);
@@ -68,6 +222,10 @@
             padding: 14px 12px 18px;
             transition: transform 0.2s ease, width 0.2s ease;
             z-index: 8;
+        }
+
+        .sidebar:hover {
+            width: 260px;
         }
 
         .sidebar.collapsed {
@@ -82,9 +240,9 @@
             transition: opacity 0.15s ease;
         }
 
-        body.sidebar-expanded .sidebar .label,
-        body.sidebar-expanded .sidebar .brand-text,
-        body.sidebar-expanded .sidebar .sidebar-section {
+        .sidebar:hover .label,
+        .sidebar:hover .brand-text,
+        .sidebar:hover .sidebar-section {
             opacity: 1;
         }
 
@@ -102,7 +260,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: var(--text);
+            color: var(--mini-text-color);
             font-size: 15px;
             font-weight: 700;
         }
@@ -119,13 +277,13 @@
         .sidebar-toggle {
             position: fixed;
             top: calc(var(--title-height) + 16px);
-            left: calc(var(--sidebar-w) + 8px);
+            left: 68px;
             width: 34px;
             height: 34px;
             border-radius: 4px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(32, 30, 27, 0.94);
-            color: var(--text);
+            color: var(--mini-text-color);
             cursor: pointer;
             font-size: 18px;
             line-height: 1;
@@ -141,52 +299,8 @@
             left: 12px;
         }
 
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--muted);
-            padding: 11px 14px;
-            text-align: left;
-            font: inherit;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: background-color 0.16s ease, border-color 0.16s ease;
-            text-decoration: none;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(205, 163, 90, 0.12);
-            border-color: rgba(205, 163, 90, 0.4);
-        }
-
-        .sidebar-section {
-            color: var(--muted);
-            font-size: 12px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            padding: 0 8px 10px;
-            opacity: 0.8;
-        }
-
-        /* ---------- Sidebar (same as chat.html) ---------- */
-        .sidebar {
-            padding: 14px 10px 18px;
-        }
-
-        .sidebar .icon {
-            flex-shrink: 0;
-            width: 20px;
-            text-align: center;
-        }
-
-        .sidebar-brand img {
-            flex-shrink: 0;
+        .sidebar:hover ~ .sidebar-toggle {
+            left: 268px;
         }
 
         .new-chat-btn {
@@ -215,227 +329,41 @@
             margin-bottom: 8px;
         }
 
-        .chat-list {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 0 8px;
-            scrollbar-width: none;
-        }
-
-        .chat-list::-webkit-scrollbar {
-            display: none;
-        }
-
-        .chat-list-empty {
-            margin-top: 10px;
-            color: rgba(196, 190, 178, 0.7);
-            font-size: 14px;
-            line-height: 1.6;
-            padding: 10px 8px;
-        }
-
-        .chat-item-row {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .chat-item {
-            display: block;
-            width: 100%;
-            min-width: 0;
-            overflow: hidden;
-            margin-bottom: 0;
-            padding: 10px 8px;
-            border: 0;
-            border-radius: 4px;
-            color: var(--muted);
-            background: transparent;
-            text-align: left;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font: inherit;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        .chat-item:hover {
-            background: rgba(205, 163, 90, 0.14);
-        }
-
-        .chat-item-row {
-            margin-bottom: 6px;
-        }
-
-        .chat-item-row.disabled .chat-item {
-            color: rgba(196, 190, 178, 0.42);
-        }
-
-        .chat-item-row.disabled::after {
-            content: "Plan locked";
-            padding-right: 8px;
-            color: rgba(216, 168, 74, 0.75);
-            font-size: 10px;
-            white-space: nowrap;
-        }
-
-        .chat-delete {
-            flex: 0 0 28px;
-            width: 28px;
-            height: 28px;
-            border: 0;
-            border-radius: 4px;
-            color: rgba(220, 160, 150, 0.8);
-            background: transparent;
-            cursor: pointer;
-        }
-
-        .chat-delete:hover {
-            color: white;
-            background: rgba(120, 45, 40, 0.45);
-        }
-
-        .chat-initial {
-            display: none;
-        }
-
-        /* Narrow rail (not hovered): remove everything that doesn't fit */
-        body:not(.sidebar-expanded) .sidebar .label,
-        body:not(.sidebar-expanded) .sidebar .brand-text,
-        body:not(.sidebar-expanded) .sidebar .sidebar-section,
-        body:not(.sidebar-expanded) .sidebar .chat-list-empty,
-        body:not(.sidebar-expanded) .sidebar .chat-delete,
-        body:not(.sidebar-expanded) .sidebar .chat-title,
-        body:not(.sidebar-expanded) .sidebar .chat-item-row.disabled::after {
-            display: none;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .sidebar-header {
-            padding: 6px 0 14px;
-            justify-content: center;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .sidebar-brand {
-            gap: 0;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .new-chat-btn,
-        body:not(.sidebar-expanded) .sidebar .sidebar-link {
-            padding: 11px 0;
-            gap: 0;
-            justify-content: center;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .new-chat-btn .icon {
-            font-size: 22px;
-            line-height: 1;
-        }
-
-        /* Chats become little boxes showing the first letter */
-        body:not(.sidebar-expanded) .sidebar .chat-list {
-            padding: 0;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .chat-initial {
-            display: block;
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .chat-item-row {
-            margin-bottom: 8px;
-            justify-content: center;
-        }
-
-        body:not(.sidebar-expanded) .sidebar .chat-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 39px;
-            padding: 0;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.04);
-        }
-
-        body:not(.sidebar-expanded) .sidebar .chat-item:hover {
-            border-color: var(--accent);
-            background: rgba(205, 163, 90, 0.14);
-        }
-
-        body:not(.sidebar-expanded) .sidebar .chat-item-row.disabled .chat-item {
-            opacity: 0.45;
-        }
-
-        /* ---------- Top bar ---------- */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: var(--title-height);
-            z-index: 10;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 0 28px;
-            background-color: var(--panel);
-            border-bottom: 1px solid rgba(205, 163, 90, 0.4);
-        }
-
-        .brand {
-            grid-column: 2;
+        .sidebar-link {
             display: flex;
             align-items: center;
             gap: 10px;
-            white-space: nowrap;
-            font-size: 19px;
-            font-weight: 700;
-        }
-
-        .brand img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            object-position: 110% center;
-        }
-
-        .coin-counter {
-            grid-column: 3;
-            justify-self: end;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .coin-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--coin);
-            background: var(--panel-light);
-            border: 1px solid rgba(216, 168, 74, 0.35);
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 4px;
-            padding: 7px 12px;
-            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--big-text-color);
+            padding: 11px 14px;
+            text-align: left;
+            font: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.16s ease, border-color 0.16s ease;
+            text-decoration: none;
         }
 
-        .coin-pill .coin-label {
-            color: var(--muted);
-            font-weight: 600;
+        .sidebar-link:hover {
+            background: rgba(205, 163, 90, 0.12);
+            border-color: rgba(205, 163, 90, 0.4);
         }
 
-        /* ---------- Page ---------- */
+        .sidebar-link.active {
+            background: rgba(205, 163, 90, 0.14);
+            border-color: rgba(205, 163, 90, 0.4);
+            color: var(--mini-text-color);
+        }
+
+        /* ---------- Plans layout ---------- */
         .page {
-            margin-left: var(--sidebar-w);
-            padding-top: calc(var(--title-height) + 12px);
-            padding-bottom: 56px;
-            padding-left: max(24px, calc((100vw - var(--sidebar-w) - 1120px) / 2));
-            padding-right: max(24px, calc((100vw - var(--sidebar-w) - 1120px) / 2));
-            transition: margin-left 0.2s ease;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: calc(var(--title-height) + 40px) 24px 80px;
         }
 
         .intro {
@@ -452,16 +380,16 @@
             margin-bottom: 12px;
         }
 
-        h1 {
+        .intro h1 {
             font-size: clamp(32px, 5vw, 50px);
             line-height: 1.08;
             margin-bottom: 16px;
             font-weight: 600;
-            color: var(--text);
+            color: var(--mini-text-color);
         }
 
         .intro p {
-            color: var(--muted);
+            color: var(--big-text-color);
             line-height: 1.6;
             font-size: 16px;
         }
@@ -479,9 +407,14 @@
             flex-direction: column;
             min-height: 480px;
             padding: 26px;
-            background: var(--panel);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
+            background: var(--chat-float-color);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            transition: border-color 0.16s ease;
+        }
+
+        .plan:hover {
+            border-color: rgba(205, 163, 90, 0.25);
         }
 
         .plan.plus {
@@ -496,25 +429,26 @@
             font-size: 23px;
             margin-bottom: 10px;
             font-weight: 600;
+            color: var(--mini-text-color);
         }
 
         .plan-description {
             min-height: 48px;
-            color: var(--muted);
+            color: var(--big-text-color);
             line-height: 1.5;
             font-size: 14px;
             margin-bottom: 24px;
         }
 
         .price {
-            color: var(--coin);
+            color: var(--coin-color);
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 24px;
         }
 
         .price-period {
-            color: var(--muted);
+            color: var(--big-text-color);
             font-size: 14px;
             font-weight: 500;
         }
@@ -540,7 +474,7 @@
             align-items: center;
             padding: 10px 12px;
             color: rgba(196, 190, 178, 0.6);
-            background: var(--panel-light);
+            background: var(--input-bg-color);
             border: 1px dashed rgba(255, 255, 255, 0.14);
             border-radius: 4px;
             font-size: 13px;
@@ -557,10 +491,17 @@
             font: inherit;
             font-weight: 700;
             cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.16s ease;
         }
 
         .choose:hover {
             background: rgb(224, 184, 112);
+        }
+
+        .choose:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* ---------- Coin store ---------- */
@@ -574,11 +515,12 @@
             font-size: 23px;
             margin-bottom: 8px;
             font-weight: 600;
+            color: var(--mini-text-color);
         }
 
         .coin-store-intro {
             max-width: 700px;
-            color: var(--muted);
+            color: var(--big-text-color);
             line-height: 1.6;
             font-size: 14px;
             margin-bottom: 22px;
@@ -592,9 +534,9 @@
 
         .coin-rule {
             padding: 14px;
-            color: var(--muted);
+            color: var(--big-text-color);
             background: rgba(255, 255, 255, 0.03);
-            border-left: 2px solid var(--coin);
+            border-left: 2px solid var(--coin-color);
             border-radius: 4px;
             font-size: 13px;
             line-height: 1.5;
@@ -612,19 +554,19 @@
             justify-content: space-between;
             gap: 16px;
             padding: 16px;
-            background: var(--panel);
+            background: var(--chat-float-color);
             border: 1px solid rgba(216, 168, 74, 0.22);
             border-radius: 6px;
         }
 
         .coin-amount {
-            color: var(--coin);
+            color: var(--coin-color);
             font-size: 17px;
             font-weight: 700;
         }
 
         .coin-price {
-            color: var(--muted);
+            color: var(--big-text-color);
             font-size: 14px;
             white-space: nowrap;
         }
@@ -638,22 +580,8 @@
 
         /* ---------- Small screens ---------- */
         @media (max-width: 760px) {
-            .topbar {
-                padding: 0 18px;
-            }
-
-            .coin-counter {
-                gap: 5px;
-            }
-
-            .coin-pill {
-                padding: 6px 8px;
-                font-size: 11px;
-            }
-
             .page {
                 width: min(100% - 28px, 560px);
-                margin-left: auto;
                 padding-top: 48px;
             }
 
@@ -666,24 +594,81 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ---------- Sidebar rail fixes ---------- */
+        .sidebar {
+            padding: 14px 10px 18px;
+        }
+
+        .sidebar .icon {
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-brand img {
+            flex-shrink: 0;
+        }
+
+        .sidebar:not(:hover) .label,
+        .sidebar:not(:hover) .brand-text,
+        .sidebar:not(:hover) .sidebar-section {
+            display: none;
+        }
+
+        .sidebar:not(:hover) .sidebar-header {
+            padding: 6px 0 14px;
+            justify-content: center;
+        }
+
+        .sidebar:not(:hover) .sidebar-brand {
+            gap: 0;
+        }
+
+        .sidebar:not(:hover) .new-chat-btn,
+        .sidebar:not(:hover) .sidebar-link {
+            padding: 11px 0;
+            gap: 0;
+            justify-content: center;
+        }
+
+        .sidebar:not(:hover) .new-chat-btn .icon {
+            font-size: 22px;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
-    <header class="topbar">
-        <div class="brand">
-            <img src="/views/images/snortle.png" alt="">
-            <span>Snortle AI</span>
-        </div>
-        <span class="coin-counter" id="coinCounter">
-            <span class="coin-pill"><span class="coin-label">Free:</span> <span id="freeCoinAmount">0.000</span></span>
-            <span class="coin-pill"><span class="coin-label">Paid:</span> <span id="paidCoinAmount">0.000</span></span>
-            <span class="coin-pill"><span class="coin-label">Next:</span> <span id="nextGrantCountdown">--:--:--</span></span>
+    <h1 class="title">
+        <span id="title-main">
+            <img id="title-icon" src="/views/images/snortle.png" alt="">
+            Snortle AI
         </span>
-    </header>
+        <span id="coin-counter">
+            <div class="coin-display" id="coin-display">
+                <img class="coin-icon-small" src="/views/images/snortz-coin.png" alt="">
+                <span id="total-coin-amount">0.000</span>
+            </div>
+            <div class="coin-tooltip" id="coin-tooltip">
+                <div class="coin-tooltip-row"><span>Free</span><strong id="free-coin-amount">0.000</strong></div>
+                <div class="coin-tooltip-row"><span>Purchased</span><strong id="paid-coin-amount">0.000</strong></div>
+                <div class="coin-tooltip-divider"></div>
+                <div class="coin-tooltip-row"><span>Total</span><strong id="total-coin-tooltip">0.000</strong></div>
+                <div class="coin-tooltip-divider"></div>
+                <div class="coin-progress">
+                    <div class="coin-progress-label">
+                        <span>Next free coins</span>
+                        <span id="coin-countdown">--:--:--</span>
+                    </div>
+                    <div class="coin-progress-bar">
+                        <div class="coin-progress-fill" id="coin-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </span>
+    </h1>
 
-    <button class="sidebar-toggle is-open" id="sidebarToggle" type="button" aria-label="Toggle sidebar">‹</button>
-
-    <aside class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-brand">
                 <img src="/views/images/snortle.png" alt="">
@@ -693,395 +678,214 @@
 
         <button class="new-chat-btn" id="newChatBtn" type="button"><span class="icon">+</span><span class="label">New chat</span></button>
         <div class="sidebar-actions">
-            <button class="sidebar-link" id="homeBtn" type="button"><span class="icon">🏠</span><span class="label">Home</span></button>
-            <button class="sidebar-link" id="chatBtn" type="button"><span class="icon">💬</span><span class="label">Chat</span></button>
-            <button class="sidebar-link" id="plansBtn" type="button"><span class="icon">💳</span><span class="label">Plans</span></button>
-            <button class="sidebar-link" id="settingsBtn" type="button"><span class="icon">⚙️</span><span class="label">Settings</span></button>
+            <a class="sidebar-link" href="/"><span class="icon">🏠</span><span class="label">Home</span></a>
+            <a class="sidebar-link" href="/chat"><span class="icon">💬</span><span class="label">Chat</span></a>
+            <a class="sidebar-link active" href="/plans"><span class="icon">💳</span><span class="label">Plans</span></a>
+            <a class="sidebar-link" href="/settings"><span class="icon">⚙️</span><span class="label">Settings</span></a>
         </div>
-        <div class="sidebar-section">Chats</div>
-        <div class="chat-list" id="chatList">
-            <div class="chat-list-empty">Click + New chat to begin.</div>
-        </div>
-    </aside>
-
-    <div class="settings-overlay" id="settingsOverlay" aria-hidden="true">
-        <section class="settings-box" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-            <button class="settings-close" id="settingsClose" type="button" aria-label="Close">×</button>
-            <h2 id="settingsTitle"><img src="/views/images/snortz-coin.png" alt="Snortz Coin"> Snortz Coin wallets</h2>
-            <div class="wallet-row"><span>Free wallet</span><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="freeWalletAmount">0.000 Snortz Coins</strong></span></div>
-            <div class="wallet-row"><span>Purchased wallet</span><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="purchasedWalletAmount">0.000 Snortz Coins</strong></span></div>
-            <div class="settings-divider"></div>
-            <div class="settings-row"><span>Current plan</span><strong id="currentPlan">Free</strong></div>
-            <div class="settings-row"><span>Next Snortz Coins</span><strong id="settingsNextGrantCountdown">--:--:--</strong></div>
-            <div class="settings-divider"></div>
-            <label class="settings-theme" for="themeSelect">Theme
-                <select id="themeSelect">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <option value="green">Eco green</option>
-                </select>
-            </label>
-            <button class="logout-btn" id="logoutBtn" type="button">Log out</button>
-            <button class="settings-btn--danger" id="deleteAccountBtn" type="button">Delete account</button>
-        </section>
     </div>
 
-    <main class="page">
-        <section class="intro">
-            <div class="eyebrow">Choose your pace</div>
-            <h1>Plans that fit your thinking.</h1>
-            <p>Pick a plan and fill in the details when they are ready.</p>
-        </section>
+    <button class="sidebar-toggle is-open" id="sidebarToggle" aria-label="Toggle sidebar">‹</button>
 
-        <section class="plans" aria-label="Snortle plans">
-            <article class="plan free">
-                <h2 class="plan-name">Free</h2>
-                <p class="plan-description">A starting point for trying Snortle.</p>
-                <div class="price">$0 <span class="price-period">/ month</span></div>
-                <div class="details-title">Plan details</div>
-                <div class="details">
-                    <div class="detail">Access to free models</div>
-                    <div class="detail">50 Snortz Coin allowance</div>
-                    <div class="detail">3 Snortz Coins an hour</div>
-                </div>
-                <button class="choose" type="button">Current plan</button>
-            </article>
+    <div class="chat-shell" id="chatShell">
+        <main class="page">
+            <section class="intro">
+                <div class="eyebrow">Choose your pace</div>
+                <h1>Plans that fit your thinking.</h1>
+                <p>Pick a plan and fill in the details when they are ready.</p>
+            </section>
 
-            <article class="plan plus">
-                <h2 class="plan-name">Plus</h2>
-                <p class="plan-description">More room for regular conversations.</p>
-                <div class="price">$0.49 <span class="price-period">/ month</span></div>
-                <div class="details-title">Plan details</div>
-                <div class="details">
-                    <div class="detail">Access to free and mid-tier models</div>
-                    <div class="detail">100 Snortz Coin allowance</div>
-                    <div class="detail">8 Snortz Coins an hour</div>
-                </div>
-                <button class="choose" type="button">Choose Plus</button>
-            </article>
-
-            <article class="plan pro">
-                <h2 class="plan-name">Pro</h2>
-                <p class="plan-description">The full Snortle experience for heavy use.</p>
-                <div class="price">$0.99 <span class="price-period">/ month</span></div>
-                <div class="details-title">Plan details</div>
-                <div class="details">
-                    <div class="detail">Access to all models (including top models)</div>
-                    <div class="detail">500 Snortz Coin allowance</div>
-                    <div class="detail">15 Snortz Coins an hour</div>
-                </div>
-                <button class="choose" type="button">Choose Pro</button>
-            </article>
-        </section>
-
-        <section class="coin-store" aria-labelledby="coin-store-title">
-            <h2 id="coin-store-title">Buy Snortz Coins</h2>
-            <p class="coin-store-intro">Add extra Snortz Coins whenever you need them. Fill in the package amounts and prices below when the store details are final.</p>
-
-            <div class="coin-rules">
-                <div class="coin-rule">Purchased coins last forever and do not expire. They are stored separately in an infinite-capacity wallet. Free coins are always spent before wallet coins.</div>
-            </div>
-
-            <div class="coin-packages">
-                <article class="coin-package">
-                    <div>
-                        <div class="coin-amount">1,000 Snortz Coins</div>
-                        <div class="coin-price">$0.49</div>
+            <section class="plans" aria-label="Snortle plans">
+                <article class="plan free">
+                    <h2 class="plan-name">Free</h2>
+                    <p class="plan-description">A starting point for trying Snortle.</p>
+                    <div class="price">$0 <span class="price-period">/ month</span></div>
+                    <div class="details-title">Plan details</div>
+                    <div class="details">
+                        <div class="detail">Access to free models</div>
+                        <div class="detail">50 Snortz Coin allowance</div>
+                        <div class="detail">3 Snortz Coins an hour</div>
                     </div>
-                    <button class="choose buy-coin-btn" type="button">Buy</button>
+                    <button class="choose" type="button" id="plan-free">Current plan</button>
                 </article>
-                <article class="coin-package">
-                    <div>
-                        <div class="coin-amount">3,000 Snortz Coins</div>
-                        <div class="coin-price">$0.99</div>
-                    </div>
-                    <button class="choose buy-coin-btn" type="button">Buy</button>
-                </article>
-                <article class="coin-package">
-                    <div>
-                        <div class="coin-amount">10,000 Snortz Coins</div>
-                        <div class="coin-price">$1.99</div>
-                    </div>
-                    <button class="choose buy-coin-btn" type="button">Buy</button>
-                </article>
-            </div>
-        </section>
-    </main>
 
+                <article class="plan plus">
+                    <h2 class="plan-name">Plus</h2>
+                    <p class="plan-description">More room for regular conversations.</p>
+                    <div class="price">$0.49 <span class="price-period">/ month</span></div>
+                    <div class="details-title">Plan details</div>
+                    <div class="details">
+                        <div class="detail">Access to free and mid-tier models</div>
+                        <div class="detail">100 Snortz Coin allowance</div>
+                        <div class="detail">8 Snortz Coins an hour</div>
+                    </div>
+                    <button class="choose" type="button" id="plan-plus">Choose Plus</button>
+                </article>
+
+                <article class="plan pro">
+                    <h2 class="plan-name">Pro</h2>
+                    <p class="plan-description">The full Snortle experience for heavy use.</p>
+                    <div class="price">$0.99 <span class="price-period">/ month</span></div>
+                    <div class="details-title">Plan details</div>
+                    <div class="details">
+                        <div class="detail">Access to all models (including top models)</div>
+                        <div class="detail">500 Snortz Coin allowance</div>
+                        <div class="detail">15 Snortz Coins an hour</div>
+                    </div>
+                    <button class="choose" type="button" id="plan-pro">Choose Pro</button>
+                </article>
+            </section>
+
+            <section class="coin-store" aria-labelledby="coin-store-title">
+                <h2 id="coin-store-title">Buy Snortz Coins</h2>
+                <p class="coin-store-intro">Add extra Snortz Coins whenever you need them. Fill in the package amounts and prices below when the store details are final.</p>
+
+                <div class="coin-rules">
+                    <div class="coin-rule">Purchased coins last forever and do not expire. They are stored separately in an infinite-capacity wallet. Free coins are always spent before wallet coins.</div>
+                </div>
+
+                <div class="coin-packages">
+                    <article class="coin-package">
+                        <div>
+                            <div class="coin-amount">1,000 Snortz Coins</div>
+                            <div class="coin-price">$0.49</div>
+                        </div>
+                        <button class="choose buy-coin-btn" type="button">Buy</button>
+                    </article>
+                    <article class="coin-package">
+                        <div>
+                            <div class="coin-amount">3,000 Snortz Coins</div>
+                            <div class="coin-price">$0.99</div>
+                        </div>
+                        <button class="choose buy-coin-btn" type="button">Buy</button>
+                    </article>
+                    <article class="coin-package">
+                        <div>
+                            <div class="coin-amount">10,000 Snortz Coins</div>
+                            <div class="coin-price">$1.99</div>
+                        </div>
+                        <button class="choose buy-coin-btn" type="button">Buy</button>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/views/shared-settings.js"></script>
     <script>
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const page = document.querySelector('.page');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsOverlay = document.getElementById('settingsOverlay');
-        const settingsClose = document.getElementById('settingsClose');
-        const freeCoinAmount = document.getElementById('freeCoinAmount');
-        const paidCoinAmount = document.getElementById('paidCoinAmount');
-        const nextGrantCountdown = document.getElementById('nextGrantCountdown');
-        const settingsNextGrantCountdown = document.getElementById('settingsNextGrantCountdown');
-        const freeWalletAmount = document.getElementById('freeWalletAmount');
-        const purchasedWalletAmount = document.getElementById('purchasedWalletAmount');
-        const currentPlan = document.getElementById('currentPlan');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-        const themeSelect = document.getElementById('themeSelect');
-        const newChatBtn = document.getElementById('newChatBtn');
-        const chatList = document.getElementById('chatList');
-
+        const HOUR_IN_MS = 60 * 60 * 1000;
         let nextFreeCoinGrant = null;
+        let activePlanId = 'free';
 
-        function formatCountdown(msRemaining) {
-            const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            const pad = (value) => String(value).padStart(2, '0');
-            return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        // ---------- Session ----------
+        async function loadSession() {
+            try {
+                const res = await fetch('/api/session-status');
+                const data = await res.json();
+                if (!data.loggedIn) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                const free = Number(data.freeSnortzCoins ?? data.snortzCoins ?? 0);
+                const purchased = Number(data.purchasedSnortzCoins ?? 0);
+                nextFreeCoinGrant = data.nextFreeCoinGrant ? Number(data.nextFreeCoinGrant) : null;
+                activePlanId = data.planId || 'free';
+
+                updateCoinDisplay(free, purchased);
+                updateCoinCountdown();
+                updatePlanButtons();
+            } catch (err) {
+                console.error('Failed to load session.', err);
+            }
         }
 
-        function renderChatList(chats) {
-            chatList.innerHTML = '';
-            if (!chats.length) {
-                chatList.innerHTML = '<div class="chat-list-empty">Click + New chat to begin.</div>';
+        // ---------- Coin display ----------
+        function updateCoinDisplay(free, purchased) {
+            const total = free + purchased;
+            const el = id => document.getElementById(id);
+            if (el('free-coin-amount')) el('free-coin-amount').textContent = free.toFixed(3);
+            if (el('paid-coin-amount')) el('paid-coin-amount').textContent = purchased.toFixed(3);
+            if (el('total-coin-amount')) el('total-coin-amount').textContent = total.toFixed(3);
+            if (el('total-coin-tooltip')) el('total-coin-tooltip').textContent = total.toFixed(3);
+        }
+
+        function formatCountdown(ms) {
+            const total = Math.max(0, Math.floor(ms / 1000));
+            const h = Math.floor(total / 3600);
+            const m = Math.floor((total % 3600) / 60);
+            const s = total % 60;
+            const pad = v => String(v).padStart(2, '0');
+            return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+
+        function updateCoinCountdown() {
+            const el = id => document.getElementById(id);
+            const countdown = el('coin-countdown');
+            const fill = el('coin-progress-fill');
+
+            if (!nextFreeCoinGrant) {
+                if (countdown) countdown.textContent = '--:--:--';
+                if (fill) fill.style.width = '0%';
                 return;
             }
+            const msRemaining = nextFreeCoinGrant - Date.now();
+            if (msRemaining <= 0) {
+                if (countdown) countdown.textContent = 'Updating...';
+                if (fill) fill.style.width = '100%';
+                loadSession();
+                return;
+            }
+            if (countdown) countdown.textContent = formatCountdown(msRemaining);
+            const elapsed = HOUR_IN_MS - msRemaining;
+            const progress = Math.min(100, Math.max(0, (elapsed / HOUR_IN_MS) * 100));
+            if (fill) fill.style.width = progress + '%';
+        }
 
-            chats.forEach((chat) => {
-                const chatRow = document.createElement('div');
-                chatRow.className = 'chat-item-row';
-                if (chat.disabled) chatRow.classList.add('disabled');
+        setInterval(updateCoinCountdown, 1000);
 
-                const chatButton = document.createElement('button');
-                chatButton.type = 'button';
-                chatButton.className = 'chat-item';
-                chatButton.title = chat.title;
+        // ---------- Plan buttons ----------
+        function updatePlanButtons() {
+            const buttons = {
+                'free': document.getElementById('plan-free'),
+                'plus': document.getElementById('plan-plus'),
+                'pro': document.getElementById('plan-pro')
+            };
 
-                const initial = document.createElement('span');
-                initial.className = 'chat-initial';
-                initial.textContent = chat.title.trim().charAt(0).toUpperCase() || '?';
-
-                const titleSpan = document.createElement('span');
-                titleSpan.className = 'chat-title';
-                titleSpan.textContent = chat.title;
-
-                chatButton.appendChild(initial);
-                chatButton.appendChild(titleSpan);
-                chatButton.addEventListener('click', () => {
-                    window.location.href = '/chat?chat=' + encodeURIComponent(chat.id);
-                });
-
-                const deleteButton = document.createElement('button');
-                deleteButton.type = 'button';
-                deleteButton.className = 'chat-delete';
-                deleteButton.textContent = '×';
-                deleteButton.addEventListener('click', async (event) => {
-                    event.stopPropagation();
-                    const confirmed = window.confirm('Delete "' + chat.title + '"? This can\'t be undone.');
-                    if (!confirmed) return;
-                    await fetch('/api/chats/' + chat.id, { method: 'DELETE' });
-                    loadChatList();
-                });
-
-                chatRow.appendChild(chatButton);
-                chatRow.appendChild(deleteButton);
-                chatList.appendChild(chatRow);
+            Object.entries(buttons).forEach(([id, btn]) => {
+                if (!btn) return;
+                if (id === activePlanId) {
+                    btn.textContent = 'Current plan';
+                    btn.disabled = true;
+                } else {
+                    btn.textContent = 'Choose ' + id.charAt(0).toUpperCase() + id.slice(1);
+                    btn.disabled = false;
+                }
             });
         }
 
-        async function loadChatList() {
-            try {
-                const response = await fetch('/api/chats');
-                if (!response.ok) return;
-                const result = await response.json();
-                renderChatList(result.chats);
-            } catch (error) {
-                console.error('Failed to load chats.', error);
-            }
-        }
-
-        let coinRefreshInFlight = false;
-
-        function updateCountdown() {
-            if (nextFreeCoinGrant && nextFreeCoinGrant - Date.now() <= 0) {
-                nextGrantCountdown.textContent = 'Updating...';
-                settingsNextGrantCountdown.textContent = 'Updating...';
-                loadWallets();
-                return;
-            }
-            const displayValue = !nextFreeCoinGrant ? '--:--:--' : formatCountdown(nextFreeCoinGrant - Date.now());
-            if (nextGrantCountdown) nextGrantCountdown.textContent = displayValue;
-            if (settingsNextGrantCountdown) settingsNextGrantCountdown.textContent = displayValue;
-        }
-
-        setInterval(updateCountdown, 1000);
-
-        async function loadWallets() {
-            if (coinRefreshInFlight) return;
-            coinRefreshInFlight = true;
-            try {
-                const response = await fetch('/api/session-status');
-                const data = await response.json();
-                if (!data.loggedIn) {
-                    window.location.replace('/');
-                    return;
-                }
-                const freeCoins = Number(data.freeSnortzCoins || 0);
-                const purchasedCoins = Number(data.purchasedSnortzCoins || 0);
-                const planName = data.planId ? data.planId.toString().charAt(0).toUpperCase() + data.planId.toString().slice(1) : 'Free';
-                freeCoinAmount.textContent = freeCoins.toFixed(3);
-                paidCoinAmount.textContent = purchasedCoins.toFixed(3);
-                freeWalletAmount.textContent = `${freeCoins.toFixed(3)} Snortz Coins`;
-                purchasedWalletAmount.textContent = `${purchasedCoins.toFixed(3)} Snortz Coins`;
-                currentPlan.textContent = planName;
-                nextFreeCoinGrant = data.nextFreeCoinGrant ? Number(data.nextFreeCoinGrant) : null;
-                updateCountdown();
-            } catch (error) {
-                console.error('Failed to load Snortz Coin wallets.', error);
-                window.location.replace('/');
-            } finally {
-                coinRefreshInFlight = false;
-            }
-        }
+        // ---------- Sidebar ----------
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const newChatBtn = document.getElementById('newChatBtn');
 
         sidebarToggle.addEventListener('click', () => {
             const isCollapsed = sidebar.classList.toggle('collapsed');
-            page.classList.toggle('sidebar-collapsed', isCollapsed);
             document.body.classList.toggle('sidebar-collapsed', isCollapsed);
-            sidebarToggle.classList.toggle('collapsed', isCollapsed);
             sidebarToggle.textContent = isCollapsed ? '›' : '‹';
         });
 
-        sidebar.addEventListener('mouseenter', function() {
-            if (!sidebar.classList.contains('collapsed')) {
-                document.body.classList.add('sidebar-expanded');
-            }
-        });
-        sidebar.addEventListener('mouseleave', function() {
-            document.body.classList.remove('sidebar-expanded');
-        });
-
-        document.getElementById("chatBtn").addEventListener("click", function() {
-            window.location.href = "/chat";
-        });
-
-        document.getElementById("plansBtn").addEventListener("click", function() {
-            window.location.href = "/plans";
-        });
-
-        document.getElementById("homeBtn").addEventListener("click", function() {
-            window.location.href = "/";
-        });
-
-        newChatBtn.addEventListener('click', function() {
+        newChatBtn.addEventListener('click', () => {
             window.location.href = '/chat';
         });
 
-        const sharedSettingsScript = document.createElement('script');
-        sharedSettingsScript.src = '/views/shared-settings.js';
-        document.head.appendChild(sharedSettingsScript);
-
-        function bindSettings() {
-            if (!window.SnortleSettings) return false;
-            window.SnortleSettings.bindSettingsModal({
-                overlay: settingsOverlay,
-                trigger: settingsBtn,
-                closeButtons: [settingsClose],
-                onOpen: async () => {
-                    await loadWallets();
-                }
-            });
-            window.SnortleSettings.bindThemeSelector(themeSelect);
-            return true;
+        // ---------- Theme ----------
+        if (window.SnortleSettings) {
+            // Theme selector would go here if present on this page
         }
 
-        if (!bindSettings()) {
-            window.addEventListener('load', bindSettings, { once: true });
-        }
-
-        logoutBtn.addEventListener('click', async () => {
-            await fetch('/api/logout', { method: 'POST' });
-            window.location.href = '/';
-        });
-
-        deleteAccountBtn.addEventListener('click', function() {
-            const confirmed = window.confirm('Are you sure? This cannot be undone.');
-            if (!confirmed) return;
-
-            const deleteModal = document.createElement('div');
-            deleteModal.style.cssText = `
-                position: fixed;
-                inset: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(0, 0, 0, 0.42);
-                z-index: 30;
-            `;
-
-            deleteModal.innerHTML = `
-                <div style="width: min(360px, calc(100% - 36px)); padding: 24px; border: 1px solid var(--accent); border-radius: 6px; background: var(--panel); color: var(--text);">
-                    <h3 style="margin-bottom: 12px; font-size: 18px; font-weight: 600;">Delete account</h3>
-                    <p style="color: var(--muted); margin-bottom: 16px; font-size: 14px; line-height: 1.5;">Type <strong>delete account</strong> below to confirm. This is permanent.</p>
-                    <input id="delete-confirm-input" type="text" placeholder="Type here..." style="width: 100%; padding: 11px; border: 1px solid var(--sidebar-border); border-radius: 4px; background: var(--input-bg-color); color: var(--text); margin-bottom: 16px; font-family: inherit;">
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; color: var(--muted); font-size: 13px; font-weight: 700; margin-bottom: 8px;">Bot check: slide to <span id="delete-bot-target">10</span></label>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <input id="delete-bot-check" type="range" min="0" max="20" value="0" style="flex: 1; height: 6px; cursor: pointer; accent-color: var(--accent);">
-                            <span id="delete-bot-value" style="min-width: 30px; text-align: center; color: var(--accent); font-weight: 700; font-size: 14px;">0</span>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="delete-cancel" type="button" style="flex: 1; padding: 11px; border: 1px solid var(--sidebar-border); border-radius: 4px; background: var(--input-bg-color); color: var(--text); font-weight: 700; cursor: pointer;">Cancel</button>
-                        <button id="delete-confirm" type="button" style="flex: 1; padding: 11px; border: 0; border-radius: 4px; background: rgb(200, 80, 70); color: white; font-weight: 700; cursor: pointer;">Delete</button>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(deleteModal);
-            const deleteInput = deleteModal.querySelector('#delete-confirm-input');
-            const botCheckSlider = deleteModal.querySelector('#delete-bot-check');
-            const botCheckValue = deleteModal.querySelector('#delete-bot-value');
-            const botCheckTarget = Math.floor(Math.random() * 21);
-            deleteModal.querySelector('#delete-bot-target').textContent = botCheckTarget;
-            let botCheckValue_ = 0;
-
-            botCheckSlider.addEventListener('input', () => {
-                botCheckValue_ = Number(botCheckSlider.value);
-                botCheckValue.textContent = botCheckValue_;
-            });
-
-            deleteModal.querySelector('#delete-cancel').addEventListener('click', () => {
-                deleteModal.remove();
-            });
-
-            deleteModal.querySelector('#delete-confirm').addEventListener('click', async () => {
-                if (deleteInput.value !== 'delete account') {
-                    window.alert('Please type "delete account" to confirm.');
-                    return;
-                }
-                if (botCheckValue_ !== botCheckTarget) {
-                    window.alert(`Please slide to ${botCheckTarget}.`);
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/delete-account', { method: 'POST' });
-                    if (!response.ok) {
-                        const result = await response.json();
-                        window.alert(result.message || 'Failed to delete account.');
-                        return;
-                    }
-                    window.location.href = '/';
-                } catch (error) {
-                    window.alert('Error deleting account: ' + error.message);
-                }
-            });
-
-            deleteInput.focus();
-        });
-
-        loadWallets();
-        loadChatList();
+        // ---------- Init ----------
+        loadSession();
     </script>
 </body>
 </html>

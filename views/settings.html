@@ -22,10 +22,11 @@
             --coin-color: rgb(216, 168, 74);
             --title-height: 60px;
             --sidebar-w: 60px;
-        }
-
-        body.sidebar-expanded {
-            --sidebar-w: 260px;
+            --card-bg: rgba(32, 30, 27, 0.6);
+            --card-border: rgba(255, 255, 255, 0.07);
+            --danger-color: rgb(200, 80, 70);
+            --danger-bg: rgba(45, 20, 20, 0.4);
+            --danger-border: rgba(200, 80, 70, 0.3);
         }
 
         body.sidebar-collapsed {
@@ -87,9 +88,19 @@
         }
 
         .chat-shell {
-            margin-left: var(--sidebar-w);
+            margin-left: 60px;
             height: calc(100vh - var(--title-height));
             transition: margin-left 0.2s ease;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .chat-shell::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar:hover ~ .chat-shell {
+            margin-left: 260px;
         }
 
         .chat-shell.collapsed {
@@ -100,7 +111,7 @@
             position: fixed;
             top: var(--title-height);
             left: 0;
-            width: var(--sidebar-w);
+            width: 60px;
             height: calc(100vh - var(--title-height));
             background: rgb(14, 13, 12);
             border-right: 1px solid rgba(205, 163, 90, 0.28);
@@ -112,6 +123,10 @@
             z-index: 8;
         }
 
+        .sidebar:hover {
+            width: 260px;
+        }
+
         .sidebar.collapsed {
             transform: translateX(-100%);
         }
@@ -119,7 +134,6 @@
         .sidebar .label,
         .sidebar .brand-text,
         .sidebar .sidebar-section,
-        .sidebar .chat-list,
         .sidebar .model-picker,
         .sidebar .model-lock {
             opacity: 0;
@@ -127,12 +141,11 @@
             transition: opacity 0.15s ease;
         }
 
-        body.sidebar-expanded .sidebar .label,
-        body.sidebar-expanded .sidebar .brand-text,
-        body.sidebar-expanded .sidebar .sidebar-section,
-        body.sidebar-expanded .sidebar .chat-list,
-        body.sidebar-expanded .sidebar .model-picker,
-        body.sidebar-expanded .sidebar .model-lock {
+        .sidebar:hover .label,
+        .sidebar:hover .brand-text,
+        .sidebar:hover .sidebar-section,
+        .sidebar:hover .model-picker,
+        .sidebar:hover .model-lock {
             opacity: 1;
         }
 
@@ -167,7 +180,7 @@
         .sidebar-toggle {
             position: fixed;
             top: calc(var(--title-height) + 16px);
-            left: calc(var(--sidebar-w) + 8px);
+            left: 68px;
             width: 34px;
             height: 34px;
             border-radius: 4px;
@@ -189,6 +202,10 @@
             left: 12px;
         }
 
+        .sidebar:hover ~ .sidebar-toggle {
+            left: 268px;
+        }
+
         .new-chat-btn {
             display: flex;
             align-items: center;
@@ -202,7 +219,7 @@
             padding: 12px 14px;
             cursor: pointer;
             margin-bottom: 18px;
-            transition: background-color 0.16s ease, opacity 0.16s ease;
+            transition: background-color 0.16s ease;
         }
 
         .new-chat-btn:hover {
@@ -239,33 +256,75 @@
             border-color: rgba(205, 163, 90, 0.4);
         }
 
-        .sidebar-section {
-            color: var(--big-text-color);
-            font-size: 12px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            padding: 0 8px 10px;
-            opacity: 0.8;
-        }
-
-        .settings-box {
-            max-width: 420px;
-            margin: 0 auto;
-            padding: calc(var(--title-height) + 48px) 24px 48px;
-        }
-
-        .settings-box h2 {
-            font-size: 25px;
-            margin-bottom: 6px;
-            font-weight: 600;
+        .sidebar-link.active {
+            background: rgba(205, 163, 90, 0.14);
+            border-color: rgba(205, 163, 90, 0.4);
             color: var(--mini-text-color);
         }
 
-        .settings-box p {
+        /* ---------- Settings layout ---------- */
+        .settings-container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: calc(var(--title-height) + 40px) 24px 80px;
+        }
+
+        .settings-header {
+            margin-bottom: 32px;
+        }
+
+        .settings-header h2 {
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--mini-text-color);
+            margin-bottom: 6px;
+        }
+
+        .settings-header p {
             color: var(--big-text-color);
             font-size: 14px;
             line-height: 1.5;
-            margin-bottom: 24px;
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .settings-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 18px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--big-text-color);
+            font-size: 15px;
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .settings-row:first-child {
+            padding-top: 0;
+        }
+
+        .settings-row strong {
+            color: var(--mini-text-color);
+            font-weight: 600;
         }
 
         .wallet-row {
@@ -273,9 +332,34 @@
             justify-content: space-between;
             align-items: center;
             padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .wallet-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .wallet-row:first-child {
+            padding-top: 0;
+        }
+
+        .wallet-label {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .wallet-label .label-title {
             color: var(--mini-text-color);
             font-size: 15px;
+            font-weight: 600;
+        }
+
+        .wallet-label .label-desc {
+            color: var(--big-text-color);
+            font-size: 12px;
+            opacity: 0.7;
         }
 
         .wallet-amount {
@@ -284,81 +368,200 @@
             gap: 8px;
             color: var(--coin-color);
             font-weight: 700;
+            font-size: 18px;
         }
 
         .wallet-amount img {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-        }
-
-        .settings-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.08);
-            margin: 16px 0;
-        }
-
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            color: var(--big-text-color);
-            font-size: 14px;
-        }
-
-        .settings-row strong {
-            color: var(--mini-text-color);
         }
 
         .settings-theme {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 4px 0;
             color: var(--big-text-color);
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .settings-theme select {
-            padding: 6px 10px;
-            border-radius: 4px;
+            padding: 8px 14px;
+            border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             background: var(--input-bg-color);
             color: var(--mini-text-color);
             font: inherit;
+            font-size: 14px;
+            cursor: pointer;
         }
 
-        .logout-btn,
-        .settings-btn--danger {
+        .settings-theme select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
             width: 100%;
-            padding: 12px;
-            border-radius: 4px;
+            padding: 13px;
+            border-radius: 6px;
             border: none;
             font: inherit;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 8px;
+            font-size: 15px;
+            transition: background-color 0.16s ease;
         }
 
-        .logout-btn {
-            background: var(--accent);
-            color: rgb(24, 22, 19);
+        .btn-logout {
+            background: var(--input-bg-color);
+            color: var(--mini-text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .logout-btn:hover {
-            background: rgb(224, 184, 112);
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .settings-btn--danger {
-            background: rgb(200, 80, 70);
+        .btn-danger {
+            background: var(--danger-color);
             color: white;
         }
 
-        .settings-btn--danger:hover {
+        .btn-danger:hover {
             background: rgb(220, 100, 90);
         }
 
-        /* Sidebar rail fixes */
+        .danger-card {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+        }
+
+        .danger-card h3 {
+            color: rgb(220, 120, 110);
+        }
+
+        .danger-card p {
+            color: var(--big-text-color);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        /* ---------- Delete confirmation modal ---------- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 30;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(380px, calc(100% - 36px));
+            padding: 28px;
+            border: 1px solid rgba(200, 80, 70, 0.4);
+            border-radius: 8px;
+            background: var(--chat-float-color);
+        }
+
+        .modal-box h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--mini-text-color);
+            margin-bottom: 8px;
+        }
+
+        .modal-box p {
+            color: var(--big-text-color);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        .modal-box input[type="text"] {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            background: var(--input-bg-color);
+            color: var(--mini-text-color);
+            font: inherit;
+            margin-bottom: 18px;
+        }
+
+        .modal-box input[type="text"]:focus {
+            outline: none;
+            border-color: var(--danger-color);
+        }
+
+        .bot-check {
+            margin-bottom: 20px;
+        }
+
+        .bot-check label {
+            display: block;
+            color: var(--big-text-color);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .bot-check-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .bot-check-row input[type="range"] {
+            flex: 1;
+            height: 6px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .bot-check-value {
+            min-width: 34px;
+            text-align: center;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: 0;
+            border-radius: 6px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .modal-cancel {
+            background: var(--input-bg-color);
+            color: var(--mini-text-color);
+        }
+
+        .modal-confirm {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* ---------- Sidebar rail fixes ---------- */
         .sidebar {
             padding: 14px 10px 18px;
         }
@@ -373,29 +576,29 @@
             flex-shrink: 0;
         }
 
-        body:not(.sidebar-expanded) .sidebar .label,
-        body:not(.sidebar-expanded) .sidebar .brand-text,
-        body:not(.sidebar-expanded) .sidebar .sidebar-section {
+        .sidebar:not(:hover) .label,
+        .sidebar:not(:hover) .brand-text,
+        .sidebar:not(:hover) .sidebar-section {
             display: none;
         }
 
-        body:not(.sidebar-expanded) .sidebar .sidebar-header {
+        .sidebar:not(:hover) .sidebar-header {
             padding: 6px 0 14px;
             justify-content: center;
         }
 
-        body:not(.sidebar-expanded) .sidebar .sidebar-brand {
+        .sidebar:not(:hover) .sidebar-brand {
             gap: 0;
         }
 
-        body:not(.sidebar-expanded) .sidebar .new-chat-btn,
-        body:not(.sidebar-expanded) .sidebar .sidebar-link {
+        .sidebar:not(:hover) .new-chat-btn,
+        .sidebar:not(:hover) .sidebar-link {
             padding: 11px 0;
             gap: 0;
             justify-content: center;
         }
 
-        body:not(.sidebar-expanded) .sidebar .new-chat-btn .icon {
+        .sidebar:not(:hover) .new-chat-btn .icon {
             font-size: 22px;
             line-height: 1;
         }
@@ -409,8 +612,6 @@
         </span>
     </h1>
 
-    <button class="sidebar-toggle is-open" id="sidebarToggle" aria-label="Toggle sidebar">‹</button>
-
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-brand">
@@ -420,51 +621,94 @@
         </div>
 
         <button class="new-chat-btn" id="newChatBtn" type="button"><span class="icon">+</span><span class="label">New chat</span></button>
-        <a class="sidebar-link" href="/"><span class="icon">🏠</span><span class="label">Home</span></a>
-        <a class="sidebar-link" href="/chat"><span class="icon">💬</span><span class="label">Chat</span></a>
-        <a class="sidebar-link" href="/plans"><span class="icon">💳</span><span class="label">Plans</span></a>
-        <button class="sidebar-link" id="settingsBtn" type="button"><span class="icon">⚙️</span><span class="label">Settings</span></button>
+        <div class="sidebar-actions">
+            <a class="sidebar-link" href="/"><span class="icon">🏠</span><span class="label">Home</span></a>
+            <a class="sidebar-link" href="/chat"><span class="icon">💬</span><span class="label">Chat</span></a>
+            <a class="sidebar-link" href="/plans"><span class="icon">💳</span><span class="label">Plans</span></a>
+            <a class="sidebar-link active" href="/settings"><span class="icon">⚙️</span><span class="label">Settings</span></a>
+        </div>
     </div>
 
+    <button class="sidebar-toggle is-open" id="sidebarToggle" aria-label="Toggle sidebar">‹</button>
+
     <div class="chat-shell" id="chatShell">
-        <main class="settings-box">
-            <h2>Snortz Coin wallets</h2>
-            <p>Manage your coins, plan, and preferences.</p>
-
-            <div class="wallet-row">
-                <span>Free wallet</span>
-                <span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="free-wallet-amount">0.000</strong></span>
-            </div>
-            <div class="wallet-row">
-                <span>Purchased wallet</span>
-                <span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="purchased-wallet-amount">0.000</strong></span>
+        <div class="settings-container">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <p>Manage your Snortz Coins, plan, and preferences.</p>
             </div>
 
-            <div class="settings-divider"></div>
+            <div class="settings-card">
+                <h3>Snortz Coin Wallets</h3>
+                <div class="wallet-row">
+                    <div class="wallet-label">
+                        <span class="label-title">Free wallet</span>
+                        <span class="label-desc">Refills automatically over time</span>
+                    </div>
+                    <span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="free-wallet-amount">0.000</strong></span>
+                </div>
+                <div class="wallet-row">
+                    <div class="wallet-label">
+                        <span class="label-title">Purchased wallet</span>
+                        <span class="label-desc">From plan purchases</span>
+                    </div>
+                    <span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="purchased-wallet-amount">0.000</strong></span>
+                </div>
+            </div>
 
-            <div class="settings-row"><span>Current plan</span><strong id="current-plan">Free</strong></div>
-            <div class="settings-row"><span>Next Snortz Coins</span><strong id="next-coins-time">--:--:--</strong></div>
+            <div class="settings-card">
+                <h3>Plan</h3>
+                <div class="settings-row"><span>Current plan</span><strong id="current-plan">Free</strong></div>
+                <div class="settings-row"><span>Next free Snortz Coins</span><strong id="next-coins-time">--:--:--</strong></div>
+            </div>
 
-            <div class="settings-divider"></div>
+            <div class="settings-card">
+                <h3>Preferences</h3>
+                <label class="settings-theme" for="theme-select">Theme
+                    <select id="theme-select">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="green">Eco green</option>
+                    </select>
+                </label>
+            </div>
 
-            <label class="settings-theme" for="theme-select">Theme
-                <select id="theme-select">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <option value="green">Eco green</option>
-                </select>
-            </label>
+            <div class="settings-card">
+                <h3>Account</h3>
+                <button class="btn btn-logout" id="logout-btn" type="button">Log out</button>
+            </div>
 
-            <button class="logout-btn" id="logout-btn" type="button">Log out</button>
-            <button class="settings-btn--danger" id="delete-account-btn" type="button">Delete account</button>
-        </main>
+            <div class="settings-card danger-card">
+                <h3>Danger Zone</h3>
+                <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                <button class="btn btn-danger" id="delete-account-btn" type="button">Delete account</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="delete-modal" aria-hidden="true">
+        <div class="modal-box">
+            <h3>Delete account</h3>
+            <p>Type <strong>delete account</strong> below to confirm. This is permanent.</p>
+            <input id="delete-confirm-input" type="text" placeholder="Type here..." autocomplete="off">
+            <div class="bot-check">
+                <label>Bot check: slide to <span id="delete-bot-target">10</span></label>
+                <div class="bot-check-row">
+                    <input id="delete-bot-check" type="range" min="0" max="20" value="0">
+                    <span class="bot-check-value" id="delete-bot-value">0</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-cancel" id="delete-cancel" type="button">Cancel</button>
+                <button class="modal-confirm" id="delete-confirm" type="button">Delete</button>
+            </div>
+        </div>
     </div>
 
     <script src="/views/shared-settings.js"></script>
     <script>
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
-        const settingsBtn = document.getElementById('settingsBtn');
         const themeSelect = document.getElementById('theme-select');
         const freeWalletAmount = document.getElementById('free-wallet-amount');
         const purchasedWalletAmount = document.getElementById('purchased-wallet-amount');
@@ -473,41 +717,136 @@
         const logoutBtn = document.getElementById('logout-btn');
         const deleteAccountBtn = document.getElementById('delete-account-btn');
         const newChatBtn = document.getElementById('newChatBtn');
+        const deleteModal = document.getElementById('delete-modal');
+        const deleteInput = document.getElementById('delete-confirm-input');
+        const deleteBotCheck = document.getElementById('delete-bot-check');
+        const deleteBotValue = document.getElementById('delete-bot-value');
+        const deleteBotTarget = document.getElementById('delete-bot-target');
+        const deleteCancel = document.getElementById('delete-cancel');
+        const deleteConfirm = document.getElementById('delete-confirm');
 
+        // ---------- Session data ----------
+        async function loadSession() {
+            try {
+                const res = await fetch('/api/session-status');
+                const data = await res.json();
+                if (!data.loggedIn) {
+                    window.location.href = '/';
+                    return;
+                }
+                const free = Number(data.freeSnortzCoins ?? data.snortzCoins ?? 0);
+                const purchased = Number(data.purchasedSnortzCoins ?? 0);
+                const nextGrant = data.nextFreeCoinGrant ? Number(data.nextFreeCoinGrant) : null;
+                const planName = data.planId || 'free';
+
+                if (freeWalletAmount) freeWalletAmount.textContent = free.toFixed(3);
+                if (purchasedWalletAmount) purchasedWalletAmount.textContent = purchased.toFixed(3);
+                if (currentPlan) currentPlan.textContent = planName.charAt(0).toUpperCase() + planName.slice(1);
+
+                if (nextGrant) {
+                    updateCountdown(nextGrant);
+                    setInterval(() => updateCountdown(nextGrant), 1000);
+                }
+            } catch (err) {
+                console.error('Failed to load session.', err);
+            }
+        }
+
+        function formatCountdown(ms) {
+            const total = Math.max(0, Math.floor(ms / 1000));
+            const h = Math.floor(total / 3600);
+            const m = Math.floor((total % 3600) / 60);
+            const s = total % 60;
+            const pad = v => String(v).padStart(2, '0');
+            return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+
+        function updateCountdown(target) {
+            const ms = target - Date.now();
+            if (ms <= 0) {
+                if (nextCoinsTime) nextCoinsTime.textContent = 'Updating...';
+                loadSession();
+                return;
+            }
+            if (nextCoinsTime) nextCoinsTime.textContent = formatCountdown(ms);
+        }
+
+        // ---------- Sidebar ----------
         sidebarToggle.addEventListener('click', () => {
             const isCollapsed = sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('sidebar-collapsed', isCollapsed);
-            sidebarToggle.classList.toggle('collapsed', isCollapsed);
             sidebarToggle.textContent = isCollapsed ? '›' : '‹';
         });
 
-        sidebar.addEventListener('mouseenter', function() {
-            if (!sidebar.classList.contains('collapsed')) {
-                document.body.classList.add('sidebar-expanded');
-            }
-        });
-        sidebar.addEventListener('mouseleave', function() {
-            document.body.classList.remove('sidebar-expanded');
-        });
-
-        newChatBtn.addEventListener('click', function() {
+        newChatBtn.addEventListener('click', () => {
             window.location.href = '/chat';
         });
 
-        settingsBtn.addEventListener('click', function() {
-            window.location.href = '/settings';
-        });
-
+        // ---------- Logout ----------
         logoutBtn.addEventListener('click', async () => {
             await fetch('/api/logout', { method: 'POST' });
             window.location.href = '/';
         });
 
-        deleteAccountBtn.addEventListener('click', function() {
-            const confirmed = window.confirm('Are you sure? This cannot be undone.');
-            if (!confirmed) return;
-            window.alert('Account deletion requires server-side confirmation.');
+        // ---------- Delete account ----------
+        let botCheckVal = 0;
+        let botTarget = 0;
+
+        deleteAccountBtn.addEventListener('click', () => {
+            botTarget = Math.floor(Math.random() * 21);
+            deleteBotTarget.textContent = botTarget;
+            botCheckVal = 0;
+            deleteBotCheck.value = 0;
+            deleteBotValue.textContent = '0';
+            deleteInput.value = '';
+            deleteModal.classList.add('visible');
+            deleteModal.setAttribute('aria-hidden', 'false');
+            deleteInput.focus();
         });
+
+        deleteBotCheck.addEventListener('input', () => {
+            botCheckVal = Number(deleteBotCheck.value);
+            deleteBotValue.textContent = botCheckVal;
+        });
+
+        deleteCancel.addEventListener('click', () => {
+            deleteModal.classList.remove('visible');
+            deleteModal.setAttribute('aria-hidden', 'true');
+        });
+
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) deleteCancel.click();
+        });
+
+        deleteConfirm.addEventListener('click', async () => {
+            if (deleteInput.value !== 'delete account') {
+                window.alert('Please type "delete account" to confirm.');
+                return;
+            }
+            if (botCheckVal !== botTarget) {
+                window.alert(`Please slide to ${botTarget}.`);
+                return;
+            }
+            try {
+                const res = await fetch('/api/delete-account', { method: 'POST' });
+                if (!res.ok) {
+                    const result = await res.json();
+                    window.alert(result.message || 'Failed to delete account.');
+                    return;
+                }
+                window.location.href = '/';
+            } catch (err) {
+                window.alert('Error deleting account: ' + err.message);
+            }
+        });
+
+        // ---------- Theme ----------
+        if (window.SnortleSettings) {
+            window.SnortleSettings.bindThemeSelector(themeSelect);
+        }
+
+        // ---------- Init ----------
+        loadSession();
     </script>
 </body>
 </html>

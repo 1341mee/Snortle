@@ -1120,10 +1120,10 @@
         <div class="model-picker" id="modelPicker">No chat selected</div>
         <div class="model-lock">The model is locked when a chat is created.</div>
         <div class="sidebar-actions">
-            <button class="sidebar-link" id="homeBtn" type="button"><span class="icon">🏠</span><span class="label">Home</span></button>
-            <button class="sidebar-link" id="chatBtn" type="button"><span class="icon">💬</span><span class="label">Chat</span></button>
-            <button class="sidebar-link" id="plansBtn" type="button"><span class="icon">💳</span><span class="label">Plans</span></button>
-            <button class="sidebar-link" id="settingsBtn" type="button"><span class="icon">⚙️</span><span class="label">Settings</span></button>
+            <a class="sidebar-link" href="/"><span class="icon">🏠</span><span class="label">Home</span></a>
+            <a class="sidebar-link" href="/chat"><span class="icon">💬</span><span class="label">Chat</span></a>
+            <a class="sidebar-link" href="/plans"><span class="icon">💳</span><span class="label">Plans</span></a>
+            <a class="sidebar-link" href="/settings"><span class="icon">⚙️</span><span class="label">Settings</span></a>
         </div>
         <div class="sidebar-section">Chats</div>
         <div class="chat-list" id="chatList">
@@ -1163,32 +1163,10 @@
     <div id="popup-overlay">
         <div id="popup-box">
             <img src="/views/images/snortle.png" alt="">
-            <h3 id="popup-title">Almost out of coins</h3>
-            <p id="popup-text">You're under 0.5 Snortz Coins, so you can't send any more prompts right now.</p>
+            <h3 id="popup-title">Out of Snortz Coins</h3>
+            <p id="popup-text">You have no more coins now, please wait or purchase more Snortz coins to keep going.</p>
             <button id="popup-close">Got it</button>
         </div>
-    </div>
-
-    <div class="settings-overlay" id="settings-overlay" aria-hidden="true">
-        <section id="settings-box" class="settings-box" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-            <button class="settings-close" id="settings-close" type="button" aria-label="Close">×</button>
-            <h3 id="settings-title"><img src="/views/images/snortz-coin.png" alt="Snortz Coin"> Snortz Coin wallets</h3>
-            <div class="wallet-row"><span>Free wallet</span><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="free-wallet-amount">0.000</strong></span></div>
-            <div class="wallet-row"><span>Purchased wallet</span><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="purchased-wallet-amount">0.000</strong></span></div>
-            <div class="settings-divider"></div>
-            <div class="settings-row"><span>Current plan</span><strong id="current-plan">Free</strong></div>
-            <div class="settings-row"><span>Next Snortz Coins</span><strong id="next-coins-time">--:--:--</strong></div>
-            <div class="settings-divider"></div>
-            <label class="settings-theme" for="theme-select">Theme
-                <select id="theme-select">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <option value="green">Eco green</option>
-                </select>
-            </label>
-            <button class="logout-btn" id="logout-btn" type="button">Log out</button>
-            <button class="settings-btn--danger" id="delete-account-btn" type="button">Delete account</button>
-        </section>
     </div>
 
     <div id="create-chat-overlay" aria-hidden="true">
@@ -1267,8 +1245,7 @@
         const homeBtn = document.getElementById("homeBtn");
         const settingsBtn = document.getElementById("settingsBtn");
         const chatList = document.getElementById("chatList");
-        const settingsOverlay = document.getElementById("settings-overlay");
-        const settingsClose = document.getElementById("settings-close");
+        // Settings is now a separate page at /settings
         const freeWalletAmount = document.getElementById("free-wallet-amount");
         const purchasedWalletAmount = document.getElementById("purchased-wallet-amount");
         const currentPlan = document.getElementById("current-plan");
@@ -1284,7 +1261,7 @@
         const noChatNewBtn = document.getElementById("no-chat-new-btn");
 
         const LOW_COIN_WARNING_THRESHOLD = 1;
-        const CANNOT_PROMPT_THRESHOLD = 0.5;
+        const CANNOT_PROMPT_THRESHOLD = 0.0009;
         const HOUR_IN_MS_CLIENT = 60 * 60 * 1000;
         const MAX_PROMPT_LENGTH = 5000;
         const SCROLL_THRESHOLD = 100;
@@ -1307,6 +1284,11 @@
             const response = await fetch('/api/catalog');
             if (!response.ok) return;
             catalogData = await response.json();
+
+            // Always populate the model dropdown for the "Create a chat" dialog,
+            // even for non-admin users who don't see the temporary plan selector.
+            updateModelOptions();
+
             if (planPicker) {
                 if (!temporaryPlanSelectorEnabled) {
                     planPicker.hidden = true;
@@ -1322,7 +1304,6 @@
                 });
                 planPicker.value = activePlanId;
             }
-            updateModelOptions();
         }
 
         function updateLockedModelLabel(modelId) {
@@ -1510,7 +1491,7 @@
                 input.placeholder = "Out of Snortz Coins";
                 if (!cannotPromptShown) {
                     cannotPromptShown = true;
-                    showPopup("Almost out of coins", "You're under 0.5 Snortz Coins, so you can't send any more prompts right now.");
+                    showPopup("Out of Snortz Coins", "You have no more coins now, please wait or purchase more Snortz Coins to keep going.");
                 }
             } else if (coinBalance < LOW_COIN_WARNING_THRESHOLD) {
                 if (!lowWarningShown) {
@@ -1571,23 +1552,8 @@
             popupOverlay.classList.remove("visible");
         });
 
-        function bindSettings() {
-            if (!window.SnortleSettings) return false;
-            window.SnortleSettings.bindSettingsModal({
-                overlay: settingsOverlay,
-                trigger: settingsBtn,
-                closeButtons: [settingsClose],
-                onOpen: async () => {
-                    updateCoinDisplay();
-                }
-            });
-            window.SnortleSettings.bindThemeSelector(themeSelect);
-            return true;
-        }
-
-        if (!bindSettings()) {
-            window.addEventListener('load', bindSettings, { once: true });
-        }
+        // Settings is now a separate page at /settings
+        // The sidebar Settings link navigates there directly
 
         logoutBtn.addEventListener("click", async function() {
             await fetch('/api/logout', { method: 'POST' });
@@ -2044,6 +2010,12 @@
 
             const startTime = performance.now();
 
+            // Save original balances so we can show a running cost during
+            // streaming and then do the actual deduction afterwards.
+            const origFree = freeCoinBalance;
+            const origPurchased = purchasedCoinBalance;
+            let wasCancelled = false;
+
             try {
                 if (!activeModelIsAvailable()) {
                     throw new Error("This model's Hugging Face Space is unavailable.");
@@ -2064,51 +2036,94 @@
                 let botReplyEl = null;
                 let botBoxEl = null;
 
-                for await (const message of submission) {
-                    // Skip status messages (e.g. "generating", "queue", etc.)
-                    if (message.type === "status") continue;
+                // Inner try/catch: if submission.cancel() causes the async
+                // iterator to throw, we catch it and continue to the
+                // post-stream processing below. Any other error is re-thrown
+                // to the outer catch block.
+                try {
+                    for await (const message of submission) {
+                        // Skip status messages (e.g. "generating", "queue", etc.)
+                        if (message.type === "status") continue;
 
-                    const data = message.data && message.data[0];
-                    if (!data) continue;
-                    lastData = data;
+                        const data = message.data && message.data[0];
+                        if (!data) continue;
+                        lastData = data;
 
-                    // Only update the live UI if the user is still viewing this chat.
-                    if (activeChatId === chatId) {
-                        // Create the bot message element on first chunk,
-                        // or recreate it if it was removed by a chat switch.
-                        if (!botBoxEl || !botBoxEl.isConnected) {
-                            // Remove the thinking indicator for this message.
-                            document.querySelectorAll(".thinking-box").forEach(t => t.remove());
+                        // --- Update the streaming UI (bot reply text) ---
+                        if (activeChatId === chatId) {
+                            if (!botBoxEl || !botBoxEl.isConnected) {
+                                document.querySelectorAll(".thinking-box").forEach(t => t.remove());
 
-                            botBoxEl = document.createElement("div");
-                            botBoxEl.classList.add("bot-box");
+                                botBoxEl = document.createElement("div");
+                                botBoxEl.classList.add("bot-box");
 
-                            const avatar = document.createElement("img");
-                            avatar.id = "bot-avatar";
-                            avatar.src = "/views/images/snortle.png";
-                            avatar.alt = "";
+                                const avatar = document.createElement("img");
+                                avatar.id = "bot-avatar";
+                                avatar.src = "/views/images/snortle.png";
+                                avatar.alt = "";
 
-                            const bot = document.createElement("div");
-                            bot.classList.add("bot");
+                                const bot = document.createElement("div");
+                                bot.classList.add("bot");
 
-                            botReplyEl = document.createElement("div");
-                            botReplyEl.classList.add("bot-reply");
+                                botReplyEl = document.createElement("div");
+                                botReplyEl.classList.add("bot-reply");
 
-                            bot.appendChild(botReplyEl);
-                            botBoxEl.appendChild(avatar);
-                            botBoxEl.appendChild(bot);
+                                bot.appendChild(botReplyEl);
+                                botBoxEl.appendChild(avatar);
+                                botBoxEl.appendChild(bot);
 
-                            spacer.before(botBoxEl);
+                                spacer.before(botBoxEl);
+                            }
+
+                            botReplyEl.textContent = data.output || "";
+                            scrollDown();
                         }
 
-                        // data.output is the accumulated text so far (all chunks joined).
-                        botReplyEl.textContent = data.output || "";
-                        scrollDown();
+                        // --- Update the coin counter in real-time ---
+                        // Running cost = think_cost + token_cost so far.
+                        // These values come from the metadata in each
+                        // streamed chunk (think_time is set after the first
+                        // model call; gen_token_count accumulates).
+                        const runningThinkCost = (data.think_time || 0) / 30;
+                        const runningTokenCost = (data.gen_token_count || 0) / 750;
+                        const runningCost = runningThinkCost + runningTokenCost;
+
+                        const freeSpentSoFar = Math.min(origFree, runningCost);
+                        const purchasedSpentSoFar = Math.max(0, runningCost - origFree);
+
+                        const displayFree = origFree - freeSpentSoFar;
+                        const displayPurchased = Math.max(0, origPurchased - purchasedSpentSoFar);
+
+                        // Directly update the DOM — avoids triggering popup
+                        // checks inside updateCoinDisplay() during streaming.
+                        freeCoinAmount.textContent = displayFree.toFixed(3);
+                        paidCoinAmount.textContent = displayPurchased.toFixed(3);
+                        coinBalance = displayFree + displayPurchased;
+
+                        // --- Stop generation if coins are exhausted ---
+                        if (coinBalance <= 0) {
+                            wasCancelled = true;
+                            try { submission.cancel(); } catch (e) {}
+                            break;
+                        }
                     }
+                } catch (streamErr) {
+                    // If we intentionally cancelled, the iterator may throw —
+                    // that's expected, so swallow it and continue.
+                    if (!wasCancelled) throw streamErr;
                 }
 
+                // Restore original balances so the actual deduction below
+                // computes correctly (it modifies freeCoinBalance /
+                // purchasedCoinBalance in place).
+                freeCoinBalance = origFree;
+                purchasedCoinBalance = origPurchased;
+                coinBalance = origFree + origPurchased;
+
                 if (!lastData) {
-                    throw new Error("No response received from the model.");
+                    throw new Error(wasCancelled
+                        ? "Ran out of Snortz Coins."
+                        : "No response received from the model.");
                 }
 
                 const totalTime = (performance.now() - startTime) / 1000;
@@ -2175,6 +2190,12 @@
                     unreadChats.add(chatId);
                 }
             } catch (err) {
+                // Restore original balances in case of error mid-stream.
+                freeCoinBalance = origFree;
+                purchasedCoinBalance = origPurchased;
+                coinBalance = origFree + origPurchased;
+                updateCoinDisplay();
+
                 targetMessages[thinkingIndex] = {
                     role: "assistant",
                     content: "Something went wrong: " + err.message

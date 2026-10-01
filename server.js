@@ -547,6 +547,9 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/plans') {
     requestPath = '/views/plans.html';
   }
+  if (url.pathname === '/settings') {
+    requestPath = '/views/settings.html';
+  }
   if (url.pathname === '/admin') {
     requestPath = '/views/admin.html';
   }
@@ -580,6 +583,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (filePath.endsWith('plans.html') || filePath.endsWith('views/plans.html') || url.pathname === '/plans') {
+    if (!getAuthenticatedSession(req)) {
+      res.writeHead(302, { Location: '/' });
+      res.end();
+      return;
+    }
+  }
+
+  if (filePath.endsWith('settings.html') || filePath.endsWith('views/settings.html') || url.pathname === '/settings') {
     if (!getAuthenticatedSession(req)) {
       res.writeHead(302, { Location: '/' });
       res.end();

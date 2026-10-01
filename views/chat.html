@@ -2261,6 +2261,12 @@
         updateCoinDisplay();
         updateCoinCountdown();
 
+        if (Number(sessionData.pendingGift) > 0) {
+            const gift = Number(Number(sessionData.pendingGift).toFixed(3));
+            showPopup("You got a gift!", `You were gifted ${gift} Snortz Coins. They're already in your purchased wallet.`);
+            fetch('/api/gift-seen', { method: 'POST' });
+        }
+
         input.addEventListener("input", resizeInput);
 
         input.addEventListener("keydown", function(event) {

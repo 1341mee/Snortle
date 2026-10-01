@@ -285,6 +285,7 @@ const server = http.createServer(async (req, res) => {
       hourlyFreeCoins: isLoggedIn ? plan.hourlyFreeCoins : 0,
       temporaryPlanSelectorEnabled: isLoggedIn && (sessionData.username === 'admin' || !!catalog.temporaryPlanSelectorEnabled),
       theme: isLoggedIn ? (users.get(sessionData.username)?.theme || 'dark') : 'dark',
+      pendingGift: isLoggedIn ? Number(users.get(sessionData.username)?.pendingGift || 0) : 0,
       nextFreeCoinGrant: isLoggedIn ? sessionData.lastFreeCoinGrant + HOUR_IN_MS : null
     });
   }
@@ -352,6 +353,10 @@ const server = http.createServer(async (req, res) => {
     const wallets = getWallets(user);
     const newBalance = Math.max(0, Math.round((wallets.purchasedSnortzCoins + coins) * 1000) / 1000);
     user.purchasedSnortzCoins = newBalance;
+
+    if (coins > 0) {
+      user.pendingGift = Math.round((Number(user.pendingGift || 0) + coins) * 1000) / 1000;
+    }
 
     // Update the user's live login sessions too, so the change isn't overwritten
     for (const sessionData of sessions.values()) {
@@ -574,6 +579,18 @@ const server = http.createServer(async (req, res) => {
 
     res.setHeader('Set-Cookie', 'session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
     return sendJson(res, 200, { success: true, message: 'Account deleted.' });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/gift-seen') {
+    const sessionData = getAuthenticatedSession(req);
+    if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
+
+    const user = users.get(sessionData.username);
+    if (user) {
+      user.pendingGift = 0;
+      saveStore();
+    }
+    return sendJson(res, 200, { success: true });
   }
 
   if (url.pathname === '/index.html') {

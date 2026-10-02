@@ -2403,15 +2403,17 @@
                 const coinUpdate = await fetch('/api/update-coins', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        freeSnortzCoins: freeCoinBalance,
-                        purchasedSnortzCoins: purchasedCoinBalance
-                    })
+                    body: JSON.stringify({ spent })
                 });
-                if (!coinUpdate.ok) {
+                if (coinUpdate.ok) {
+                    const updated = await coinUpdate.json();
+                    freeCoinBalance = updated.freeSnortzCoins;
+                    purchasedCoinBalance = updated.purchasedSnortzCoins;
+                    updateCoinDisplay();
+                } else {
                     console.error('Failed to save Snortz Coins.');
                 }
-
+                
                 targetMessages[thinkingIndex] = {
                     role: "assistant",
                     content: response,

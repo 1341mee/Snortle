@@ -327,3 +327,26 @@ html[data-theme="futuristic"] .coin-rule { border-left-color: var(--accent-2); }
     html .sidebar:not(:hover) .chat-rename { display: block; }
     html .chat-search { font-size: 16px; }
 }
+
+/* ---------- Badges and gift coins (settings page) ---------- */
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.badge-item { padding: 14px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft-fill); text-align: center; opacity: 0.55; }
+.badge-item.earned { opacity: 1; border-color: var(--accent); }
+.badge-icon { font-size: 26px; margin-bottom: 6px; }
+.badge-name { color: var(--mini-text-color); font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.badge-desc { color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+.gift-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+.gift-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.gift-row input { flex: 1 1 140px; min-width: 0; padding: 11px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--input-bg-color); color: var(--mini-text-color); font-size: 14px; outline: none; }
+.gift-row input:focus { border-color: var(--accent); }
+.btn-gift { width: auto; padding: 11px 22px; background: var(--accent); color: var(--on-accent); }
+.btn-gift:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-gift:disabled { opacity: 0.5; cursor: not-allowed; }
+.gift-message { margin-top: 10px; min-height: 1.2em; font-size: 13px; font-weight: 600; }
+.gift-message.ok { color: var(--accent-text); }
+.gift-message.bad { color: var(--danger-text); }
+
+@media (max-width: 700px) {
+    html input[type="number"] { font-size: 16px !important; }
+}

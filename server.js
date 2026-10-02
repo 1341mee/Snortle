@@ -29,6 +29,27 @@ function canUseModel(planId, model) {
   return getPlan(planId).modelAccess >= catalog.modelAccess[model.tier];
 }
 
+function getBadges(user) {
+  const chats = Array.isArray(user.chats) ? user.chats : [];
+  let sent = 0;
+  chats.forEach((chat) => {
+    (chat.messages || []).forEach((message) => {
+      if (message.role === 'user') sent += 1;
+    });
+  });
+  const giftsSent = Number(user.giftsSent || 0);
+  const early = !user.createdAt || new Date(user.createdAt) < new Date('2027-01-01');
+
+  return [
+    { id: 'early', icon: '🌱', name: 'Early adopter', description: 'Joined Snortle before 2027.', earned: early },
+    { id: 'first-chat', icon: '💬', name: 'First chat', description: 'Started your first chat.', earned: chats.length >= 1 },
+    { id: 'chatterbox', icon: '🗣️', name: 'Chatterbox', description: 'Sent 50 messages.', earned: sent >= 50, progress: Math.min(sent, 50) + ' / 50' },
+    { id: 'regular', icon: '🔥', name: 'Regular', description: 'Sent 250 messages.', earned: sent >= 250, progress: Math.min(sent, 250) + ' / 250' },
+    { id: 'supporter', icon: '⭐', name: 'Supporter', description: 'Has a Plus or Pro plan.', earned: (user.planId || 'free') !== 'free' },
+    { id: 'generous', icon: '🎁', name: 'Generous', description: 'Gifted coins to another person.', earned: giftsSent >= 1 }
+  ];
+}
+
 async function loadStore() {
   try {
     const store = await getPersistedState();
@@ -202,6 +223,10 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 400, { success: false, message: 'Username must be at least 3 characters.' });
     }
 
+    if (trimmedUsername.length > 32) {
+      return sendJson(res, 400, { success: false, message: 'Username must be 32 characters or less.' });
+    }
+
     if (!hasStrongPassword(password)) {
       return sendJson(res, 400, { success: false, message: 'Password must be at least 6 characters and include a number, lowercase letter, uppercase letter, and punctuation mark.' });
     }
@@ -228,6 +253,7 @@ const server = http.createServer(async (req, res) => {
       chats: [],
       planId: DEFAULT_PLAN_ID,
       theme: 'dark',
+      createdAt: new Date().toISOString(),
       lastFreeCoinGrant: Date.now()
     });
     saveStore();
@@ -367,6 +393,52 @@ const server = http.createServer(async (req, res) => {
 
     saveStore();
     return sendJson(res, 200, { success: true, username: user.username, purchasedSnortzCoins: newBalance });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/badges') {
+    const sessionData = getAuthenticatedSession(req);
+    if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
+    const user = users.get(sessionData.username);
+    if (!user) return sendJson(res, 404, { success: false, message: 'User not found.' });
+    return sendJson(res, 200, { success: true, badges: getBadges(user) });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/gift-coins') {
+    const sessionData = getAuthenticatedSession(req);
+    if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
+
+    const { username, amount } = await parseBody(req);
+    const sender = users.get(sessionData.username);
+    const recipient = users.get(String(username || '').trim());
+    if (!sender || !recipient) return sendJson(res, 404, { success: false, message: 'User not found.' });
+    if (recipient.username === sender.username) {
+      return sendJson(res, 400, { success: false, message: "You can't gift coins to yourself." });
+    }
+
+    const coins = Math.round(Number(amount) * 1000) / 1000;
+    if (!Number.isFinite(coins) || coins < 1 || coins > 100000) {
+      return sendJson(res, 400, { success: false, message: 'Gift between 1 and 100,000 coins.' });
+    }
+
+    refreshHourlyCoins(sessionData);
+    if (sessionData.purchasedSnortzCoins < coins) {
+      return sendJson(res, 400, { success: false, message: 'You need that many purchased coins. Free coins cannot be gifted.' });
+    }
+
+    const senderBalance = Math.round((sessionData.purchasedSnortzCoins - coins) * 1000) / 1000;
+    const recipientBalance = Math.round((getWallets(recipient).purchasedSnortzCoins + coins) * 1000) / 1000;
+    sender.purchasedSnortzCoins = senderBalance;
+    recipient.purchasedSnortzCoins = recipientBalance;
+    sender.giftsSent = Number(sender.giftsSent || 0) + 1;
+    recipient.pendingGift = Math.round((Number(recipient.pendingGift || 0) + coins) * 1000) / 1000;
+
+    for (const live of sessions.values()) {
+      if (live.username === sender.username) live.purchasedSnortzCoins = senderBalance;
+      if (live.username === recipient.username) live.purchasedSnortzCoins = recipientBalance;
+    }
+
+    saveStore();
+    return sendJson(res, 200, { success: true, purchasedSnortzCoins: senderBalance });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/set-plan') {
@@ -524,17 +596,15 @@ const server = http.createServer(async (req, res) => {
     }
 
     const body = await parseBody(req);
-    const hasWalletValues = body.freeSnortzCoins !== undefined || body.purchasedSnortzCoins !== undefined;
-    const nextFreeBalance = Number(hasWalletValues ? body.freeSnortzCoins : body.snortzCoins);
-    const nextPurchasedBalance = Number(hasWalletValues ? body.purchasedSnortzCoins : 0);
-    if (!Number.isFinite(nextFreeBalance) || nextFreeBalance < 0 || !Number.isFinite(nextPurchasedBalance) || nextPurchasedBalance < 0) {
-      return sendJson(res, 400, { success: false, message: 'Invalid coin balance.' });
+    const spent = Number(body.spent);
+    if (!Number.isFinite(spent) || spent < 0 || spent > 100) {
+      return sendJson(res, 400, { success: false, message: 'Invalid amount.' });
     }
 
-    const roundedFreeBalance = Math.round(nextFreeBalance * 1000) / 1000;
-    const roundedPurchasedBalance = Math.round(nextPurchasedBalance * 1000) / 1000;
-    const plan = getPlan(sessionData.planId);
-    const cappedFreeBalance = Math.min(roundedFreeBalance, plan.coinAllowance);
+    refreshHourlyCoins(sessionData);
+    const fromFree = Math.min(sessionData.freeSnortzCoins, spent);
+    const cappedFreeBalance = Math.round((sessionData.freeSnortzCoins - fromFree) * 1000) / 1000;
+    const roundedPurchasedBalance = Math.round(Math.max(0, sessionData.purchasedSnortzCoins - (spent - fromFree)) * 1000) / 1000;
     sessionData.freeSnortzCoins = cappedFreeBalance;
     sessionData.purchasedSnortzCoins = roundedPurchasedBalance;
     const user = users.get(sessionData.username);

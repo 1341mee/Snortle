@@ -673,7 +673,7 @@
                 <div class="wallet-row">
                     <div class="wallet-label">
                         <span class="label-title">Purchased wallet</span>
-                        <span class="label-desc">From plan purchases</span>
+                        <span class="label-desc">From plan purchases and gifts</span>
                     </div>
                     <span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""> <strong id="purchased-wallet-amount">0.000</strong></span>
                 </div>
@@ -683,6 +683,22 @@
                 <h3>Plan</h3>
                 <div class="settings-row"><span>Current plan</span><strong id="current-plan">Free</strong></div>
                 <div class="settings-row"><span>Next free Snortz Coins</span><strong id="next-coins-time">--:--:--</strong></div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Badges</h3>
+                <div class="badge-grid" id="badge-grid"></div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Gift coins</h3>
+                <p class="gift-note">Send purchased Snortz Coins to another person. Free coins can't be gifted.</p>
+                <div class="gift-row">
+                    <input id="gift-username" type="text" placeholder="Their username" autocomplete="off">
+                    <input id="gift-amount" type="number" min="1" step="any" placeholder="Amount">
+                    <button class="btn btn-gift" id="gift-btn" type="button">Send</button>
+                </div>
+                <div class="gift-message" id="gift-message"></div>
             </div>
 
             <div class="settings-card">
@@ -699,6 +715,7 @@
 
             <div class="settings-card">
                 <h3>Account</h3>
+                <div class="settings-row" style="margin-bottom: 14px;"><span>Signed in as</span><strong id="current-username">--</strong></div>
                 <button class="btn btn-logout" id="logout-btn" type="button">Log out</button>
             </div>
 
@@ -748,6 +765,8 @@
         const deleteCancel = document.getElementById('delete-cancel');
         const deleteConfirm = document.getElementById('delete-confirm');
 
+        let countdownTimer = null;
+
         // ---------- Session data ----------
         async function loadSession() {
             try {
@@ -766,6 +785,9 @@
                 if (purchasedWalletAmount) purchasedWalletAmount.textContent = purchased.toFixed(3);
                 if (currentPlan) currentPlan.textContent = planName.charAt(0).toUpperCase() + planName.slice(1);
 
+                const usernameEl = document.getElementById('current-username');
+                if (usernameEl) usernameEl.textContent = data.username || '';
+                
                 document.getElementById('free-coin-amount').textContent = free.toFixed(3);
                 document.getElementById('paid-coin-amount').textContent = purchased.toFixed(3);
                 document.getElementById('total-coin-amount').textContent = (free + purchased).toFixed(3);
@@ -773,7 +795,8 @@
 
                 if (nextGrant) {
                     updateCountdown(nextGrant);
-                    setInterval(() => updateCountdown(nextGrant), 1000);
+                    clearInterval(countdownTimer);
+                    countdownTimer = setInterval(() => updateCountdown(nextGrant), 1000);
                 }
             } catch (err) {
                 console.error('Failed to load session.', err);
@@ -876,6 +899,76 @@
             }
         });
 
+        // ---------- Badges ----------
+        async function loadBadges() {
+            const grid = document.getElementById('badge-grid');
+            try {
+                const res = await fetch('/api/badges');
+                const data = await res.json();
+                grid.innerHTML = '';
+                data.badges.forEach(function (badge) {
+                    const item = document.createElement('div');
+                    item.className = 'badge-item' + (badge.earned ? ' earned' : '');
+
+                    const icon = document.createElement('div');
+                    icon.className = 'badge-icon';
+                    icon.textContent = badge.icon;
+
+                    const name = document.createElement('div');
+                    name.className = 'badge-name';
+                    name.textContent = badge.name;
+
+                    const desc = document.createElement('div');
+                    desc.className = 'badge-desc';
+                    desc.textContent = badge.earned || !badge.progress ? badge.description : badge.description + ' (' + badge.progress + ')';
+
+                    item.appendChild(icon);
+                    item.appendChild(name);
+                    item.appendChild(desc);
+                    grid.appendChild(item);
+                });
+            } catch (err) {
+                grid.textContent = 'Could not load badges.';
+            }
+        }
+
+        // ---------- Gift coins ----------
+        const giftBtn = document.getElementById('gift-btn');
+        const giftMessage = document.getElementById('gift-message');
+
+        function showGiftMessage(text, good) {
+            giftMessage.textContent = text;
+            giftMessage.className = 'gift-message ' + (good ? 'ok' : 'bad');
+        }
+
+        giftBtn.addEventListener('click', async function () {
+            const username = document.getElementById('gift-username').value.trim();
+            const amount = Number(document.getElementById('gift-amount').value);
+            if (!username || !(amount >= 1)) {
+                showGiftMessage('Enter a username and an amount of at least 1.', false);
+                return;
+            }
+
+            giftBtn.disabled = true;
+            try {
+                const res = await fetch('/api/gift-coins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, amount: amount })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) throw new Error(result.message || 'Gift failed.');
+                showGiftMessage('Sent ' + amount + ' coins to ' + username + '!', true);
+                document.getElementById('gift-amount').value = '';
+                loadSession();
+                loadBadges();
+            } catch (err) {
+                showGiftMessage(err.message, false);
+            } finally {
+                giftBtn.disabled = false;
+            }
+        });
+
         // ---------- Theme ----------
         themeSelect.value = getSnortleTheme();
         themeSelect.addEventListener('change', function () {
@@ -884,6 +977,7 @@
 
         // ---------- Init ----------
         loadSession();
+        loadBadges();
     </script>
 </body>
 </html>

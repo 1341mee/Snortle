@@ -1238,6 +1238,74 @@
             <button id="scroll-to-bottom-btn" type="button" aria-label="Scroll to bottom">↓</button>
         </div>
         <div class="black-out">
+                <section class="generation-controls" id="generation-controls">
+                    <button class="generation-controls-toggle" id="generation-controls-toggle"
+                            type="button" aria-expanded="false" aria-controls="generation-controls-panel">
+                        <span class="generation-controls-toggle-icon">⚙</span>
+                        <span>Generation settings</span>
+                        <span class="generation-controls-chevron">⌄</span>
+                    </button>
+
+                    <button class="generation-controls-backdrop" id="generation-controls-backdrop" type="button" aria-label="Close generation settings" tabindex="-1"></button>
+
+                    <div class="generation-controls-panel" id="generation-controls-panel" hidden>
+                        <div class="generation-controls-header">
+                            <div>
+                                <strong>Generation settings</strong>
+                                <span>Adjust how Snortle generates the next response.</span>
+                            </div>
+                            <button class="generation-reset" id="generation-reset" type="button">Reset</button>
+                        </div>
+
+                        <div class="generation-slider-grid">
+                            <label class="generation-setting">
+                                <span class="generation-setting-top">
+                                    <span class="generation-setting-name">Top K</span>
+                                    <output id="top-k-value">40</output>
+                                </span>
+                                <input id="top-k" type="range" min="1" max="128" step="1" value="40">
+                                <span class="generation-setting-help">Number of highest-probability tokens considered.</span>
+                            </label>
+
+                            <label class="generation-setting">
+                                <span class="generation-setting-top">
+                                    <span class="generation-setting-name">Temperature</span>
+                                    <output id="temperature-value">0.80</output>
+                                </span>
+                                <input id="temperature" type="range" min="0" max="1" step="0.05" value="0.8">
+                                <span class="generation-setting-help">Higher values produce more varied output.</span>
+                            </label>
+
+                            <label class="generation-setting">
+                                <span class="generation-setting-top">
+                                    <span class="generation-setting-name">Repetition penalty</span>
+                                    <output id="repeat-penalty-value">1.00</output>
+                                </span>
+                                <input id="repeat-penalty" type="range" min="0" max="3" step="0.05" value="1">
+                                <span class="generation-setting-help">Penalizes repeated tokens.</span>
+                            </label>
+
+                            <label class="generation-setting">
+                                <span class="generation-setting-top">
+                                    <span class="generation-setting-name">Max tokens</span>
+                                    <output id="max-tokens-value">128</output>
+                                </span>
+                                <input id="max-tokens" type="range" min="1" max="768" step="1" value="128">
+                                <span class="generation-setting-help">Maximum number of tokens generated.</span>
+                            </label>
+
+                            <label class="generation-setting">
+                                <span class="generation-setting-top">
+                                    <span class="generation-setting-name">Repeat window</span>
+                                    <output id="repeat-window-value">64</output>
+                                </span>
+                                <input id="repeat-window" type="range" min="1" max="512" step="1" value="64">
+                                <span class="generation-setting-help">How far back repetition is checked.</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
                 <form id="form">
                     <textarea id="chat-input" autocomplete="off" placeholder="Connecting..." rows="1"></textarea>
                     <div id="gap-blocker"></div>
@@ -1338,6 +1406,37 @@
         const confirmChatBtn = document.getElementById("confirm-chat-btn");
         const chatList = document.getElementById("chatList");
         const starterPrompts = document.getElementById("starter-prompts");
+
+        const generationControls = document.getElementById("generation-controls");
+        const generationControlsToggle = document.getElementById("generation-controls-toggle");
+        const generationControlsPanel = document.getElementById("generation-controls-panel");
+        const generationControlsBackdrop = document.getElementById("generation-controls-backdrop");
+        const generationReset = document.getElementById("generation-reset");
+
+        const generationSettings = {
+            top_k: document.getElementById("top-k"),
+            temperature: document.getElementById("temperature"),
+            repeat_penalty: document.getElementById("repeat-penalty"),
+            max_tokens: document.getElementById("max-tokens"),
+            repeat_window: document.getElementById("repeat-window")
+        };
+
+        const generationOutputs = {
+            top_k: document.getElementById("top-k-value"),
+            temperature: document.getElementById("temperature-value"),
+            repeat_penalty: document.getElementById("repeat-penalty-value"),
+            max_tokens: document.getElementById("max-tokens-value"),
+            repeat_window: document.getElementById("repeat-window-value")
+        };
+
+        const DEFAULT_GENERATION_SETTINGS = {
+            top_k: 40,
+            temperature: 0.8,
+            repeat_penalty: 1.0,
+            max_tokens: 128,
+            repeat_window: 64
+        };
+        const GENERATION_SETTINGS_STORAGE_KEY = "snortle-generation-settings";
         
         starterPrompts.addEventListener("click", function (event) {
             const btn = event.target.closest(".starter-btn");
@@ -1365,7 +1464,7 @@
         const LOW_COIN_WARNING_THRESHOLD = 1;
         const CANNOT_PROMPT_THRESHOLD = 0.0009;
         const HOUR_IN_MS_CLIENT = 60 * 60 * 1000;
-        const MAX_PROMPT_LENGTH = 5000;
+        const MAX_PROMPT_LENGTH = 10000;
         const SCROLL_THRESHOLD = 100;
 
         let catalogData = null;
@@ -1966,6 +2065,105 @@
             });
         }
 
+        function formatGenerationValue(key, value) {
+            if (key === "temperature" || key === "repeat_penalty") {
+                return Number(value).toFixed(2);
+            }
+            return String(Math.round(Number(value)));
+        }
+
+        function updateGenerationControls() {
+            Object.keys(generationSettings).forEach(function(key) {
+                const value = generationSettings[key].value;
+                generationOutputs[key].textContent = formatGenerationValue(key, value);
+            });
+        }
+
+        function readGenerationSettings() {
+            return {
+                top_k: Number(generationSettings.top_k.value),
+                temperature: Number(generationSettings.temperature.value),
+                repeat_penalty: Number(generationSettings.repeat_penalty.value),
+                max_tokens: Number(generationSettings.max_tokens.value),
+                repeat_window: Number(generationSettings.repeat_window.value)
+            };
+        }
+
+        function applyGenerationSettings(settings) {
+            Object.keys(generationSettings).forEach(function(key) {
+                if (settings[key] !== undefined && Number.isFinite(Number(settings[key]))) {
+                    const control = generationSettings[key];
+                    const value = Number(settings[key]);
+                    const min = Number(control.min);
+                    const max = Number(control.max);
+                    control.value = String(Math.min(max, Math.max(min, value)));
+                }
+            });
+            updateGenerationControls();
+        }
+
+        function saveGenerationSettings() {
+            try {
+                localStorage.setItem(
+                    GENERATION_SETTINGS_STORAGE_KEY,
+                    JSON.stringify(readGenerationSettings())
+                );
+            } catch (error) {
+                console.warn("Could not save generation settings.", error);
+            }
+        }
+
+        function loadGenerationSettings() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(GENERATION_SETTINGS_STORAGE_KEY) || "null");
+                if (saved && typeof saved === "object") {
+                    applyGenerationSettings(saved);
+                    return;
+                }
+            } catch (error) {
+                console.warn("Could not load generation settings.", error);
+            }
+            applyGenerationSettings(DEFAULT_GENERATION_SETTINGS);
+        }
+
+        function toggleGenerationControls(forceOpen) {
+            const shouldOpen = forceOpen === undefined
+                ? generationControlsPanel.hidden
+                : Boolean(forceOpen);
+
+            generationControlsPanel.hidden = !shouldOpen;
+            generationControls.classList.toggle("open", shouldOpen);
+            generationControlsToggle.setAttribute("aria-expanded", String(shouldOpen));
+        }
+
+        generationControlsToggle.addEventListener("click", function() {
+            toggleGenerationControls();
+        });
+
+        generationControlsBackdrop.addEventListener("click", function() {
+            toggleGenerationControls(false);
+        });
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape" && !generationControlsPanel.hidden) {
+                toggleGenerationControls(false);
+            }
+        });
+
+        Object.keys(generationSettings).forEach(function(key) {
+            generationSettings[key].addEventListener("input", function() {
+                updateGenerationControls();
+                saveGenerationSettings();
+            });
+        });
+
+        generationReset.addEventListener("click", function() {
+            applyGenerationSettings(DEFAULT_GENERATION_SETTINGS);
+            saveGenerationSettings();
+        });
+
+        loadGenerationSettings();
+
         function resizeInput() {
             input.style.height = "auto";
             const newHeight = Math.min(input.scrollHeight, 160);
@@ -2295,10 +2493,16 @@
                     throw new Error("Not connected yet, please wait and try again.");
                 }
 
+                const settings = readGenerationSettings();
+
                 const submission = client.submit("/predict", {
                     prompt: userInput,
                     session_id: chatId,
-                    max_tokens: 128,
+                    max_tokens: settings.max_tokens,
+                    top_k: settings.top_k,
+                    temperature: settings.temperature,
+                    repeat_penalty: settings.repeat_penalty,
+                    repeat_window: settings.repeat_window,
                 });
 
                 let lastData = null;

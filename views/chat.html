@@ -1469,113 +1469,30 @@
 
         let catalogData = null;
 
-        const STARTER_IDEAS = [
-            "Give me 3 ideas for a weekend project",
-            "Explain how rain forms in simple words",
-            "Help me write a polite email",
-            "Tell me a fun fact about space",
-            "Suggest a name for my new pet fish",
-            "How do I stay focused while studying?",
-            "Write a short poem about autumn",
-            "Explain what a black hole is",
-            "Give me a quick healthy snack idea",
-            "What's a good way to learn a new language?",
-            "Tell me a riddle",
-            "Help me plan a birthday surprise",
-            "Why is the sky blue?",
-            "Give me 5 questions for a trivia night",
-            "How do airplanes stay in the air?",
-            "Suggest a short bedtime story idea",
-            "What are some tips for a job interview?",
-            "Explain how a rainbow is made",
-            "Give me a fun challenge to try today",
-            "How can I save money on groceries?",
-            "Write a two-line joke about robots",
-            "What should I cook with rice and eggs?",
-            "Explain how the internet works, simply",
-            "Help me come up with a team name",
-            "Give me a creative drawing prompt",
-            "How do magnets actually work?",
-            "Suggest a good sci-fi book to read",
-            "What exactly is a supernova?",
-            "Help me plan a weekly study schedule",
-            "Write a haiku about winter",
-            "How do bees make honey?",
-            "Give me a 5-minute craft idea",
-            "What's a fun card game to play with friends?",
-            "Tips for getting better sleep before a big test",
-            "Give me a logic puzzle to solve",
-            "How do I start learning how to code?",
-            "Suggest a fun theme for a school dance",
-            "What's the weirdest animal on Earth?",
-            "Help me write a thank-you note to a teacher",
-            "Give me a fun 'Would You Rather' question",
-            "How do I organize my messy desk?",
-            "Write a short fantasy story prompt",
-            "What are some easy home workout exercises?",
-            "Explain the water cycle in simple terms",
-            "Suggest a good movie night theme",
-            "How do volcanoes erupt?",
-            "Give me a recipe for a healthy fruit smoothie",
-            "Tips for overcoming stage fright or public speaking",
-            "What's a fun fact about ancient Egypt?",
-            "Help me brainstorm ideas for a science fair project",
-            "How does a digital camera take pictures?",
-            "Suggest an indoor activity for a rainy afternoon",
-            "Explain what artificial intelligence is",
-            "How do I make a great workout playlist?",
-            "Give me a tough brain teaser",
-            "Tips for taking better notes in class",
-            "Why do leaves change color in the fall?",
-            "Help me set a personal goal for this month",
-            "What's a cool hobby I can start for free?",
-            "Explain how gravity works in space",
-            "Give me an idea for a random act of kindness",
-            "How do I start a conversation with someone new?",
-            "Suggest a catchy title for my history essay",
-            "What is DNA and how does it work?",
-            "Give me 3 tips for better time management",
-            "Write a funny text to send to my best friend",
-            "How do ocean tides work?",
-            "Suggest a name for a fictional planet",
-            "What's a quick dessert I can make in a mug?",
-            "Tips for learning to play the guitar",
-            "Explain what cryptocurrency is in simple terms",
-            "Give me a fun photography challenge",
-            "How to deal with stress before a big exam",
-            "Suggest a podcast topic for teenagers",
-            "What's the deepest part of the ocean like?",
-            "Help me write an apology message to a friend",
-            "How do I make my own digital stickers?",
-            "Give me an interesting fact about the human body",
-            "Explain how electricity gets to our houses",
-            "Suggest a fun DIY room decor idea",
-            "What are the basic rules of photography composition?",
-            "How do I write a good resume with no work experience?",
-            "Give me a prompt to start daily journaling",
-            "Why do humans dream?",
-            "Suggest a fun outdoor game for a large group",
-            "How do I make a budget for my allowance or part-time job?",
-            "Write a short motivational quote for my wall",
-            "What's the difference between a comet and an asteroid?",
-            "Help me plan a budget-friendly weekend outing",
-            "Give me a creative way to wrap a gift",
-            "How does a compass know which way is north?",
-            "Suggest an easy magic trick I can learn",
-            "What's a good way to practice mindfulness?",
-            "Explain how 3D printing works",
-            "Give me a fun topic to debate with my friends",
-            "How do I start a small vegetable garden in pots?",
-            "Suggest a cool science experiment I can do at home safely",
-            "What are some good ways to volunteer in my community?",
-            "Write a short, mysterious opening sentence for a book",
-            "How does noise-canceling headphone technology work?"
-        ];
+        let STARTER_IDEAS = [];
+
+        async function loadStarterIdeas() {
+            try {
+                const response = await fetch("/data/starter-prompts.json");
+                if (!response.ok) return;
+                const ideas = await response.json();
+                if (Array.isArray(ideas)) {
+                    STARTER_IDEAS = ideas
+                        .filter((idea) => typeof idea === "string" && idea.trim())
+                        .map((idea) => {
+                            const prompt = idea.trim();
+                            return /[.!?]$/.test(prompt) ? prompt : `${prompt}.`;
+                        });
+                }
+            } catch (error) {
+                console.error("Could not load starter prompts:", error);
+            }
+        }
 
         function renderStarterPrompts() {
             const pool = STARTER_IDEAS.slice();
             starterPrompts.innerHTML = "";
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < Math.min(3, pool.length); i++) {
                 const index = Math.floor(Math.random() * pool.length);
                 const text = pool.splice(index, 1)[0];
                 const btn = document.createElement("button");
@@ -2022,6 +1939,8 @@
             chatMessages = [];
             chatMessagesById.set(activeChatId, chatMessages);
             showEmptyChatState();
+            renderStarterPrompts();
+            starterPrompts.style.display = "";
             document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
             input.value = "";
             await connect();
@@ -2430,6 +2349,7 @@
             updateSendAvailability();
         }
 
+        await loadStarterIdeas();
         await loadModelCatalog();
         // FIX: Use isAdmin instead of temporaryPlanSelectorEnabled
         if (planPicker && isAdmin) {

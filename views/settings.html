@@ -696,6 +696,7 @@
                 <div class="gift-row">
                     <input id="gift-username" type="text" placeholder="Their username" autocomplete="off">
                     <input id="gift-amount" type="number" min="1" step="any" placeholder="Amount">
+                    <input id="gift-note-input" type="text" maxlength="500" placeholder="Optional message">
                     <button class="btn btn-gift" id="gift-btn" type="button">Send</button>
                 </div>
                 <div class="gift-message" id="gift-message"></div>
@@ -944,6 +945,7 @@
         giftBtn.addEventListener('click', async function () {
             const username = document.getElementById('gift-username').value.trim();
             const amount = Number(document.getElementById('gift-amount').value);
+            const message = document.getElementById('gift-note-input').value.trim();
             if (!username || !(amount >= 1)) {
                 showGiftMessage('Enter a username and an amount of at least 1.', false);
                 return;
@@ -954,12 +956,13 @@
                 const res = await fetch('/api/gift-coins', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username, amount: amount })
+                    body: JSON.stringify({ username: username, amount: amount, message: message })
                 });
                 const result = await res.json();
                 if (!res.ok || !result.success) throw new Error(result.message || 'Gift failed.');
                 showGiftMessage('Sent ' + amount + ' coins to ' + username + '!', true);
                 document.getElementById('gift-amount').value = '';
+                document.getElementById('gift-note-input').value = '';
                 loadSession();
                 loadBadges();
             } catch (err) {

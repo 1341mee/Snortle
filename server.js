@@ -312,6 +312,9 @@ const server = http.createServer(async (req, res) => {
       temporaryPlanSelectorEnabled: isLoggedIn && (sessionData.username === 'admin' || !!catalog.temporaryPlanSelectorEnabled),
       theme: isLoggedIn ? (users.get(sessionData.username)?.theme || 'dark') : 'dark',
       pendingGift: isLoggedIn ? Number(users.get(sessionData.username)?.pendingGift || 0) : 0,
+      pendingGifts: isLoggedIn && Array.isArray(users.get(sessionData.username)?.pendingGifts)
+        ? users.get(sessionData.username).pendingGifts
+        : [],
       nextFreeCoinGrant: isLoggedIn ? sessionData.lastFreeCoinGrant + HOUR_IN_MS : null
     });
   }
@@ -363,17 +366,24 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && url.pathname === '/api/admin/give-coins') {
-    const { key, username, amount } = await parseBody(req);
+    const { key, username, amount, message } = await parseBody(req);
     if (!key || key !== adminAccessKey) {
       return sendJson(res, 403, { success: false, message: 'Admin access denied.' });
     }
 
     const user = users.get(String(username || '').trim());
     if (!user) return sendJson(res, 404, { success: false, message: 'User not found.' });
+    if (user.username.toLowerCase() === 'admin') {
+      return sendJson(res, 400, { success: false, message: "Coins can't be gifted to the admin account." });
+    }
 
     const coins = Number(amount);
     if (!Number.isFinite(coins) || coins === 0 || Math.abs(coins) > 1000000) {
       return sendJson(res, 400, { success: false, message: 'Amount must be a number between -1,000,000 and 1,000,000 (not 0).' });
+    }
+    const giftMessage = typeof message === 'string' ? message.trim() : '';
+    if (giftMessage.length > 500) {
+      return sendJson(res, 400, { success: false, message: 'Gift messages must be 500 characters or fewer.' });
     }
 
     const wallets = getWallets(user);
@@ -381,7 +391,8 @@ const server = http.createServer(async (req, res) => {
     user.purchasedSnortzCoins = newBalance;
 
     if (coins > 0) {
-      user.pendingGift = Math.round((Number(user.pendingGift || 0) + coins) * 1000) / 1000;
+      if (!Array.isArray(user.pendingGifts)) user.pendingGifts = [];
+      user.pendingGifts.push({ source: 'admin', amount: coins, message: giftMessage });
     }
 
     // Update the user's live login sessions too, so the change isn't overwritten
@@ -407,12 +418,20 @@ const server = http.createServer(async (req, res) => {
     const sessionData = getAuthenticatedSession(req);
     if (!sessionData) return sendJson(res, 401, { success: false, message: 'You must be logged in.' });
 
-    const { username, amount } = await parseBody(req);
+    const { username, amount, message } = await parseBody(req);
     const sender = users.get(sessionData.username);
     const recipient = users.get(String(username || '').trim());
     if (!sender || !recipient) return sendJson(res, 404, { success: false, message: 'User not found.' });
+    if (recipient.username.toLowerCase() === 'admin') {
+      return sendJson(res, 400, { success: false, message: "Coins can't be gifted to the admin account." });
+    }
     if (recipient.username === sender.username) {
       return sendJson(res, 400, { success: false, message: "You can't gift coins to yourself." });
+    }
+
+    const giftMessage = typeof message === 'string' ? message.trim() : '';
+    if (giftMessage.length > 500) {
+      return sendJson(res, 400, { success: false, message: 'Gift messages must be 500 characters or fewer.' });
     }
 
     const coins = Math.round(Number(amount) * 1000) / 1000;
@@ -430,7 +449,8 @@ const server = http.createServer(async (req, res) => {
     sender.purchasedSnortzCoins = senderBalance;
     recipient.purchasedSnortzCoins = recipientBalance;
     sender.giftsSent = Number(sender.giftsSent || 0) + 1;
-    recipient.pendingGift = Math.round((Number(recipient.pendingGift || 0) + coins) * 1000) / 1000;
+    if (!Array.isArray(recipient.pendingGifts)) recipient.pendingGifts = [];
+    recipient.pendingGifts.push({ source: 'user', sender: sender.username, amount: coins, message: giftMessage });
 
     for (const live of sessions.values()) {
       if (live.username === sender.username) live.purchasedSnortzCoins = senderBalance;
@@ -658,6 +678,7 @@ const server = http.createServer(async (req, res) => {
     const user = users.get(sessionData.username);
     if (user) {
       user.pendingGift = 0;
+      user.pendingGifts = [];
       saveStore();
     }
     return sendJson(res, 200, { success: true });

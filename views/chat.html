@@ -316,6 +316,21 @@
             transition: left 0.2s ease, transform 0.15s ease;
         }
 
+        .sidebar-toggle.attention-pulse::after {
+            content: "";
+            position: absolute;
+            inset: -5px;
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+            pointer-events: none;
+            animation: sidebar-toggle-pulse 2.2s ease-out infinite;
+        }
+
+        @keyframes sidebar-toggle-pulse {
+            0% { opacity: 0.8; transform: scale(0.94); }
+            75%, 100% { opacity: 0; transform: scale(1.3); }
+        }
+
         .sidebar-toggle:hover {
             border-color: var(--accent);
         }
@@ -445,6 +460,78 @@
             color: var(--mini-text-color);
             background: var(--input-bg-color);
             font: inherit;
+        }
+
+        .create-chat-model-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--mini-text-color);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        #create-chat-model-help {
+            min-height: 1.5em;
+            margin: -4px 0 8px;
+            padding: 9px 10px;
+            border-left: 2px solid var(--accent);
+            background: rgba(205, 163, 90, 0.08);
+            color: var(--big-text-color);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        #create-chat-model-info {
+            margin: 0 0 14px;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--accent);
+            font: inherit;
+            font-size: 13px;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            cursor: pointer;
+        }
+
+        #create-chat-model-info:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        #create-chat-model-guide {
+            margin: -6px 0 14px;
+            padding: 12px;
+            border: 1px solid rgba(205, 163, 90, 0.3);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.16);
+        }
+
+        #create-chat-model-guide[hidden] {
+            display: none;
+        }
+
+        .model-guide-item + .model-guide-item {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .model-guide-item strong,
+        .model-guide-item span {
+            display: block;
+        }
+
+        .model-guide-item strong {
+            margin-bottom: 3px;
+            color: var(--mini-text-color);
+            font-size: 13px;
+        }
+
+        .model-guide-item span {
+            color: var(--big-text-color);
+            font-size: 12px;
+            line-height: 1.45;
         }
 
         .create-chat-actions {
@@ -656,6 +743,40 @@
 
         #welcome.hidden {
             display: none;
+        }
+
+        #welcome.loading > :not(#chat-loading) {
+            display: none;
+        }
+
+        #chat-loading {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            color: var(--big-text-color);
+            font-size: 15px;
+        }
+
+        #welcome.loading #chat-loading {
+            display: flex;
+        }
+
+        .chat-loading-spinner {
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(205, 163, 90, 0.25);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: chat-loading-spin 0.8s linear infinite;
+        }
+
+        @keyframes chat-loading-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .chat-loading-spinner { animation-duration: 1.8s; }
+            .sidebar-toggle.attention-pulse::after { animation: none; }
         }
 
         .user-box {
@@ -1220,15 +1341,16 @@
     </div>
 
     <!-- FIX: sidebar-toggle moved AFTER sidebar so CSS ~ sibling selector works -->
-    <button class="sidebar-toggle is-open" id="sidebarToggle" aria-label="Toggle sidebar">‹</button>
+    <button class="sidebar-toggle is-open attention-pulse" id="sidebarToggle" aria-label="Toggle sidebar" title="Show or hide chats">‹</button>
 
     <div class="chat-shell" id="chatShell">
         <main id="chat-place">
             <div id="top-spacer"></div>
-            <div id="welcome">
+            <div id="welcome" class="loading" aria-live="polite">
                 <img id="welcome-icon" src="/views/images/snortle.png" alt="">
                 <h2>Ready when you are</h2>
                 <p>Ask Snortle anything using Snortz Coins.</p>
+                <div id="chat-loading"><span class="chat-loading-spinner" aria-hidden="true"></span><span>Loading chat...</span></div>
                 <div class="starter-prompts" id="starter-prompts" style="display: none;"></div>
             </div>
             <div id="spacer"></div>
@@ -1334,7 +1456,11 @@
             <h3 id="create-chat-title">Create a chat</h3>
             <p>Choose a name and model. The model cannot be changed after creation.</p>
             <input id="chat-name-input" type="text" maxlength="80" placeholder="Chat name" autocomplete="off">
-            <select id="create-chat-model" aria-label="Choose a model"></select>
+            <label class="create-chat-model-label" for="create-chat-model">Model</label>
+            <select id="create-chat-model" aria-describedby="create-chat-model-help" required></select>
+            <p id="create-chat-model-help" aria-live="polite">Choose a model to see what it is best for.</p>
+            <button id="create-chat-model-info" type="button" aria-expanded="false" aria-controls="create-chat-model-guide">What are the differences?</button>
+            <div id="create-chat-model-guide" hidden></div>
             <div class="create-chat-actions">
                 <button id="cancel-chat-btn" type="button">Cancel</button>
                 <button id="confirm-chat-btn" type="button">Create chat</button>
@@ -1402,6 +1528,9 @@
         const createChatOverlay = document.getElementById("create-chat-overlay");
         const chatNameInput = document.getElementById("chat-name-input");
         const createChatModel = document.getElementById("create-chat-model");
+        const createChatModelHelp = document.getElementById("create-chat-model-help");
+        const createChatModelInfo = document.getElementById("create-chat-model-info");
+        const createChatModelGuide = document.getElementById("create-chat-model-guide");
         const cancelChatBtn = document.getElementById("cancel-chat-btn");
         const confirmChatBtn = document.getElementById("confirm-chat-btn");
         const chatList = document.getElementById("chatList");
@@ -1439,6 +1568,7 @@
         const GENERATION_SETTINGS_STORAGE_KEY = "snortle-generation-settings";
         
         starterPrompts.addEventListener("click", function (event) {
+            if (!chatReady) return;
             const btn = event.target.closest(".starter-btn");
             if (!btn) return;
             input.value = btn.textContent;
@@ -1514,15 +1644,55 @@
 
         function updateModelOptions() {
             createChatModel.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Choose a model';
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            createChatModel.appendChild(placeholder);
+
             const plan = catalogData.plans.find((entry) => entry.id === activePlanId) || catalogData.plans[0];
             catalogData.models.forEach((model) => {
                 const option = document.createElement('option');
                 option.value = model.space;
                 option.textContent = `${model.name} (${model.tier}${model.available === false ? ", test Space" : ""})`;
+                option.title = model.description || '';
                 option.disabled = catalogData.modelAccess[model.tier] > plan.modelAccess;
                 createChatModel.appendChild(option);
             });
+            renderCreateChatModelGuide();
+            updateCreateChatModelHelp();
         }
+
+        function renderCreateChatModelGuide() {
+            createChatModelGuide.replaceChildren();
+            catalogData.models.forEach((model) => {
+                const item = document.createElement('div');
+                item.className = 'model-guide-item';
+                const name = document.createElement('strong');
+                const status = model.available === false ? ' - currently unavailable' : '';
+                name.textContent = `${model.name} (${model.tier}${status})`;
+                const description = document.createElement('span');
+                description.textContent = model.description || 'Model details are not available.';
+                item.append(name, description);
+                createChatModelGuide.appendChild(item);
+            });
+        }
+
+        function updateCreateChatModelHelp() {
+            const selectedModel = catalogData?.models.find((model) => model.space === createChatModel.value);
+            const description = selectedModel?.description || 'Choose a model to see what it is best for.';
+            createChatModelHelp.textContent = description;
+            createChatModel.title = description;
+        }
+
+        createChatModel.addEventListener('change', updateCreateChatModelHelp);
+
+        createChatModelInfo.addEventListener('click', function() {
+            const expanded = createChatModelInfo.getAttribute('aria-expanded') === 'true';
+            createChatModelInfo.setAttribute('aria-expanded', String(!expanded));
+            createChatModelGuide.hidden = expanded;
+        });
 
         async function loadModelCatalog() {
             const response = await fetch('/api/catalog');
@@ -1572,6 +1742,8 @@
         }
 
         function showNoChatState() {
+            welcome.classList.remove("loading");
+            starterPrompts.style.display = "none";
             document.querySelector("#welcome h2").textContent = "Create a chat to begin";
             document.querySelector("#welcome p").textContent = "Click + New chat to name a conversation and choose a model.";
             welcome.classList.remove("hidden");
@@ -1581,12 +1753,29 @@
         }
 
         function showEmptyChatState() {
+            welcome.classList.remove("loading");
             document.querySelector("#welcome h2").textContent = "Ready when you are";
             document.querySelector("#welcome p").textContent = "Ask Snortle anything using Snortz Coins.";
             welcome.classList.remove("hidden");
             form.classList.remove("no-chat");
             document.querySelector(".black-out").classList.remove("no-chat");
             noChatOverlay.classList.remove("visible");
+        }
+
+        function showChatLoadingState() {
+            welcome.classList.add("loading");
+            welcome.classList.remove("hidden");
+            starterPrompts.style.display = "none";
+            form.classList.remove("no-chat");
+            document.querySelector(".black-out").classList.remove("no-chat");
+            noChatOverlay.classList.remove("visible");
+        }
+
+        function showChatLoadError(message) {
+            welcome.classList.remove("loading", "hidden");
+            starterPrompts.style.display = "none";
+            document.querySelector("#welcome h2").textContent = "Chat unavailable";
+            document.querySelector("#welcome p").textContent = message;
         }
 
         function updateNoChatState() {
@@ -1601,6 +1790,8 @@
 
         let sessionId = Math.random().toString(36).slice(2);
         let activeChatId = null;
+        let chatReady = false;
+        let chatLoadToken = 0;
         let activeModelId = "Snortle-AI/Snortle-Pancake-1";
         let activePlanId = sessionData.planId || "free";
         let chatMessages = [];
@@ -1692,7 +1883,7 @@
             const outOfCoins = coinBalance < CANNOT_PROMPT_THRESHOLD;
             const hasActiveChat = !!activeChatId && canSendInActiveChat();
             const isPending = pendingChats.has(activeChatId);
-            sendBtn.disabled = outOfCoins || !hasActiveChat || isPending;
+            sendBtn.disabled = outOfCoins || !hasActiveChat || !chatReady || !client || isPending;
         }
 
         function checkPromptLength(prompt) {
@@ -1706,6 +1897,35 @@
         function showPopup(title, text) {
             popupTitle.textContent = title;
             popupText.textContent = text;
+            popupOverlay.classList.add("visible");
+        }
+
+        function showGiftPopup(gifts) {
+            popupTitle.textContent = "You got a gift!";
+            popupText.replaceChildren();
+
+            gifts.forEach((gift, index) => {
+                if (index > 0) popupText.append(document.createElement("br"), document.createElement("br"));
+
+                if (gift.legacy) {
+                    popupText.append(document.createTextNode(`You received ${gift.amount} Snortz Coins in an older gift.`));
+                    return;
+                }
+
+                popupText.append(document.createTextNode("From "));
+                const sender = document.createElement("strong");
+                sender.textContent = gift.sender;
+                popupText.append(sender, document.createTextNode(` gifted you ${gift.amount} Snortz Coins.`));
+
+                if (gift.message) {
+                    const message = document.createElement("em");
+                    message.textContent = `Message: ${gift.message}`;
+                    popupText.append(document.createElement("br"), message);
+                }
+            });
+
+            popupText.append(document.createElement("br"), document.createElement("br"));
+            popupText.append(document.createTextNode("They're already in your purchased wallet."));
             popupOverlay.classList.add("visible");
         }
 
@@ -1892,6 +2112,7 @@
         });
 
         sidebarToggle.addEventListener("click", function() {
+            sidebarToggle.classList.remove("attention-pulse");
             const isCollapsed = sidebar.classList.toggle("collapsed");
             chatShell.classList.toggle("collapsed", isCollapsed);
             document.body.classList.toggle("sidebar-collapsed", isCollapsed);
@@ -1901,6 +2122,10 @@
 
         newChatBtn.addEventListener("click", function() {
             chatNameInput.value = "";
+            createChatModel.value = "";
+            updateCreateChatModelHelp();
+            createChatModelGuide.hidden = true;
+            createChatModelInfo.setAttribute("aria-expanded", "false");
             createChatOverlay.classList.add("visible");
             createChatOverlay.setAttribute("aria-hidden", "false");
             chatNameInput.focus();
@@ -1922,6 +2147,11 @@
                 chatNameInput.focus();
                 return;
             }
+            if (!createChatModel.value) {
+                createChatModelHelp.textContent = 'Choose a model before creating the chat.';
+                createChatModel.focus();
+                return;
+            }
 
             const response = await fetch("/api/chats", {
                 method: "POST",
@@ -1932,18 +2162,28 @@
             const result = await response.json();
             createChatOverlay.classList.remove("visible");
             createChatOverlay.setAttribute("aria-hidden", "true");
+            const loadToken = ++chatLoadToken;
             activeChatId = result.chat.id;
             activeModelId = result.chat.modelId;
+            chatReady = false;
+            client = null;
             updateLockedModelLabel(activeModelId);
             sessionId = activeChatId;
             chatMessages = [];
             chatMessagesById.set(activeChatId, chatMessages);
-            showEmptyChatState();
-            renderStarterPrompts();
-            starterPrompts.style.display = "";
+            showChatLoadingState();
+            updateSendAvailability();
             document.querySelectorAll(".user-box, .bot-box").forEach((message) => message.remove());
             input.value = "";
-            await connect();
+            const connected = await connect(loadToken);
+            if (loadToken !== chatLoadToken) return;
+            if (connected) {
+                showEmptyChatState();
+                renderStarterPrompts();
+                starterPrompts.style.display = "";
+            } else {
+                showChatLoadError("Could not connect to this chat. Check your connection and try again.");
+            }
             updateSendAvailability();
             resizeInput();
             const listResponse = await fetch("/api/chats");
@@ -1958,22 +2198,31 @@
         });
 
 
-        async function connect() {
+        async function connect(loadToken = chatLoadToken) {
             if (!activeModelId) return;
             client = null;
+            chatReady = false;
             if (!activeModelIsAvailable()) {
                 input.placeholder = "Model Space unavailable.";
                 connectionError.classList.add("visible");
-                return;
+                return false;
             }
             try {
-                client = await Client.connect(activeModelId);
+                const connectedClient = await Client.connect(activeModelId);
+                if (loadToken !== chatLoadToken) return false;
+                client = connectedClient;
+                chatReady = true;
                 input.placeholder = "Ask something...";
                 connectionError.classList.remove("visible");
+                updateSendAvailability();
+                return true;
             } catch (err) {
+                if (loadToken !== chatLoadToken) return false;
                 input.placeholder = "Failed to connect. Refresh to retry.";
                 console.error("Gradio connect failed:", err);
                 connectionError.classList.add("visible");
+                updateSendAvailability();
+                return false;
             }
         }
 
@@ -2236,14 +2485,25 @@
         }
 
         async function deleteChat(chatId) {
+            const deletingActiveChat = chatId === activeChatId;
+            if (deletingActiveChat) {
+                chatReady = false;
+                updateSendAvailability();
+                showChatLoadingState();
+            }
             const response = await fetch(`/api/chats/${chatId}`, { method: "DELETE" });
-            if (!response.ok) return;
+            if (!response.ok) {
+                if (deletingActiveChat) await loadChat(chatId);
+                return;
+            }
 
             if (chatId === activeChatId) {
                 activeChatId = null;
+                client = null;
+                chatReady = false;
                 chatMessages = [];
                 document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
-                welcome.classList.remove("hidden");
+                updateSendAvailability();
             }
 
             const listResponse = await fetch("/api/chats");
@@ -2288,11 +2548,22 @@
         }
 
         async function loadChat(chatId) {
-            const wasPending = pendingChats.has(activeChatId);
-            
+            const loadToken = ++chatLoadToken;
+            chatReady = false;
+            client = null;
+            activeChatId = null;
+            updateSendAvailability();
+            showChatLoadingState();
+            document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
+
             const response = await fetch(`/api/chats/${chatId}`);
-            if (!response.ok) return;
+            if (loadToken !== chatLoadToken) return;
+            if (!response.ok) {
+                showChatLoadError("Could not load this chat. Please try again.");
+                return;
+            }
             const result = await response.json();
+            if (loadToken !== chatLoadToken) return;
             activeChatId = result.chat.id;
             activeModelId = result.chat.modelId || "Snortle-AI/Snortle-Pancake-1";
             updateLockedModelLabel(activeModelId);
@@ -2311,13 +2582,20 @@
             
             chatMessagesById.set(activeChatId, chatMessages);
             unreadChats.delete(activeChatId);
-            await connect();
-            document.querySelectorAll(".user-box, .bot-box, .thinking-box").forEach((message) => message.remove());
-            welcome.classList.toggle("hidden", chatMessages.length > 0);
+            const connected = await connect(loadToken);
+            if (loadToken !== chatLoadToken) return;
 
             if (chatMessages.length === 0) {
-                renderStarterPrompts();
-                starterPrompts.style.display = "";
+                if (connected) {
+                    showEmptyChatState();
+                    if (!starterPrompts.children.length) renderStarterPrompts();
+                    starterPrompts.style.display = "";
+                } else {
+                    showChatLoadError("Could not connect to this chat. Check your connection and try again.");
+                }
+            } else {
+                welcome.classList.add("hidden");
+                starterPrompts.style.display = "none";
             }
 
             chatMessages.forEach(renderSavedMessage);
@@ -2334,7 +2612,10 @@
 
         async function loadChats() {
             const response = await fetch("/api/chats");
-            if (!response.ok) return;
+            if (!response.ok) {
+                showChatLoadError("Could not load your chats. Please refresh and try again.");
+                return;
+            }
             const result = await response.json();
             if (result.chats.length) {
                 const wantedId = new URLSearchParams(window.location.search).get("chat");
@@ -2379,9 +2660,23 @@
         updateCoinDisplay();
         updateCoinCountdown();
 
+        const giftNotices = Array.isArray(sessionData.pendingGifts)
+            ? sessionData.pendingGifts.map((gift) => {
+                const amount = Number(Number(gift.amount).toFixed(3));
+                const sender = gift.source === "admin" ? "The administrator" : (gift.sender || "Someone");
+                return {
+                    sender,
+                    amount,
+                    message: typeof gift.message === "string" ? gift.message.trim() : ""
+                };
+            })
+            : [];
         if (Number(sessionData.pendingGift) > 0) {
-            const gift = Number(Number(sessionData.pendingGift).toFixed(3));
-            showPopup("You got a gift!", `You were gifted ${gift} Snortz Coins. They're already in your purchased wallet.`);
+            const legacyGift = Number(Number(sessionData.pendingGift).toFixed(3));
+            giftNotices.push({ amount: legacyGift, legacy: true });
+        }
+        if (giftNotices.length) {
+            showGiftPopup(giftNotices);
             fetch('/api/gift-seen', { method: 'POST' });
         }
 
@@ -2390,7 +2685,7 @@
         input.addEventListener("keydown", function(event) {
             if (event.key === "Enter" && !event.shiftKey && !window.matchMedia("(pointer: coarse)").matches) {
                 event.preventDefault();
-                if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId) return;
+                if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId || !chatReady || !client) return;
                 form.requestSubmit();
             }
         });
@@ -2600,7 +2895,7 @@
         form.addEventListener("submit", async function(event) {
             event.preventDefault();
 
-            if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId) return;
+            if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId || !chatReady || !client) return;
             if (pendingChats.has(activeChatId)) return;
             if (input.value.trim() === '') return;
             if (!checkPromptLength(input.value)) return;

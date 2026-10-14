@@ -23,9 +23,9 @@ function buildPlan({ id, name, price, billing, modelAccess, hourlyFreeCoins, coi
 
 const catalog = {
   models: [
-    { id: 'snortle-pancake-1', name: 'Snortle Pancake 1', space: 'Snortle-AI/Snortle-Pancake-1', tier: 'free', available: true },
-    { id: 'snortle-hermann-1', name: 'Snortle Hermann 1', space: 'Snortle-AI/Snortle-Hermann-1', tier: 'mid', available: false },
-    { id: 'snortle-sulcata-1', name: 'Snortle Sulcata 1', space: 'Snortle-AI/Snortle-Sulcata-1', tier: 'top', available: false }
+    { id: 'snortle-pancake-1', name: 'Snortle Pancake 1', space: 'Snortle-AI/Snortle-Pancake-1', tier: 'free', available: true, description: 'Best for quick answers and everyday questions.' },
+    { id: 'snortle-hermann-1', name: 'Snortle Hermann 1', space: 'Snortle-AI/Snortle-Hermann-1', tier: 'mid', available: false, description: 'Best for thoughtful, detailed answers and general problem-solving.' },
+    { id: 'snortle-sulcata-1', name: 'Snortle Sulcata 1', space: 'Snortle-AI/Snortle-Sulcata-1', tier: 'top', available: false, description: 'Best for complex questions and deeper analysis.' }
   ],
   plans: [
     buildPlan({

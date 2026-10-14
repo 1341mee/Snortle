@@ -366,6 +366,7 @@ html[data-theme="futuristic"] .coin-rule { border-left-color: var(--accent-2); }
 .gift-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .gift-row input { flex: 1 1 140px; min-width: 0; padding: 11px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--input-bg-color); color: var(--mini-text-color); font-size: 14px; outline: none; }
 .gift-row input:focus { border-color: var(--accent); }
+#gift-note-input { flex-basis: 100%; }
 .btn-gift { width: auto; padding: 11px 22px; background: var(--accent); color: var(--on-accent); }
 .btn-gift:hover:not(:disabled) { background: var(--accent-hover); }
 .btn-gift:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -454,6 +455,11 @@ html[data-theme="futuristic"] .coin-rule { border-left-color: var(--accent-2); }
     .generation-controls-toggle {
         right: 12px;
         bottom: 88px;
+    }
+
+    .generation-controls.open .generation-controls-toggle {
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .generation-controls-panel {

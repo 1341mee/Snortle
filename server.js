@@ -4,22 +4,47 @@ const path = require('path');
 const crypto = require('crypto');
 require('dotenv').config();
 const catalog = require('./catalog');
+const { getBadges, recordUserMessages } = require('./badgeProgress');
 const { summarizeUsers } = require('./adminRisk');
 const { getPersistedState, persistState } = require('./data/mongoStore');
+const {
+  FixedWindowRateLimiter,
+  GUEST_STARTING_COINS,
+  allowGuestSessionRequest,
+  createGuestTryoutManager,
+  hashGuestToken
+} = require('./guestTryout');
 
 const hostname = '0.0.0.0';
-const port = Number(process.env.PORT) || 3001;
+const port = Number(process.env.PORT) || 3000;
 const rootDir = __dirname;
 const dataFile = path.join(rootDir, 'data', 'store.json');
 const adminAccessKey = process.env.ADMIN_ACCESS_KEY || 'snortle-admin';
 const users = new Map();
 const sessions = new Map();
+const guestSessions = new Map();
 const botChallenges = new Map();
 const STARTING_FREE_SNORTZ_COINS = 20;
 const DEFAULT_MODEL_ID = catalog.models[0].space;
 const DEFAULT_PLAN_ID = 'free';
 const HOUR_IN_MS = 60 * 60 * 1000;
 const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * HOUR_IN_MS; // log out after 7 days of no activity
+const guestCreationLimiter = new FixedWindowRateLimiter({ limit: 12, windowMs: 24 * HOUR_IN_MS });
+const guestIpLimiter = new FixedWindowRateLimiter({ limit: 120, windowMs: HOUR_IN_MS });
+let gradioClientModule;
+let guestModelClient;
+
+const guestTryout = createGuestTryoutManager({
+  sessions: guestSessions,
+  save: saveStore,
+  connectClient: async (modelId) => {
+    if (guestModelClient) return guestModelClient;
+    gradioClientModule ||= import('@gradio/client');
+    const { Client } = await gradioClientModule;
+    guestModelClient ||= await Client.connect(modelId);
+    return guestModelClient;
+  }
+});
 
 function getPlan(planId = DEFAULT_PLAN_ID) {
   return catalog.plans.find((plan) => plan.id === planId) || catalog.plans[0];
@@ -27,27 +52,6 @@ function getPlan(planId = DEFAULT_PLAN_ID) {
 
 function canUseModel(planId, model) {
   return getPlan(planId).modelAccess >= catalog.modelAccess[model.tier];
-}
-
-function getBadges(user) {
-  const chats = Array.isArray(user.chats) ? user.chats : [];
-  let sent = 0;
-  chats.forEach((chat) => {
-    (chat.messages || []).forEach((message) => {
-      if (message.role === 'user') sent += 1;
-    });
-  });
-  const giftsSent = Number(user.giftsSent || 0);
-  const early = !user.createdAt || new Date(user.createdAt) < new Date('2027-01-01');
-
-  return [
-    { id: 'early', icon: '🌱', name: 'Early adopter', description: 'Joined Snortle before 2027.', earned: early },
-    { id: 'first-chat', icon: '💬', name: 'First chat', description: 'Started your first chat.', earned: chats.length >= 1 },
-    { id: 'chatterbox', icon: '🗣️', name: 'Chatterbox', description: 'Sent 50 messages.', earned: sent >= 50, progress: Math.min(sent, 50) + ' / 50' },
-    { id: 'regular', icon: '🔥', name: 'Regular', description: 'Sent 250 messages.', earned: sent >= 250, progress: Math.min(sent, 250) + ' / 250' },
-    { id: 'supporter', icon: '⭐', name: 'Supporter', description: 'Has a Plus or Pro plan.', earned: (user.planId || 'free') !== 'free' },
-    { id: 'generous', icon: '🎁', name: 'Generous', description: 'Gifted coins to another person.', earned: giftsSent >= 1 }
-  ];
 }
 
 async function loadStore() {
@@ -61,13 +65,19 @@ async function loadStore() {
     for (const session of store.sessions || []) {
       sessions.set(session.token, session.data);
     }
+
+    for (const guestSession of store.guestSessions || []) {
+      if (guestSession.tokenHash && guestSession.data) {
+        guestSessions.set(guestSession.tokenHash, guestSession.data);
+      }
+    }
   } catch (error) {
     console.error('Could not load saved data:', error.message);
   }
 }
 
 async function saveStore() {
-  await persistState(users, sessions);
+  await persistState(users, sessions, guestSessions);
 }
 
 function getAuthenticatedSession(req) {
@@ -135,6 +145,30 @@ function parseCookies(cookieHeader = '') {
   return cookies;
 }
 
+function getClientAddress(req) {
+  if (process.env.TRUST_PROXY === 'true') {
+    const forwardedAddress = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    if (forwardedAddress) return forwardedAddress;
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function hasValidSameOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === req.headers.host;
+  } catch {
+    return false;
+  }
+}
+
+function shouldUseSecureCookie(req) {
+  if (req.socket.encrypted) return true;
+  const host = String(req.headers.host || '').toLowerCase().split(':')[0];
+  return !['localhost', '127.0.0.1', '[::1]'].includes(host);
+}
+
 function getWallets(user) {
   return {
     freeSnortzCoins: Number(user.freeSnortzCoins ?? user.snortzCoins ?? STARTING_FREE_SNORTZ_COINS),
@@ -197,12 +231,109 @@ function parseBody(req) {
   });
 }
 
-loadStore().catch((error) => {
+const storeReady = loadStore();
+storeReady.catch((error) => {
   console.error('Initial store load failed:', error.message);
 });
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${hostname}:${port}`);
+
+  if (req.method === 'GET' && url.pathname === '/api/tryout/session') {
+    await storeReady;
+    let token = parseCookies(req.headers.cookie || '').guest_tryout;
+    const known = typeof token === 'string'
+      && /^[a-f0-9]{64}$/.test(token)
+      && guestSessions.has(hashGuestToken(token));
+    const address = getClientAddress(req);
+
+    if (!allowGuestSessionRequest({ known, address, creationLimiter: guestCreationLimiter })) {
+      return sendJson(res, 429, { success: false, message: 'Guest tryouts are busy right now. Please create an account to continue.' });
+    }
+
+    const session = await guestTryout.getOrCreate(token);
+    if (!known) {
+      const secure = shouldUseSecureCookie(req) ? '; Secure' : '';
+      res.setHeader('Set-Cookie', `guest_tryout=${session.token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Strict${secure}`);
+    }
+    res.setHeader('Cache-Control', 'no-store');
+    return sendJson(res, 200, {
+      success: true,
+      remainingCoins: session.remainingCoins,
+      allowance: GUEST_STARTING_COINS,
+      exhausted: session.remainingCoins <= 0
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/tryout/generate') {
+    await storeReady;
+    if (!String(req.headers['content-type'] || '').toLowerCase().startsWith('application/json')) {
+      return sendJson(res, 415, { success: false, message: 'Tryout requests must use JSON.' });
+    }
+    if (!hasValidSameOrigin(req)) {
+      return sendJson(res, 403, { success: false, message: 'Tryout requests must come from this site.' });
+    }
+
+    const cookies = parseCookies(req.headers.cookie || '');
+    const token = cookies.guest_tryout;
+    const tokenHash = typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)
+      ? hashGuestToken(token)
+      : '';
+    if (!tokenHash || !guestSessions.has(tokenHash)) {
+      return sendJson(res, 401, { success: false, message: 'Start a new tryout session first.' });
+    }
+
+    const address = getClientAddress(req);
+    if (!guestIpLimiter.take(address)) {
+      return sendJson(res, 429, { success: false, message: 'Please wait a moment before trying another message.' });
+    }
+
+    let body;
+    try {
+      body = await parseBody(req);
+    } catch {
+      return sendJson(res, 400, { success: false, message: 'Invalid request.' });
+    }
+    const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
+    if (!prompt) return sendJson(res, 400, { success: false, message: 'Enter a message to try Snortle.' });
+    if (prompt.length > 10000) return sendJson(res, 400, { success: false, message: 'Messages must be 10,000 characters or fewer.' });
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
+    res.flushHeaders?.();
+
+    const abortController = new AbortController();
+    res.on('close', () => {
+      if (!res.writableEnded) abortController.abort();
+    });
+    const sendEvent = (event, data) => {
+      if (!res.destroyed && res.writable) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      const result = await guestTryout.generate({
+        token,
+        prompt,
+        signal: abortController.signal,
+        onEvent: async (event) => sendEvent('update', event)
+      });
+      sendEvent('complete', result);
+      res.end();
+    } catch (error) {
+      if (!abortController.signal.aborted && !res.destroyed) {
+        sendEvent('error', {
+          message: error.message || 'The tryout could not connect to the model.',
+          exhausted: !!error.exhausted
+        });
+        res.end();
+      }
+    }
+    return;
+  }
 
   if (req.method === 'GET' && url.pathname === '/api/bot-check') {
     const answer = crypto.randomInt(1, 21);
@@ -561,7 +692,7 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     const { messages } = body;
     if (!Array.isArray(messages)) return sendJson(res, 400, { success: false, message: 'Messages must be an array.' });
-    chat.messages = messages
+    const savedMessages = messages
       .filter((message) => message && ['user', 'assistant'].includes(message.role) && typeof message.content === 'string')
       .map((message) => message.role === 'assistant'
         ? {
@@ -574,6 +705,8 @@ const server = http.createServer(async (req, res) => {
             spent: Number(message.spent)
           }
         : { role: message.role, content: message.content });
+      recordUserMessages(users.get(sessionData.username), chat, savedMessages);
+      chat.messages = savedMessages;
     chat.updatedAt = new Date().toISOString();
     saveStore();
     return sendJson(res, 200, { success: true, chat });

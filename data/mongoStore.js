@@ -39,7 +39,8 @@ function readLocalStore() {
     const store = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
     return {
       users: Array.isArray(store.users) ? store.users : [],
-      sessions: Array.isArray(store.sessions) ? store.sessions : []
+      sessions: Array.isArray(store.sessions) ? store.sessions : [],
+      guestSessions: Array.isArray(store.guestSessions) ? store.guestSessions : []
     };
   } catch (error) {
     if (error.code !== 'ENOENT') {
@@ -49,11 +50,12 @@ function readLocalStore() {
   }
 }
 
-function writeLocalStore(users, sessions) {
+function writeLocalStore(users, sessions, guestSessions = new Map()) {
   fs.mkdirSync(path.dirname(dataFile), { recursive: true });
   fs.writeFileSync(dataFile, JSON.stringify({
     users: [...users.values()],
-    sessions: [...sessions.entries()].map(([token, data]) => ({ token, data }))
+    sessions: [...sessions.entries()].map(([token, data]) => ({ token, data })),
+    guestSessions: [...guestSessions.entries()].map(([tokenHash, data]) => ({ tokenHash, data }))
   }, null, 2));
 }
 
@@ -84,7 +86,8 @@ async function getPersistedState() {
     if (doc && doc.state) {
       return {
         users: Array.isArray(doc.state.users) ? doc.state.users : [],
-        sessions: Array.isArray(doc.state.sessions) ? doc.state.sessions : []
+        sessions: Array.isArray(doc.state.sessions) ? doc.state.sessions : [],
+        guestSessions: Array.isArray(doc.state.guestSessions) ? doc.state.guestSessions : []
       };
     }
   } catch (error) {
@@ -94,15 +97,16 @@ async function getPersistedState() {
   return readLocalStore();
 }
 
-async function persistState(users, sessions) {
+async function persistState(users, sessions, guestSessions = new Map()) {
   const db = await connectToMongo();
   const payload = {
     users: [...users.values()],
-    sessions: [...sessions.entries()].map(([token, data]) => ({ token, data }))
+    sessions: [...sessions.entries()].map(([token, data]) => ({ token, data })),
+    guestSessions: [...guestSessions.entries()].map(([tokenHash, data]) => ({ tokenHash, data }))
   };
 
   if (!db) {
-    writeLocalStore(users, sessions);
+    writeLocalStore(users, sessions, guestSessions);
     return;
   }
 
@@ -115,7 +119,7 @@ async function persistState(users, sessions) {
     );
   } catch (error) {
     console.warn('MongoDB write failed. Falling back to local JSON store.', error.message);
-    writeLocalStore(users, sessions);
+    writeLocalStore(users, sessions, guestSessions);
   }
 }
 

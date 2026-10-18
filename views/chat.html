@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/views/theme.css">
     <script src="/views/theme.js"></script>
+    <script src="/views/text-length.js"></script>
+    <script src="/generationProfiles.js"></script>
 
     <style>
         :root {
@@ -801,6 +803,38 @@
             border-radius: 10px;
             background-color: var(--user-bubble);
             color: var(--mini-text-color);
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .message-text-content {
+            max-width: 100%;
+            white-space: inherit;
+            overflow-wrap: anywhere;
+        }
+
+        .message-text-content.is-collapsed {
+            max-height: 280px;
+            overflow: hidden;
+        }
+
+        .message-expand-btn {
+            align-self: flex-start;
+            margin-top: 8px;
+            padding: 4px 0;
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            cursor: pointer;
+        }
+
+        .message-expand-btn[hidden] {
+            display: none;
         }
 
         .bot-box {
@@ -1382,47 +1416,35 @@
                         <div class="generation-slider-grid">
                             <label class="generation-setting">
                                 <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Top K</span>
-                                    <output id="top-k-value">40</output>
+                                    <span class="generation-setting-name">Randomness</span>
+                                    <output id="randomness-level-value">Level 5</output>
                                 </span>
-                                <input id="top-k" type="range" min="1" max="128" step="1" value="40">
-                                <span class="generation-setting-help">Number of highest-probability tokens considered.</span>
+                                <input id="randomness-level" type="range" min="0" max="10" step="1" value="5">
+                                <span class="generation-level-marks" aria-hidden="true"><span>0 · Steady</span><span>5</span><span>10 · Varied</span></span>
+                                <span class="generation-setting-help">Lower is more predictable; higher is more varied.</span>
+                                <span class="generation-setting-technical" id="randomness-technical">Temperature 0.60 · Top K 30</span>
                             </label>
 
                             <label class="generation-setting">
                                 <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Temperature</span>
-                                    <output id="temperature-value">0.80</output>
+                                    <span class="generation-setting-name">Response length</span>
+                                    <output id="response-length-level-value">Level 2</output>
                                 </span>
-                                <input id="temperature" type="range" min="0" max="1" step="0.05" value="0.8">
-                                <span class="generation-setting-help">Higher values produce more varied output.</span>
+                                <input id="response-length-level" type="range" min="0" max="10" step="1" value="2">
+                                <span class="generation-level-marks" aria-hidden="true"><span>0 · Short</span><span>5</span><span>10 · Long</span></span>
+                                <span class="generation-setting-help">Choose how much room Snortle has to answer.</span>
+                                <span class="generation-setting-technical" id="response-length-technical">Up to 128 tokens</span>
                             </label>
 
                             <label class="generation-setting">
                                 <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Repetition penalty</span>
-                                    <output id="repeat-penalty-value">1.00</output>
+                                    <span class="generation-setting-name">Repetition control</span>
+                                    <output id="repetition-level-value">Level 2</output>
                                 </span>
-                                <input id="repeat-penalty" type="range" min="0" max="3" step="0.05" value="1">
-                                <span class="generation-setting-help">Penalizes repeated tokens.</span>
-                            </label>
-
-                            <label class="generation-setting">
-                                <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Max tokens</span>
-                                    <output id="max-tokens-value">128</output>
-                                </span>
-                                <input id="max-tokens" type="range" min="1" max="768" step="1" value="128">
-                                <span class="generation-setting-help">Maximum number of tokens generated.</span>
-                            </label>
-
-                            <label class="generation-setting">
-                                <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Repeat window</span>
-                                    <output id="repeat-window-value">64</output>
-                                </span>
-                                <input id="repeat-window" type="range" min="1" max="512" step="1" value="64">
-                                <span class="generation-setting-help">How far back repetition is checked.</span>
+                                <input id="repetition-level" type="range" min="0" max="10" step="1" value="2">
+                                <span class="generation-level-marks" aria-hidden="true"><span>0 · Natural</span><span>5</span><span>10 · Strong</span></span>
+                                <span class="generation-setting-help">Higher levels discourage repeating the same words and phrases.</span>
+                                <span class="generation-setting-technical" id="repetition-technical">Penalty 1.05 · checks last 64 tokens</span>
                             </label>
                         </div>
                     </div>
@@ -1543,28 +1565,21 @@
         const generationReset = document.getElementById("generation-reset");
 
         const generationSettings = {
-            top_k: document.getElementById("top-k"),
-            temperature: document.getElementById("temperature"),
-            repeat_penalty: document.getElementById("repeat-penalty"),
-            max_tokens: document.getElementById("max-tokens"),
-            repeat_window: document.getElementById("repeat-window")
+            randomness: document.getElementById("randomness-level"),
+            responseLength: document.getElementById("response-length-level"),
+            repetitionControl: document.getElementById("repetition-level")
         };
-
         const generationOutputs = {
-            top_k: document.getElementById("top-k-value"),
-            temperature: document.getElementById("temperature-value"),
-            repeat_penalty: document.getElementById("repeat-penalty-value"),
-            max_tokens: document.getElementById("max-tokens-value"),
-            repeat_window: document.getElementById("repeat-window-value")
+            randomness: document.getElementById("randomness-level-value"),
+            responseLength: document.getElementById("response-length-level-value"),
+            repetitionControl: document.getElementById("repetition-level-value")
         };
-
-        const DEFAULT_GENERATION_SETTINGS = {
-            top_k: 40,
-            temperature: 0.8,
-            repeat_penalty: 1.0,
-            max_tokens: 128,
-            repeat_window: 64
+        const generationTechnicalCaptions = {
+            randomness: document.getElementById("randomness-technical"),
+            responseLength: document.getElementById("response-length-technical"),
+            repetitionControl: document.getElementById("repetition-technical")
         };
+        const { DEFAULT_PROFILE: DEFAULT_GENERATION_PROFILE, LEVELS: GENERATION_LEVEL_PRESETS, normalizeProfile: normalizeGenerationProfile, toModelSettings } = window.GenerationProfiles;
         const GENERATION_SETTINGS_STORAGE_KEY = "snortle-generation-settings";
         
         starterPrompts.addEventListener("click", function (event) {
@@ -1596,6 +1611,7 @@
         const HOUR_IN_MS_CLIENT = 60 * 60 * 1000;
         const MAX_PROMPT_LENGTH = 10000;
         const SCROLL_THRESHOLD = 100;
+        const countUserCharacters = window.countUserCharacters;
 
         let catalogData = null;
 
@@ -1887,7 +1903,7 @@
         }
 
         function checkPromptLength(prompt) {
-            if (prompt.length > MAX_PROMPT_LENGTH) {
+            if (countUserCharacters(prompt) > MAX_PROMPT_LENGTH) {
                 showPopup("Prompt too long", `Prompts cannot exceed ${MAX_PROMPT_LENGTH} characters. Please shorten your message.`);
                 return false;
             }
@@ -2233,48 +2249,43 @@
             });
         }
 
-        function formatGenerationValue(key, value) {
-            if (key === "temperature" || key === "repeat_penalty") {
-                return Number(value).toFixed(2);
-            }
-            return String(Math.round(Number(value)));
-        }
-
         function updateGenerationControls() {
-            Object.keys(generationSettings).forEach(function(key) {
-                const value = generationSettings[key].value;
-                generationOutputs[key].textContent = formatGenerationValue(key, value);
-            });
+            const randomnessLevel = Number(generationSettings.randomness.value);
+            const lengthLevel = Number(generationSettings.responseLength.value);
+            const repetitionLevel = Number(generationSettings.repetitionControl.value);
+            const randomness = GENERATION_LEVEL_PRESETS.randomness[randomnessLevel];
+            const responseLength = GENERATION_LEVEL_PRESETS.responseLength[lengthLevel];
+            const repetition = GENERATION_LEVEL_PRESETS.repetitionControl[repetitionLevel];
+
+            generationOutputs.randomness.textContent = `Level ${randomnessLevel}`;
+            generationOutputs.responseLength.textContent = `Level ${lengthLevel}`;
+            generationOutputs.repetitionControl.textContent = `Level ${repetitionLevel}`;
+            generationTechnicalCaptions.randomness.textContent = `Temperature ${randomness.temperature.toFixed(2)} · Top K ${randomness.top_k}`;
+            generationTechnicalCaptions.responseLength.textContent = `Up to ${responseLength} tokens`;
+            generationTechnicalCaptions.repetitionControl.textContent = `Penalty ${repetition.repeat_penalty.toFixed(2)} · checks last ${repetition.repeat_window} tokens`;
         }
 
         function readGenerationSettings() {
-            return {
-                top_k: Number(generationSettings.top_k.value),
-                temperature: Number(generationSettings.temperature.value),
-                repeat_penalty: Number(generationSettings.repeat_penalty.value),
-                max_tokens: Number(generationSettings.max_tokens.value),
-                repeat_window: Number(generationSettings.repeat_window.value)
-            };
+            return toModelSettings(readGenerationProfile());
         }
 
         function applyGenerationSettings(settings) {
+            const profile = normalizeGenerationProfile(settings);
             Object.keys(generationSettings).forEach(function(key) {
-                if (settings[key] !== undefined && Number.isFinite(Number(settings[key]))) {
-                    const control = generationSettings[key];
-                    const value = Number(settings[key]);
-                    const min = Number(control.min);
-                    const max = Number(control.max);
-                    control.value = String(Math.min(max, Math.max(min, value)));
-                }
+                generationSettings[key].value = String(profile[key]);
             });
             updateGenerationControls();
+        }
+
+        function readGenerationProfile() {
+            return Object.fromEntries(Object.entries(generationSettings).map(([key, control]) => [key, Number(control.value)]));
         }
 
         function saveGenerationSettings() {
             try {
                 localStorage.setItem(
                     GENERATION_SETTINGS_STORAGE_KEY,
-                    JSON.stringify(readGenerationSettings())
+                    JSON.stringify(readGenerationProfile())
                 );
             } catch (error) {
                 console.warn("Could not save generation settings.", error);
@@ -2291,7 +2302,7 @@
             } catch (error) {
                 console.warn("Could not load generation settings.", error);
             }
-            applyGenerationSettings(DEFAULT_GENERATION_SETTINGS);
+            applyGenerationSettings(DEFAULT_GENERATION_PROFILE);
         }
 
         function toggleGenerationControls(forceOpen) {
@@ -2326,7 +2337,7 @@
         });
 
         generationReset.addEventListener("click", function() {
-            applyGenerationSettings(DEFAULT_GENERATION_SETTINGS);
+            applyGenerationSettings(DEFAULT_GENERATION_PROFILE);
             saveGenerationSettings();
         });
 
@@ -2338,13 +2349,42 @@
             input.style.height = newHeight + "px";
         }
 
+        function appendExpandableMessage(container, text, className) {
+            const content = document.createElement("div");
+            content.className = `${className} message-text-content`;
+            content.textContent = text;
+            container.appendChild(content);
+
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "message-expand-btn";
+            toggle.textContent = "Show more";
+            toggle.setAttribute("aria-expanded", "false");
+            toggle.hidden = true;
+            toggle.addEventListener("click", function() {
+                const expanded = toggle.getAttribute("aria-expanded") === "true";
+                toggle.setAttribute("aria-expanded", String(!expanded));
+                content.classList.toggle("is-collapsed", expanded);
+                toggle.textContent = expanded ? "Show more" : "Show less";
+            });
+            container.appendChild(toggle);
+
+            requestAnimationFrame(() => {
+                if (content.scrollHeight > 280) {
+                    content.classList.add("is-collapsed");
+                    toggle.hidden = false;
+                }
+            });
+            return content;
+        }
+
         function renderSavedMessage(message) {
             if (message.role === "user") {
                 const userBox = document.createElement("div");
                 const user = document.createElement("div");
                 userBox.classList.add("user-box");
                 user.classList.add("user");
-                user.textContent = message.content;
+                appendExpandableMessage(user, message.content, "message-user-content");
                 userBox.appendChild(user);
                 spacer.before(userBox);
                 return;
@@ -2370,10 +2410,7 @@
                 spacer.before(thinkingBox);
                 return;
             } else {
-                const replyText = document.createElement("div");
-                replyText.classList.add("bot-reply");
-                replyText.textContent = message.content;
-                bot.appendChild(replyText);
+                appendExpandableMessage(bot, message.content, "bot-reply");
                 if (message.thinkTime !== undefined) {
                     const caption = document.createElement("div");
                     caption.classList.add("bot-caption");
@@ -2904,16 +2941,16 @@
 
             const userBox = document.createElement("div");
             const user = document.createElement("div");
-
-            user.textContent = input.value;
+            const userPrompt = input.value;
 
             userBox.classList.add("user-box");
             user.classList.add("user");
+            appendExpandableMessage(user, userPrompt, "message-user-content");
 
             spacer.before(userBox);
             userBox.appendChild(user);
 
-            chatMessages.push({ role: "user", content: user.textContent });
+            chatMessages.push({ role: "user", content: userPrompt });
             chatMessagesById.set(activeChatId, chatMessages);
             await saveChat();
 

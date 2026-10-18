@@ -628,6 +628,23 @@ html[data-theme="futuristic"] .coin-rule { border-left-color: var(--accent-2); }
     line-height: 1.4;
 }
 
+.generation-setting-technical {
+    display: block;
+    margin-top: 5px;
+    color: var(--accent-text);
+    font-size: 11px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+}
+
+.generation-level-marks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
 .generation-controls-toggle {
     display: inline-flex;
     align-items: center;

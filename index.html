@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snortle AI — Low-Pollution AI Chat</title>
-    <meta name="description" content="Snortle AI is a lightweight, low-pollution AI chat assistant for brainstorming, writing, research, and everyday questions. It runs on a CPU and is much faster than many other CPU-run models. Built on a small budget, with free hourly Snortz Coins.">
-    <meta name="keywords" content="Low Pollution, Pollution, Snortle AI Low Pollution, snortle ai, snortle, snortle ai low pollution, Snortle AI, Snortle, Snortle chat, AI chat, AI chatbot, free AI chatbot, free AI chat, AI assistant, online AI assistant, writing assistant, AI writing helper, brainstorming AI, idea generator, research assistant, homework helper, everyday questions AI, lightweight AI, fast CPU AI, fast CPU inference, fast on CPU, CPU speed optimized AI, efficient AI, efficient AI model, small AI model, optimized AI, budget AI, affordable AI, cheap AI chat, low cost AI, eco-friendly AI, green AI, low pollution AI, low carbon AI, sustainable AI, CPU AI, CPU inference, no GPU AI, GPU-free AI, energy efficient AI, Snortz Coins, free hourly coins, AI chat with free coins, AI chat subscription, cheap AI subscription, high quality training data, curated training data, hugging face, ai, llm, slm,">
+    <title>Snortle AI — Try a thoughtful AI chat</title>
+    <meta name="description" content="Try Snortle AI with a small guest allowance, or create an account to keep your conversations and free coin balance.">
+    <meta name="keywords" content="Snortle AI, AI chat, AI assistant, brainstorming, writing assistant, Snortz Coins">
     <meta name="google-site-verification" content="xskvI9aPUM__XQ66whVYzQh5ieAsBQhxg1HB_JMDg0I" />
     <link rel="icon" type="image/svg+xml" href="views/images/favicon.svg">
     <meta property="og:title" content="Snortle AI — Low-Pollution AI Chat">
-    <meta property="og:description" content="A lightweight, low-pollution AI chat assistant that runs on a CPU, much faster than many other CPU-run models. Built lean on a small budget, with free hourly Snortz Coins.">
+    <meta property="og:description" content="Try Snortle AI with a small guest allowance, or create an account to keep your conversations and free coin balance.">
     <meta property="og:type" content="website">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +25,7 @@
             --input-bg-color: rgb(46, 43, 39);
             --accent: rgb(205, 163, 90);
             --accent-2: rgb(90, 110, 100);
-            --user-bubble: rgb(88, 63, 197);
+            --user-bubble: rgb(68, 60, 48);
             --title-height: 60px;
             --eco-strip-height: 32px;
             --panel: rgba(255, 255, 255, 0.03);
@@ -93,12 +93,8 @@
         }
 
         .title {
-            position: fixed;
-            top: var(--eco-strip-height);
-            left: 0px;
-            right: 0px;
+            position: static;
             height: var(--title-height);
-            z-index: 10;
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
@@ -125,25 +121,57 @@
             object-position: 110% center;
         }
 
-        .page {
-            max-width: 980px;
-            margin: 0 auto;
-            padding: calc(var(--title-height) + var(--eco-strip-height) + 48px) 24px 12px;
-        }
-
-        .hero {
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            gap: 32px;
-            align-items: center;
-            min-height: calc(100vh - var(--title-height) - var(--eco-strip-height) - 80px);
-        }
-
-        .hero-copy {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
+        .page { max-width: 1440px; margin: 0 auto; padding: 24px 28px 32px; }
+        .tryout-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 24px; align-items: start; }
+        .tryout-main { min-width: 0; }
+        .page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 18px; }
+        .page-heading-copy { max-width: 650px; }
+        .page-heading .logo-row { margin-bottom: 18px; }
+        .page-heading .eyebrow { margin-bottom: 8px; }
+        .page-heading h1 { font-size: 34px; line-height: 1.15; }
+        .page-heading p { margin-top: 9px; color: var(--big-text-color); font-size: 14px; line-height: 1.5; }
+        .account-actions { display: flex; flex: 0 0 auto; gap: 9px; padding-top: 8px; }
+        .account-actions .cta-btn { padding: 11px 17px; }
+        .tryout-panel { display: flex; flex-direction: column; min-height: min(66vh, 650px); height: 650px; overflow: hidden; border: 1px solid var(--panel-border); border-radius: 8px; background: var(--chat-float-color); box-shadow: 0 16px 42px var(--shadow); }
+        .tryout-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--panel-border); color: var(--big-text-color); font-size: 13px; }
+        .tryout-balance { display: inline-flex; align-items: center; gap: 7px; color: var(--coin-color); font-weight: 700; white-space: nowrap; }
+        .tryout-balance img { width: 17px; height: 17px; border-radius: 50%; }
+        .tryout-transcript { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding: 18px; scrollbar-width: thin; }
+        .tryout-welcome { margin: auto; max-width: 440px; text-align: center; }
+        .tryout-welcome img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); margin-bottom: 12px; }
+        .tryout-welcome h2 { font-size: 19px; color: var(--accent); margin-bottom: 7px; }
+        .tryout-welcome p { color: var(--big-text-color); font-size: 14px; line-height: 1.5; }
+        .tryout-message { max-width: min(82%, 680px); padding: 12px 14px; border-radius: 8px; color: var(--mini-text-color); font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .tryout-message.user { align-self: flex-end; background: var(--user-bubble); }
+        .tryout-message.assistant { align-self: flex-start; background: rgba(255,255,255,0.045); border-left: 2px solid var(--accent); }
+        .tryout-message.status { max-width: 100%; padding: 0; background: transparent; color: var(--muted); font-size: 12px; }
+        .tryout-message.error { color: #f0b4aa; }
+        .tryout-form { display: flex; align-items: flex-end; gap: 9px; padding: 12px; border-top: 1px solid var(--panel-border); }
+        .tryout-compose-field { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
+        .tryout-form textarea { min-width: 0; flex: 1; min-height: 44px; max-height: 140px; resize: vertical; padding: 12px; border: 1px solid var(--panel-border); border-radius: 6px; background: var(--input-bg-color); color: var(--mini-text-color); font-size: 14px; line-height: 1.4; }
+        .tryout-form textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        #tryout-character-count { align-self: flex-end; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+        #tryout-character-count.over-limit { color: #e28b7e; }
+        .tryout-send { flex: 0 0 44px; width: 44px; height: 44px; border: 0; border-radius: 6px; background: var(--accent); color: rgb(24,22,19); font-size: 20px; font-weight: 700; cursor: pointer; }
+        .tryout-send:disabled { background: var(--input-bg-color); color: var(--muted); cursor: not-allowed; }
+        .tryout-ended { display: none; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 16px; border-top: 1px solid var(--panel-border); background: rgba(205,163,90,0.07); }
+        .tryout-ended.visible { display: flex; }
+        .tryout-ended p { color: var(--big-text-color); font-size: 13px; line-height: 1.45; }
+        .tryout-ended-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+        .tryout-ended-actions .cta-btn { padding: 9px 13px; font-size: 13px; }
+        .info-rail { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow-y: auto; padding: 18px; border: 1px solid var(--panel-border); border-radius: 8px; background: var(--chat-float-color); scrollbar-width: thin; }
+        .info-rail-header { margin-bottom: 14px; }
+        .info-rail-header h2 { margin-bottom: 4px; font-size: 17px; }
+        .info-rail-header p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .info-item { padding: 14px 0; border-top: 1px solid var(--panel-border); }
+        .info-item h3 { margin-bottom: 5px; color: var(--mini-text-color); font-size: 14px; }
+        .info-item p { color: var(--big-text-color); font-size: 12px; line-height: 1.55; }
+        .info-item .info-kicker { margin-bottom: 5px; color: var(--accent); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .info-rail .terms-link { display: inline-block; margin-top: 12px; }
+        .tryout-ideas { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 12px 12px; }
+        .tryout-ideas[hidden] { display: none; }
+        .tryout-idea { padding: 8px 10px; border: 1px solid var(--panel-border); border-radius: 5px; background: transparent; color: var(--big-text-color); font-size: 13px; cursor: pointer; }
+        .tryout-idea:hover { border-color: var(--accent); color: var(--accent); }
 
         .logo-row {
             display: inline-flex;
@@ -334,242 +362,8 @@
             letter-spacing: 0.01em;
         }
 
-        .feature-panel {
-            background: var(--chat-float-color);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 26px;
-            box-shadow: 0 14px 40px var(--shadow);
-            animation: slide-fade-in 0.7s ease-out 0.2s both;
-        }
-
-        .feature-box {
-            background: rgba(0, 0, 0, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-left: 2px solid var(--accent);
-            border-radius: 4px;
-            padding: 18px;
-            margin-bottom: 16px;
-        }
-
-        .feature-box:last-child {
-            margin-bottom: 0;
-            border-left-color: var(--accent-2);
-        }
-
-        .mini-tag {
-            display: inline-block;
-            margin-bottom: 10px;
-            padding: 5px 10px;
-            border-radius: 3px;
-            background: rgba(178, 138, 74, 0.12);
-            border: 1px solid rgba(178, 138, 74, 0.28);
-            color: var(--accent);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .feature-box h3 {
-            font-size: 20px;
-            margin-bottom: 8px;
-            color: var(--mini-text-color);
-            font-weight: 600;
-        }
-
-        .feature-box p {
-            color: var(--big-text-color);
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        .feature-badges {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-
-        .feature-badges span {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 11px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--panel-border);
-            color: var(--big-text-color);
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .info-band {
-            max-width: 980px;
-            margin: 0 auto 12px;
-            padding: 22px 26px;
-            border-radius: 6px;
-            border: 1px solid rgba(90, 110, 100, 0.4);
-            background: linear-gradient(90deg, rgba(90, 110, 100, 0.14), rgba(205, 163, 90, 0.06));
-            color: var(--big-text-color);
-            text-align: center;
-            line-height: 1.7;
-            font-size: 17px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .info-band .info-band-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: var(--accent-2);
-            font-size: 17px;
-            flex-shrink: 0;
-        }
-
-        .info-band strong {
-            color: var(--mini-text-color);
-        }
-
-        .info-grid {
-            max-width: 980px;
-            margin: 0 auto 40px;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .info-card {
-            padding: 22px 18px;
-            border-radius: 6px;
-            border: 1px solid var(--panel-border);
-            background: var(--panel);
-            color: var(--big-text-color);
-            text-align: left;
-            line-height: 1.65;
-            font-size: 15px;
-            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-        }
-
-        .info-card .info-card-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            margin-bottom: 10px;
-            border-radius: 50%;
-            background: rgba(205, 163, 90, 0.14);
-            font-size: 15px;
-        }
-
-        .info-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(205, 163, 90, 0.4);
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
-        }
-
-        .info-card strong {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--mini-text-color);
-        }
-
-        .plans-teaser {
-            max-width: 980px;
-            margin: 8px auto 56px;
-            padding: 0 24px;
-        }
-
-        .plans-teaser-head {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .plans-teaser-head h2 {
-            font-size: 26px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .plans-teaser-head p {
-            color: var(--big-text-color);
-            font-size: 14px;
-        }
-
-        .plans-teaser-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .mini-plan {
-            padding: 22px 20px;
-            border-radius: 6px;
-            border: 1px solid var(--panel-border);
-            background: var(--chat-float-color);
-            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-        }
-
-        .mini-plan.featured {
-            border-color: rgba(205, 163, 90, 0.55);
-        }
-
-        .mini-plan:hover {
-            transform: translateY(-3px);
-            border-color: rgba(205, 163, 90, 0.45);
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
-        }
-
-        .mini-plan-name {
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .mini-plan-price {
-            color: var(--accent);
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 14px;
-        }
-
-        .mini-plan-price span {
-            color: var(--big-text-color);
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .mini-plan-details {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .mini-plan-details div {
-            color: var(--big-text-color);
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .mini-plan-link {
-            display: inline-block;
-            color: var(--accent);
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(205, 163, 90, 0.4);
-        }
-
-        .mini-plan-link:hover {
-            border-color: var(--accent);
-        }
+        .tryout-message.loading::after { content: ""; display: inline-block; width: 9px; height: 9px; margin-left: 8px; border: 2px solid var(--muted); border-top-color: var(--accent); border-radius: 50%; animation: tryout-spin .8s linear infinite; }
+        @keyframes tryout-spin { to { transform: rotate(360deg); } }
 
         .auth-overlay {
             position: fixed;
@@ -717,12 +511,20 @@
             background: rgb(196, 154, 88);
         }
 
+        @media (max-width: 900px) {
+            .tryout-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; }
+        }
+
         @media (max-width: 760px) {
-            .hero {
-                grid-template-columns: 1fr;
-                min-height: auto;
-                padding-top: 12px;
-            }
+            .tryout-layout { grid-template-columns: 1fr; }
+            .info-rail { position: static; max-height: none; }
+            .page-heading { flex-direction: column; }
+            .account-actions { width: 100%; padding-top: 0; }
+            .account-actions .cta-btn { flex: 1; }
+            .tryout-panel { height: min(58dvh, 500px); min-height: 390px; }
+            .tryout-ended { align-items: flex-start; flex-direction: column; }
+            .tryout-ended-actions { width: 100%; }
+            .tryout-ended-actions .cta-btn { flex: 1; }
 
             .title {
                 font-size: 18px;
@@ -752,238 +554,96 @@
                 text-align: center;
             }
 
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
+            .page { padding-top: 18px; }
+        }
 
-            .plans-teaser-grid {
-                grid-template-columns: 1fr;
-            }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
         }
     </style>
 </head>
 <body>
-    <div class="eco-strip">
-        <span class="eco-strip-dot"></span>
-        Low pollution AI — runs on efficient CPU inference, not power-hungry GPUs
-    </div>
-
-    <h1 class="title">
+    <header class="title">
         <span id="title-main">
             <img id="title-icon" src="views/images/snortle.png" alt="Snortle logo">
             Snortle AI
         </span>
-    </h1>
+    </header>
 
     <main class="page">
-        <section class="hero">
-            <div class="hero-copy">
-                <div class="logo-row">
-                    <img src="views/images/snortle.png" alt="Snortle bot icon">
-                    <span>Snortle AI</span>
-                </div>
-
-                <div class="eyebrow">Smart answers. Sharp ideas.</div>
-
-                <h1>
-                    Meet your next
-                    <span class="accent-text">thinking partner.</span>
-                </h1>
-
-                <p class="lead">
-                    Snortle AI helps you brainstorm, write, solve, and explore ideas faster — with a clean, considered conversation experience built for curious minds.
-                </p>
-
-                <div class="eco-badge">
-                    <span class="eco-dot">🌱</span>
-                    <span><strong>Low pollution.</strong> Runs on efficient CPU inference — no expensive GPU footprint.</span>
-                </div>
-
-                <div class="cta-row">
-                    <button class="cta-btn secondary-btn" type="button" data-mode="login">Log in</button>
-                    <button class="cta-btn primary-btn" type="button" data-mode="signup">Get started</button>
-                </div>
-
-                <div class="meta-list">
-                    <span class="meta-item">Fast on CPU</span>
-                    <span class="meta-item">Steady speed</span>
-                    <span class="meta-item">Creative workflows</span>
-                    <span class="meta-item">Budget-friendly</span>
-                    <span class="meta-item">Always ready</span>
-                </div>
-
-                <a class="terms-link" href="/terms">Terms of Service</a>
-            </div>
-
-            <aside class="feature-panel" aria-label="Snortle highlights">
-                <div class="feature-box">
-                    <span class="mini-tag">Idea engine</span>
-                    <h3>Turn rough thoughts into clear direction.</h3>
-                    <p>From raw concepts to polished drafts, Snortle helps shape your thinking into something useful and actionable.</p>
-                </div>
-
-                <div class="feature-box">
-                    <span class="mini-tag">Built for momentum</span>
-                    <h3>Keep the conversation moving.</h3>
-                    <p>Ask follow-ups, refine responses, and go deeper without losing context or momentum.</p>
-                    <div class="feature-badges">
-                        <span>Workflow</span>
-                        <span>Research</span>
-                        <span>Writing</span>
+        <div class="tryout-layout">
+            <section class="tryout-main" aria-labelledby="landing-title">
+                <div class="page-heading">
+                    <div class="page-heading-copy">
+                        <div class="eyebrow">A thought partner for everyday ideas</div>
+                        <h1 id="landing-title">Try Snortle for yourself.</h1>
+                        <p>Start a temporary chat below. Sign up to keep conversations and receive your account's free coin allowance.</p>
+                    </div>
+                    <div class="account-actions" aria-label="Account access">
+                        <button class="cta-btn secondary-btn" type="button" data-mode="login">Log in</button>
+                        <button class="cta-btn primary-btn" type="button" data-mode="signup">Sign up</button>
                     </div>
                 </div>
+
+                <section class="tryout-panel" aria-label="Temporary Snortle tryout">
+                    <div class="tryout-topline">
+                        <span>Temporary tryout · messages aren't saved</span>
+                        <span class="tryout-balance"><img src="views/images/snortz-coin.png" alt=""><span id="tryout-coins">Loading</span></span>
+                    </div>
+                    <div class="tryout-transcript" id="tryout-transcript" role="log" aria-live="polite" aria-relevant="additions text">
+                        <div class="tryout-welcome" id="tryout-welcome">
+                            <img src="views/images/snortle.png" alt="">
+                            <h2>What would you like to explore?</h2>
+                            <p>Ask a question, draft an idea, or try one of the suggestions below.</p>
+                        </div>
+                    </div>
+                    <div class="tryout-ideas" id="tryout-ideas" aria-label="Try a prompt"></div>
+                    <form class="tryout-form" id="tryout-form">
+                        <div class="tryout-compose-field">
+                            <textarea id="tryout-input" rows="1" placeholder="Message Snortle..." aria-label="Message Snortle" disabled></textarea>
+                            <span id="tryout-character-count" aria-live="polite">0 / 5,000</span>
+                        </div>
+                        <button class="tryout-send" id="tryout-send" type="submit" aria-label="Send message" disabled>↑</button>
+                    </form>
+                    <div class="tryout-ended" id="tryout-ended" role="status">
+                        <p id="tryout-ended-copy">Your guest tryout is used up. Create an account or log in to keep chatting.</p>
+                        <div class="tryout-ended-actions">
+                            <button class="cta-btn secondary-btn" type="button" data-mode="login">Log in</button>
+                            <button class="cta-btn primary-btn" type="button" data-mode="signup">Sign up</button>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <aside class="info-rail" aria-label="About Snortle">
+                <div class="info-rail-header">
+                    <h2>About Snortle</h2>
+                    <p>A quick guide to the tryout and the full chat.</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-kicker">What it does</div>
+                    <h3>Think, write, and explore</h3>
+                    <p>Use Snortle to brainstorm, ask everyday questions, draft text, and develop ideas through follow-up messages.</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-kicker">Tryout</div>
+                    <h3>3 Snortz Coins</h3>
+                    <p>Your guest allowance stays with this browser when you refresh. The temporary conversation isn't saved.</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-kicker">With an account</div>
+                    <h3>Keep your conversations</h3>
+                    <p>Create chats, return to saved messages, and receive free Snortz Coins over time.</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-kicker">Availability</div>
+                    <h3>One model, ready to try</h3>
+                    <p>The tryout uses Snortle Pancake 1. Other models and paid purchases are not available yet.</p>
+                </div>
+                <a class="terms-link" href="/terms">Terms of Service</a>
             </aside>
-        </section>
+        </div>
     </main>
-
-    <div class="info-band reveal-on-scroll">
-        <span class="info-band-icon">🌱</span>
-        <span><strong>Low pollution.</strong> Snortle runs without expensive GPU inference, using efficient CPU-based processing that stays lightweight, quick for a CPU, and greener for everyday use.</span>
-    </div>
-
-    <div class="info-grid">
-        <div class="info-card reveal-on-scroll" style="transition-delay: 0s;">
-            <span class="info-card-icon">⚡</span>
-            <strong>Efficient by design.</strong>
-            Snortle delivers 2–3x more parameter efficiency than standard models, helping you get more power with less waste.
-        </div>
-        <div class="info-card reveal-on-scroll" style="transition-delay: 0.1s;">
-            <span class="info-card-icon">📚</span>
-            <strong>High-quality data.</strong>
-            Built on carefully curated, high-quality training data to improve accuracy, clarity, and reliability across conversations.
-        </div>
-        <div class="info-card reveal-on-scroll" style="transition-delay: 0.2s;">
-            <span class="info-card-icon">🚀</span>
-            <strong>Fast for a CPU.</strong>
-            Optimized for CPU execution, Snortle runs much faster than many other models on a CPU, without the overhead of heavier GPU-first systems.
-        </div>
-    </div>
-
-    <!-- ============================================================
-         NEW SECTION: "Built lean, on purpose"
-         Please check every claim below (marked VERIFY) is true for
-         Snortle before publishing. Edit or delete any that aren't.
-         ============================================================ -->
-    <section class="plans-teaser" aria-label="How Snortle is built">
-        <div class="plans-teaser-head reveal-on-scroll">
-            <h2>Built lean, on purpose.</h2>
-            <p>Snortle was researched, designed, and tuned to do more with less.</p>
-        </div>
-
-        <div class="info-grid" style="margin-bottom: 16px;">
-
-            <!-- VERIFY: training was specifically optimized for speed -->
-            <div class="info-card reveal-on-scroll" style="transition-delay: 0s;">
-                <span class="info-card-icon">🏎️</span>
-                <strong>Training tuned for speed.</strong>
-                Snortle's training was optimized with speed in mind from the start, which is why it runs much faster than many other models on a CPU.
-            </div>
-
-            <!-- VERIFY: speed really stays constant over time / long chats -->
-            <div class="info-card reveal-on-scroll" style="transition-delay: 0.1s;">
-                <span class="info-card-icon">⏱️</span>
-                <strong>Steady speed, all conversation long.</strong>
-                Snortle keeps a consistent response speed over time. It doesn't slow down as your chat gets longer or your session goes on.
-            </div>
-
-            <!-- VERIFY: everything (model, data, serving) was made and optimized in-house -->
-            <div class="info-card reveal-on-scroll" style="transition-delay: 0.2s;">
-                <span class="info-card-icon">🔧</span>
-                <strong>Made and optimized end to end.</strong>
-                The AI, the training pipeline, and the serving setup were all built and tuned together, so every part works efficiently with the others.
-            </div>
-        </div>
-
-        <div class="info-grid" style="margin-bottom: 16px;">
-
-            <!-- VERIFY: research was done with a small, tight budget in mind -->
-            <div class="info-card reveal-on-scroll" style="transition-delay: 0s;">
-                <span class="info-card-icon">🔬</span>
-                <strong>Research done on a tight budget.</strong>
-                Every decision was researched with a small budget in mind. That means smart tradeoffs and no wasted compute, and it's why Snortle can stay this affordable.
-            </div>
-
-            <!-- VERIFY: efficient design keeps prices low for users -->
-            <div class="info-card reveal-on-scroll" style="transition-delay: 0.1s;">
-                <span class="info-card-icon">💰</span>
-                <strong>Low cost, passed on to you.</strong>
-                Efficient design keeps running costs down, which is how Snortle offers a free plan and paid plans under a dollar a month.
-            </div>
-
-            <!-- VERIFY: CPU inference keeps hardware needs and energy use low -->
-            <div class="info-card reveal-on-scroll" style="transition-delay: 0.2s;">
-                <span class="info-card-icon">🌍</span>
-                <strong>Small footprint.</strong>
-                Running on efficient CPU inference keeps hardware needs and energy use low, without giving up a smooth chat experience.
-            </div>
-        </div>
-
-        <div class="info-band reveal-on-scroll" style="margin-top: 16px;">
-            <span class="info-band-icon">✨</span>
-            <span><strong>Fast, steady, and affordable.</strong> Snortle is what you get when an AI is built lean from the first line: CPU-friendly speed, consistent performance, low cost, and a lighter impact on the planet.</span>
-        </div>
-    </section>
-
-    <section class="plans-teaser" aria-label="Plan pricing">
-        <div class="plans-teaser-head reveal-on-scroll">
-            <h2>Simple pricing.</h2>
-            <p>Start free. Upgrade any time for more coins and better models.</p>
-        </div>
-
-        <div class="plans-teaser-grid">
-            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0s;">
-                <div class="mini-plan-name">Free</div>
-                <div class="mini-plan-price">$0 <span>/ month</span></div>
-                <div class="mini-plan-details">
-                    <div>Access to free models</div>
-                    <div>50 Snortz Coin allowance</div>
-                    <div>3 Snortz Coins an hour</div>
-                </div>
-            </div>
-
-            <div class="mini-plan featured reveal-on-scroll" style="transition-delay: 0.1s;">
-                <div class="mini-plan-name">Plus</div>
-                <div class="mini-plan-price">$0.49 <span>/ month</span></div>
-                <div class="mini-plan-details">
-                    <div>Access to free and mid-tier models</div>
-                    <div>100 Snortz Coin allowance</div>
-                    <div>5 Snortz Coins an hour</div>
-                </div>
-            </div>
-
-            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0.2s;">
-                <div class="mini-plan-name">Pro</div>
-                <div class="mini-plan-price">$0.99 <span>/ month</span></div>
-                <div class="mini-plan-details">
-                    <div>Access to all models (including top models)</div>
-                    <div>500 Snortz Coin allowance</div>
-                    <div>8 Snortz Coins an hour</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="plans-teaser-head reveal-on-scroll" style="margin-top: 40px;">
-            <h2>Need more coins?</h2>
-            <p>Top up any time — purchased coins never expire.</p>
-        </div>
-
-        <div class="plans-teaser-grid">
-            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0s;">
-                <div class="mini-plan-name">1,000 Snortz Coins</div>
-                <div class="mini-plan-price">$0.49</div>
-            </div>
-
-            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0.1s;">
-                <div class="mini-plan-name">3,000 Snortz Coins</div>
-                <div class="mini-plan-price">$0.99</div>
-            </div>
-
-            <div class="mini-plan reveal-on-scroll" style="transition-delay: 0.2s;">
-                <div class="mini-plan-name">10,000 Snortz Coins</div>
-                <div class="mini-plan-price">$1.99</div>
-            </div>
-        </div>
-    </section>
 
     <div class="auth-overlay" id="authOverlay" aria-hidden="true">
         <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -1023,6 +683,7 @@
         </div>
     </div>
 
+    <script src="/views/text-length.js"></script>
     <script>
         const authOverlay = document.getElementById('authOverlay');
         const authTitle = document.getElementById('authTitle');
@@ -1037,6 +698,225 @@
         const authForm = document.getElementById('authForm');
         const username = document.getElementById('username');
         const password = document.getElementById('password');
+        const tryoutCoins = document.getElementById('tryout-coins');
+        const tryoutTranscript = document.getElementById('tryout-transcript');
+        const tryoutWelcome = document.getElementById('tryout-welcome');
+        const tryoutIdeas = document.getElementById('tryout-ideas');
+        const tryoutForm = document.getElementById('tryout-form');
+        const tryoutInput = document.getElementById('tryout-input');
+        const tryoutCharacterCount = document.getElementById('tryout-character-count');
+        const tryoutSend = document.getElementById('tryout-send');
+        const tryoutEnded = document.getElementById('tryout-ended');
+        const tryoutEndedCopy = document.getElementById('tryout-ended-copy');
+        let tryoutRemainingCoins = 0;
+        let tryoutReady = false;
+        let tryoutBusy = false;
+        let tryoutExhausted = false;
+        let activeTryoutRequest = null;
+        const MAX_TRYOUT_CHARACTERS = 5000;
+        const countUserCharacters = window.countUserCharacters;
+
+        let TRYOUT_PROMPTS = [];
+
+        function updateTryoutControls() {
+            const characterCount = countUserCharacters(tryoutInput.value);
+            const canType = tryoutReady && !tryoutBusy && !tryoutExhausted;
+            const canSend = canType && characterCount <= MAX_TRYOUT_CHARACTERS;
+            tryoutInput.disabled = !canType;
+            tryoutSend.disabled = !canSend || !tryoutInput.value.trim();
+            tryoutCharacterCount.textContent = `${characterCount.toLocaleString()} / ${MAX_TRYOUT_CHARACTERS.toLocaleString()}`;
+            tryoutCharacterCount.classList.toggle('over-limit', characterCount > MAX_TRYOUT_CHARACTERS);
+        }
+
+        function updateTryoutBalance(amount) {
+            tryoutRemainingCoins = Math.max(0, Number(amount) || 0);
+            tryoutCoins.textContent = `${tryoutRemainingCoins.toFixed(3)} / 3`;
+            if (tryoutRemainingCoins <= 0) endTryout();
+        }
+
+        function endTryout(message) {
+            tryoutExhausted = true;
+            tryoutBusy = false;
+            tryoutSend.disabled = true;
+            tryoutInput.disabled = true;
+            tryoutIdeas.hidden = true;
+            tryoutEndedCopy.textContent = message || 'Your guest tryout is used up. Create an account or log in to keep chatting.';
+            tryoutEnded.classList.add('visible');
+        }
+
+        function appendTryoutMessage(content, role, extraClass = '') {
+            const message = document.createElement('div');
+            message.className = `tryout-message ${role}${extraClass ? ` ${extraClass}` : ''}`;
+            message.textContent = content;
+            tryoutTranscript.appendChild(message);
+            tryoutTranscript.scrollTop = tryoutTranscript.scrollHeight;
+            return message;
+        }
+
+        function renderTryoutIdeas() {
+            tryoutIdeas.replaceChildren();
+            TRYOUT_PROMPTS.forEach((prompt) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'tryout-idea';
+                button.textContent = prompt;
+                button.addEventListener('click', () => {
+                    if (tryoutBusy || tryoutExhausted) return;
+                    tryoutIdeas.hidden = true;
+                    tryoutInput.value = prompt;
+                    updateTryoutControls();
+                    tryoutForm.requestSubmit();
+                });
+                tryoutIdeas.appendChild(button);
+            });
+        }
+
+        async function loadTryoutPrompts() {
+            const response = await fetch('/data/starter-prompts.json');
+            if (!response.ok) throw new Error('Could not load tryout prompts.');
+            const prompts = await response.json();
+            const pool = Array.isArray(prompts)
+                ? [...new Set(prompts.filter((prompt) => typeof prompt === 'string' && prompt.trim()).map((prompt) => prompt.trim()))]
+                : [];
+
+            for (let index = pool.length - 1; index > 0; index -= 1) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+            }
+            TRYOUT_PROMPTS = pool.slice(0, 3);
+        }
+
+        async function initializeTryout() {
+            try {
+                const response = await fetch('/api/tryout/session', { credentials: 'same-origin' });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Tryout is temporarily unavailable.');
+                updateTryoutBalance(result.remainingCoins);
+                tryoutReady = true;
+                if (result.exhausted) {
+                    endTryout();
+                    return;
+                }
+                tryoutWelcome.querySelector('p').textContent = 'Ask a question, draft an idea, or try one of the suggestions below.';
+                try {
+                    await loadTryoutPrompts();
+                    renderTryoutIdeas();
+                } catch (error) {
+                    console.warn('Tryout prompt suggestions are unavailable.', error);
+                }
+                updateTryoutControls();
+            } catch (error) {
+                tryoutCoins.textContent = 'Unavailable';
+                tryoutWelcome.querySelector('p').textContent = error.message;
+                tryoutInput.placeholder = 'The tryout is unavailable right now.';
+                tryoutReady = false;
+                updateTryoutControls();
+            }
+        }
+
+        async function sendTryoutMessage(prompt) {
+            if (countUserCharacters(prompt) > MAX_TRYOUT_CHARACTERS) return;
+            tryoutBusy = true;
+            tryoutIdeas.hidden = true;
+            tryoutWelcome.hidden = true;
+            appendTryoutMessage(prompt, 'user');
+            const assistantMessage = appendTryoutMessage('Snortle is thinking', 'assistant', 'loading');
+            activeTryoutRequest = new AbortController();
+            updateTryoutControls();
+
+            try {
+                const response = await fetch('/api/tryout/generate', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                    signal: activeTryoutRequest.signal
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw Object.assign(new Error(error.message || 'Tryout failed.'), { exhausted: !!error.exhausted });
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let pending = '';
+                let finalOutput = '';
+
+                const handleEvent = (block) => {
+                    let eventName = 'message';
+                    const dataLines = [];
+                    block.split('\n').forEach((line) => {
+                        if (line.startsWith('event:')) eventName = line.slice(6).trim();
+                        if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+                    });
+                    if (!dataLines.length) return;
+                    const data = JSON.parse(dataLines.join('\n'));
+                    if (eventName === 'update') {
+                        assistantMessage.classList.remove('loading');
+                        assistantMessage.textContent = data.output || '';
+                        tryoutTranscript.scrollTop = tryoutTranscript.scrollHeight;
+                        updateTryoutBalance(data.remainingCoins);
+                    } else if (eventName === 'complete') {
+                        assistantMessage.classList.remove('loading');
+                        assistantMessage.textContent = data.output || assistantMessage.textContent;
+                        tryoutTranscript.scrollTop = tryoutTranscript.scrollHeight;
+                        finalOutput = assistantMessage.textContent;
+                        updateTryoutBalance(data.remainingCoins);
+                        if (data.exhausted) endTryout();
+                    } else if (eventName === 'error') {
+                        assistantMessage.classList.remove('loading');
+                        assistantMessage.classList.add('error');
+                        assistantMessage.textContent = data.message;
+                        if (data.exhausted) endTryout(data.message);
+                    }
+                };
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    pending += decoder.decode(value || new Uint8Array(), { stream: !done });
+                    const blocks = pending.split('\n\n');
+                    pending = blocks.pop() || '';
+                    blocks.forEach(handleEvent);
+                    if (done) break;
+                }
+
+                if (!finalOutput && !tryoutExhausted && !assistantMessage.textContent.trim()) {
+                    assistantMessage.classList.remove('loading');
+                    assistantMessage.textContent = 'No response received. Please try again.';
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    assistantMessage.classList.remove('loading');
+                    assistantMessage.classList.add('error');
+                    assistantMessage.textContent = error.message;
+                    if (error.exhausted) endTryout(error.message);
+                }
+            } finally {
+                activeTryoutRequest = null;
+                tryoutBusy = false;
+                if (tryoutRemainingCoins <= 0) endTryout();
+                updateTryoutControls();
+                if (!tryoutExhausted) tryoutInput.focus();
+            }
+        }
+
+        tryoutForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const prompt = tryoutInput.value.trim();
+            if (!prompt || !tryoutReady || tryoutBusy || tryoutExhausted) return;
+            tryoutInput.value = '';
+            updateTryoutControls();
+            sendTryoutMessage(prompt);
+        });
+
+        tryoutInput.addEventListener('input', updateTryoutControls);
+        tryoutInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (!tryoutSend.disabled) tryoutForm.requestSubmit();
+            }
+        });
+        initializeTryout();
 
         botCheckAnswer.addEventListener('input', () => {
             botCheckValue.textContent = botCheckAnswer.value;
@@ -1112,20 +992,24 @@
             authForm.reset();
         }
 
-        document.querySelector('[data-mode="login"]').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/session-status');
-                const data = await response.json();
-                if (data.loggedIn) {
-                    window.location.href = '/chat';
-                    return;
+        document.querySelectorAll('[data-mode="login"]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/api/session-status');
+                    const data = await response.json();
+                    if (data.loggedIn) {
+                        window.location.href = '/chat';
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Session check failed:', error);
                 }
-            } catch (error) {
-                console.error('Session check failed:', error);
-            }
-            openAuth('login');
+                openAuth('login');
+            });
         });
-        document.querySelector('[data-mode="signup"]').addEventListener('click', () => openAuth('signup'));
+        document.querySelectorAll('[data-mode="signup"]').forEach((button) => {
+            button.addEventListener('click', () => openAuth('signup'));
+        });
         document.getElementById('closeAuth').addEventListener('click', closeAuth);
 
         authOverlay.addEventListener('click', (event) => {

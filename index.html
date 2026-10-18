@@ -169,6 +169,7 @@
         .info-item p { color: var(--big-text-color); font-size: 12px; line-height: 1.55; }
         .info-item .info-kicker { margin-bottom: 5px; color: var(--accent); font-size: 10px; font-weight: 700; text-transform: uppercase; }
         .info-rail .terms-link { display: inline-block; margin-top: 12px; }
+        .info-rail .terms-link + .terms-link { margin-left: 14px; }
         .tryout-ideas { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 12px 12px; }
         .tryout-ideas[hidden] { display: none; }
         .tryout-idea { padding: 8px 10px; border: 1px solid var(--panel-border); border-radius: 5px; background: transparent; color: var(--big-text-color); font-size: 13px; cursor: pointer; }
@@ -493,6 +494,29 @@
             box-shadow: 0 0 0 3px rgba(178, 138, 74, 0.12);
         }
 
+        .field .agreement-checkbox {
+            flex: 0 0 auto;
+            width: 17px;
+            height: 17px;
+            margin-top: 2px;
+            accent-color: var(--accent);
+        }
+
+        .agreement-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--big-text-color);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.55;
+        }
+
+        .agreement-label a {
+            color: var(--accent);
+            text-underline-offset: 3px;
+        }
+
         .hidden {
             display: none;
         }
@@ -642,6 +666,7 @@
                     <p>The tryout uses Snortle Pancake 1. Other models and paid purchases are not available yet.</p>
                 </div>
                 <a class="terms-link" href="/terms">Terms of Service</a>
+                <a class="terms-link" href="/data">Training data &amp; citations</a>
             </aside>
         </div>
     </main>
@@ -671,6 +696,13 @@
                     <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password">
                 </div>
 
+                <div class="field hidden" id="termsAgreementField">
+                    <label class="agreement-label" for="termsAgreement">
+                        <input class="agreement-checkbox" id="termsAgreement" name="acceptedTerms" type="checkbox">
+                        <span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and have reviewed the <a href="/data" target="_blank" rel="noopener">training data citations</a>.</span>
+                    </label>
+                </div>
+
                 <div class="field hidden" id="botCheckField">
                     <label for="botCheckAnswer" id="botCheckLabel">Bot check</label>
                     <div class="range-row">
@@ -692,6 +724,8 @@
         const submitBtn = document.getElementById('submitBtn');
         const confirmPasswordField = document.getElementById('confirmPasswordField');
         const confirmPassword = document.getElementById('confirmPassword');
+        const termsAgreementField = document.getElementById('termsAgreementField');
+        const termsAgreement = document.getElementById('termsAgreement');
         const botCheckField = document.getElementById('botCheckField');
         const botCheckLabel = document.getElementById('botCheckLabel');
         const botCheckAnswer = document.getElementById('botCheckAnswer');
@@ -957,6 +991,8 @@
                 submitBtn.textContent = 'Create account';
                 confirmPasswordField.classList.remove('hidden');
                 confirmPassword.setAttribute('required', 'required');
+                termsAgreementField.classList.remove('hidden');
+                termsAgreement.setAttribute('required', 'required');
                 botCheckField.classList.remove('hidden');
                 botCheckAnswer.setAttribute('required', 'required');
             } else {
@@ -966,6 +1002,8 @@
                 confirmPasswordField.classList.add('hidden');
                 confirmPassword.removeAttribute('required');
                 confirmPassword.value = '';
+                termsAgreementField.classList.add('hidden');
+                termsAgreement.removeAttribute('required');
                 botCheckField.classList.add('hidden');
                 botCheckAnswer.removeAttribute('required');
                 botCheckAnswer.value = '';
@@ -1030,6 +1068,13 @@
             }
 
             if (authMode === 'signup') {
+                if (!termsAgreement.checked) {
+                    termsAgreement.setCustomValidity('You must agree to the Terms of Service to create an account.');
+                    termsAgreement.reportValidity();
+                    return;
+                }
+                termsAgreement.setCustomValidity('');
+
                 const hasStrongPassword = enteredPassword.length >= 6 && /\d/.test(enteredPassword) && /[a-z]/.test(enteredPassword) && /[A-Z]/.test(enteredPassword) && /[^A-Za-z0-9]/.test(enteredPassword);
                 if (!hasStrongPassword) {
                     password.setCustomValidity('Use at least 6 characters with a number, lowercase letter, uppercase letter, and punctuation mark.');
@@ -1069,6 +1114,7 @@
                     body: JSON.stringify({
                         username: enteredUsername,
                         password: enteredPassword,
+                        acceptedTerms: authMode === 'signup' ? termsAgreement.checked : undefined,
                         botCheckAnswer: authMode === 'signup' ? Number(botCheckAnswer.value) : undefined,
                         botCheckToken: authMode === 'signup' ? botCheckToken : undefined
                     })

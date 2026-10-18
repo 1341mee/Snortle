@@ -343,7 +343,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && url.pathname === '/api/signup') {
-    const { username, password, botCheckAnswer, botCheckToken } = await parseBody(req);
+    const { username, password, acceptedTerms, botCheckAnswer, botCheckToken } = await parseBody(req);
+
+    if (acceptedTerms !== true) {
+      return sendJson(res, 400, { success: false, message: 'You must agree to the Terms of Service to create an account.' });
+    }
 
     if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
       return sendJson(res, 400, { success: false, message: 'Username and password are required.' });
@@ -835,6 +839,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/views/data.html') {
+    res.writeHead(302, { Location: '/data' });
+    res.end();
+    return;
+  }
+
   let requestPath = url.pathname === '/' ? '/index.html' : url.pathname;
   if (url.pathname === '/chat') {
     requestPath = '/views/chat.html';
@@ -851,6 +861,9 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/terms') {
     requestPath = '/views/terms.html';
   }
+  if (url.pathname === '/data') {
+    requestPath = '/views/data.html';
+  }
   if (url.pathname === '/plans.html') {
     res.writeHead(302, { Location: '/plans' });
     res.end();
@@ -858,6 +871,11 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === '/terms.html') {
     res.writeHead(302, { Location: '/terms' });
+    res.end();
+    return;
+  }
+  if (url.pathname === '/data.html') {
+    res.writeHead(302, { Location: '/data' });
     res.end();
     return;
   }

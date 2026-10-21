@@ -14,6 +14,7 @@
     <script src="/views/text-length.js"></script>
     <script src="/generationProfiles.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 
     <style>
         :root {
@@ -2422,48 +2423,55 @@
         }
 
         function renderMarkdown(text) {
-            // If AI outputs raw HTML tags, show them as code instead of rendering
-            const hasHtmlTags = /<[a-z][\s\S]*?>/i.test(text);
-            if (hasHtmlTags) {
-                return `<pre><code class="ai-html-output">${text.replace(/</g, "<").replace(/>/g, ">")}</code></pre>`;
-            }
-            return marked.parse(text);
+            // Always render as Markdown, then sanitize, so the output can't run scripts.
+            // Raw HTML the model writes is escaped as text, not executed.
+            const raw = marked.parse(text, { breaks: true, gfm: true });
+            return DOMPurify.sanitize(raw, { USE_PROFILES: { html: true } });
         }
 
-        function addCopyButtonsToCodeBlocks() {
-            document.querySelectorAll('.bot-reply pre').forEach((pre) => {
-                if (pre.querySelector('.copy-code-btn')) return;
+        function addCopyButtonsToCodeBlocks(container) {
+            container.querySelectorAll("pre").forEach((pre) => {
+                if (pre.parentElement.classList.contains("code-wrap")) return;
+                const wrap = document.createElement("div");
+                wrap.className = "code-wrap";
+                wrap.style.cssText = "position:relative;";
+                pre.parentNode.insertBefore(wrap, pre);
+                wrap.appendChild(pre);
+
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = "copy-code-btn";
                 btn.textContent = "Copy";
                 btn.style.cssText = "position:absolute;top:8px;right:8px;padding:4px 10px;font-size:11px;background:rgba(205,163,90,0.9);color:#181614;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:700;z-index:2;";
-                btn.addEventListener("click", function() {
+                btn.addEventListener("click", function () {
                     const code = pre.querySelector("code");
-                    const text = code ? code.textContent : pre.textContent;
-                    navigator.clipboard.writeText(text.trim()).then(() => {
+                    navigator.clipboard.writeText((code ? code.textContent : pre.textContent).trim()).then(() => {
                         btn.textContent = "Copied!";
-                        setTimeout(() => btn.textContent = "Copy", 1500);
+                        setTimeout(() => (btn.textContent = "Copy"), 1500);
                     });
                 });
-                pre.style.position = "relative";
-                pre.appendChild(btn);
+                wrap.appendChild(btn);
             });
         }
 
-        // Add copy buttons after each bot message is rendered
-        const originalAppendExpandableMessage = appendExpandableMessage;
-        appendExpandableMessage = function(container, text, className) {
-            const result = originalAppendExpandableMessage(container, text, className);
-            setTimeout(addCopyButtonsToCodeBlocks, 50);
-            return result;
-        };
-
         function appendExpandableMessage(container, text, className) {
+            const isUser = className.includes("message-user-content");
             const content = document.createElement("div");
             content.className = `${className} message-text-content`;
-            content.innerHTML = renderMarkdown(text);
+
+            if (isUser) {
+                // user input is plain text, never markdown or HTML
+                content.textContent = text;
+            } else {
+                content.innerHTML = renderMarkdown(text);
+                addCopyButtonsToCodeBlocks(content);
+            }
             container.appendChild(content);
+
+            // bot replies never collapse
+            if (!isUser) {
+                return content;
+            }
 
             const toggle = document.createElement("button");
             toggle.type = "button";
@@ -2471,7 +2479,7 @@
             toggle.textContent = "Show more";
             toggle.setAttribute("aria-expanded", "false");
             toggle.hidden = true;
-            toggle.addEventListener("click", function() {
+            toggle.addEventListener("click", function () {
                 const expanded = toggle.getAttribute("aria-expanded") === "true";
                 toggle.setAttribute("aria-expanded", String(!expanded));
                 content.classList.toggle("is-collapsed", expanded);
@@ -2487,6 +2495,14 @@
             });
             return content;
         }
+        
+        // Add copy buttons after each bot message is rendered
+        const originalAppendExpandableMessage = appendExpandableMessage;
+        appendExpandableMessage = function(container, text, className) {
+            const result = originalAppendExpandableMessage(container, text, className);
+            setTimeout(addCopyButtonsToCodeBlocks, 50);
+            return result;
+        };
 
         function renderSavedMessage(message) {
             if (message.role === "user") {
@@ -2908,7 +2924,8 @@
                                 spacer.before(botBoxEl);
                             }
 
-                            botReplyEl.textContent = data.output || "";
+                            botReplyEl.innerHTML = renderMarkdown(data.output || "");
+                            addCopyButtonsToCodeBlocks(botReplyEl);
                             scrollDown();
                         }
 

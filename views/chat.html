@@ -13,6 +13,7 @@
     <script src="/views/theme.js"></script>
     <script src="/views/text-length.js"></script>
     <script src="/generationProfiles.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
@@ -1004,6 +1005,77 @@
             white-space: pre-line;
             overflow-wrap: anywhere;
             word-break: break-word;
+        }
+
+        .bot-reply pre {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 14px 16px;
+            overflow-x: auto;
+            max-height: 400px;
+            font-family: "Fira Code", "Consolas", monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--mini-text-color);
+            position: relative;
+        }
+
+        .bot-reply pre code {
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            color: inherit;
+        }
+
+        .bot-reply code {
+            background: rgba(205, 163, 90, 0.15);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: "Fira Code", "Consolas", monospace;
+            font-size: 0.92em;
+            color: var(--accent);
+        }
+
+        .bot-reply h1, .bot-reply h2, .bot-reply h3 {
+            color: var(--accent);
+            margin: 16px 0 8px;
+            font-weight: 600;
+        }
+
+        .bot-reply h1 { font-size: 22px; }
+        .bot-reply h2 { font-size: 18px; }
+        .bot-reply h3 { font-size: 16px; }
+
+        .bot-reply strong {
+            color: var(--mini-text-color);
+            font-weight: 700;
+        }
+
+        .bot-reply em {
+            color: var(--big-text-color);
+            font-style: italic;
+        }
+
+        .bot-reply a {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .bot-reply ul, .bot-reply ol {
+            margin: 8px 0 8px 20px;
+            padding-left: 8px;
+        }
+
+        .bot-reply li {
+            margin-bottom: 4px;
+        }
+
+        .bot-reply br {
+            display: block;
+            content: "";
+            margin: 4px 0;
         }
 
         .bot-caption {
@@ -2350,49 +2422,42 @@
         }
 
         function renderMarkdown(text) {
-            let html = text
-                .replace(/&/g, "&")
-                .replace(/</g, "<")
-                .replace(/>/g, ">");
-
-            // Code blocks (```...```)
-            html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
-                return `<pre><code>${code.trim()}</code></pre>`;
-            });
-
-            // Inline code (`...`)
-            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-            // Headers
-            html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-            html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-            html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-
-            // Bold (**...**)
-            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-            // Italic (*...*)
-            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-
-            // Links [text](url)
-            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-            // Unordered lists (- item)
-            html = html.replace(/^- (.*$)/gm, '<li>$1</li>');
-            html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-
-            // Ordered lists (1. item)
-            html = html.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
-            html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
-                if (match.includes('<ul>')) return match;
-                return '<ol>' + match + '</ol>';
-            });
-
-            // Line breaks
-            html = html.replace(/\n/g, '<br>');
-
-            return html;
+            // If AI outputs raw HTML tags, show them as code instead of rendering
+            const hasHtmlTags = /<[a-z][\s\S]*?>/i.test(text);
+            if (hasHtmlTags) {
+                return `<pre><code class="ai-html-output">${text.replace(/</g, "<").replace(/>/g, ">")}</code></pre>`;
+            }
+            return marked.parse(text);
         }
+
+        function addCopyButtonsToCodeBlocks() {
+            document.querySelectorAll('.bot-reply pre').forEach((pre) => {
+                if (pre.querySelector('.copy-code-btn')) return;
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "copy-code-btn";
+                btn.textContent = "Copy";
+                btn.style.cssText = "position:absolute;top:8px;right:8px;padding:4px 10px;font-size:11px;background:rgba(205,163,90,0.9);color:#181614;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:700;z-index:2;";
+                btn.addEventListener("click", function() {
+                    const code = pre.querySelector("code");
+                    const text = code ? code.textContent : pre.textContent;
+                    navigator.clipboard.writeText(text.trim()).then(() => {
+                        btn.textContent = "Copied!";
+                        setTimeout(() => btn.textContent = "Copy", 1500);
+                    });
+                });
+                pre.style.position = "relative";
+                pre.appendChild(btn);
+            });
+        }
+
+        // Add copy buttons after each bot message is rendered
+        const originalAppendExpandableMessage = appendExpandableMessage;
+        appendExpandableMessage = function(container, text, className) {
+            const result = originalAppendExpandableMessage(container, text, className);
+            setTimeout(addCopyButtonsToCodeBlocks, 50);
+            return result;
+        };
 
         function appendExpandableMessage(container, text, className) {
             const content = document.createElement("div");
@@ -2429,7 +2494,11 @@
                 const user = document.createElement("div");
                 userBox.classList.add("user-box");
                 user.classList.add("user");
-                appendExpandableMessage(user, message.content, "message-user-content");
+                // User messages: ignore markdown, show raw text
+                const content = document.createElement("div");
+                content.className = "message-user-content message-text-content";
+                content.textContent = message.content;
+                user.appendChild(content);
                 userBox.appendChild(user);
                 spacer.before(userBox);
                 return;

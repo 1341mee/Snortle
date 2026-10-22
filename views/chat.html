@@ -2972,8 +2972,11 @@
                 const generationTime = lastData.generation_time || 0;
                 const generatedTokens = lastData.gen_token_count || 0;
 
-                const thinkCost = thinkTime / 30;
-                const genTokenCost = generatedTokens / 750;
+                const isPancake2 = activeModelId === 'Snortle-AI/Snortle-Pancake-2';
+                const thinkMultiplier = isPancake2 ? 2 : 1;
+                const tokenMultiplier = isPancake2 ? 1.5 : 1;
+                const thinkCost = (thinkTime / 30) * thinkMultiplier;
+                const genTokenCost = (generatedTokens / 750) * tokenMultiplier;
                 const spent = thinkCost + genTokenCost;
 
                 const freeSpent = Math.min(freeCoinBalance, spent);

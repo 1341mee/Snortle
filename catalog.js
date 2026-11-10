@@ -23,8 +23,8 @@ function buildPlan({ id, name, price, billing, modelAccess, hourlyFreeCoins, coi
 
 const catalog = {
   models: [
-    { id: 'snortle-pancake-1', name: 'Snortle Pancake 1', space: 'Snortle-AI/Snortle-Pancake-1', tier: 'free', available: true, description: 'Test model.' },
-    { id: 'snortle-pancake-2', name: 'Snortle Pancake 2', space: 'Snortle-AI/Snortle-Pancake-2', tier: 'mid', available: true, description: 'Upgraded pancake model with 2x thinking and 1.5x token generation.' },
+    { id: 'snortle-pancake-1', name: 'Snortle Pancake 1', space: 'Snortle-AI/Snortle-Pancake-1', tier: 'free', available: true, description: 'Test model, not recommended to use.' },
+    { id: 'snortle-pancake-2', name: 'Snortle Pancake 2', space: 'Snortle-AI/Snortle-Pancake-2', tier: 'free', available: true, description: 'Upgraded pancake model with much more powerful thinking and generation. May use 3x more snortz coins average compared to Pancake 1.' },
   ],
   plans: [
     buildPlan({

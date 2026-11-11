@@ -13,6 +13,7 @@
     <script src="/views/theme.js"></script>
     <script src="/views/text-length.js"></script>
     <script src="/generationProfiles.js"></script>
+    <script src="/passwordRules.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 
@@ -48,19 +49,14 @@
             overflow: hidden;
         }
 
-        html::-webkit-scrollbar, body::-webkit-scrollbar {
-            display: none;
-        }
-
-        body {
-            background-color: var(--bg-color);
-        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-color); }
 
         .title {
             position: fixed;
-            top: 0px;
-            left: 0px;
-            right: 0px;
+            top: 0;
+            left: 0;
+            right: 0;
             height: var(--title-height);
             z-index: 10;
             display: grid;
@@ -73,162 +69,257 @@
             border-bottom: 1px solid rgba(205, 163, 90, 0.4);
         }
 
-        #title-main {
-            grid-column: 2;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        #title-main { grid-column: 2; display: flex; align-items: center; gap: 10px; }
+        #title-icon { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; object-position: 110% center; }
+        #title-model, #guest-title-model { grid-column: 1; justify-self: start; margin-left: 20px; display: flex; align-items: center; }
+        .model-badge { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 4px; background: rgba(205,163,90,.1); border: 1px solid rgba(205,163,90,.25); color: var(--accent); font-size: 12px; font-weight: 600; white-space: nowrap; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+        #coin-counter, #guest-coin-counter { grid-column: 3; justify-self: end; margin-right: 20px; position: relative; }
+        .coin-display { display: flex; align-items: center; gap: 6px; cursor: default; padding: 7px 14px; border-radius: 4px; border: 1px solid rgba(216,168,74,.35); background-color: var(--input-bg-color); color: var(--coin-color); font-size: 14px; font-weight: 700; white-space: nowrap; transition: background-color .15s ease; }
+        .coin-display:hover { background-color: rgba(216,168,74,.12); }
+        .coin-icon-small { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+        .coin-tooltip { position: absolute; top: calc(100% + 8px); right: 0; min-width: 250px; padding: 16px; border-radius: 8px; border: 1px solid rgba(216,168,74,.3); background: var(--chat-float-color); box-shadow: 0 8px 24px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity .15s ease, transform .15s ease; z-index: 20; }
+        #coin-counter:hover .coin-tooltip { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .coin-tooltip-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; color: var(--big-text-color); }
+        .coin-tooltip-row strong { color: var(--mini-text-color); font-weight: 700; }
+        .coin-tooltip-divider { height: 1px; background: rgba(255,255,255,.08); margin: 6px 0; }
+        .coin-progress { margin-top: 10px; }
+        .coin-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--big-text-color); margin-bottom: 6px; }
+        .coin-progress-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+        .coin-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,var(--accent),var(--coin-color)); transition: width 1s linear; width: 0; }
+        .chat-shell { margin-left: 60px; height: calc(100vh - var(--title-height)); transition: margin-left .2s ease; }
+        .sidebar:hover ~ .chat-shell { margin-left: 260px; }
+        .chat-shell.collapsed { margin-left: 0; }
+
+        #guest-home[hidden] { display: none; }
+        #guest-chat-place { max-width: 800px; height: calc(100vh - var(--title-height)); margin: 0 auto; display: flex; flex-direction: column; position: relative; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+        #guest-chat-place::-webkit-scrollbar { display: none; }
+        #guest-top-spacer { height: var(--title-height); flex-shrink: 0; }
+        #guest-spacer { display: flex; width: 100%; height: 210px; flex-shrink: 0; }
+        .guest-chat-welcome { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px 20px 34px; text-align: center; }
+        .guest-chat-welcome[hidden] { display: none; }
+        .guest-chat-welcome > img { flex: 0 0 36px; width: 36px; height: 36px; aspect-ratio: 1; border: 1px solid var(--accent); border-radius: 50%; object-fit: cover; }
+        .guest-chat-welcome h2 { color: var(--accent); font-size: 22px; font-weight: 600; }
+        .guest-chat-welcome > p { max-width: 520px; color: var(--big-text-color); font-size: 14px; line-height: 1.5; }
+        .guest-welcome-actions { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
+        .guest-welcome-actions button { padding: 8px 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 4px; background: transparent; color: var(--mini-text-color); font: inherit; font-size: 12px; cursor: pointer; }
+        .guest-welcome-actions [data-mode="signup"] { border-color: var(--accent); background: var(--accent); color: rgb(24,22,19); }
+        .guest-proof-grid { width: min(660px,100%); display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 22px; margin-top: 6px; border-top: 1px solid rgba(255,255,255,.09); text-align: left; }
+        .guest-proof-item { padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.09); }
+        .guest-proof-item strong { display: block; margin-bottom: 3px; color: var(--mini-text-color); font-size: 12px; }
+        .guest-proof-item span { display: block; color: var(--big-text-color); font-size: 11px; line-height: 1.45; }
+        .guest-sidebar .guest-sidebar-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+        .guest-sidebar .guest-account-note, .guest-sidebar .guest-detail { margin: 0 8px 10px; color: var(--muted); font-size: 11px; line-height: 1.45; white-space: normal; }
+        .guest-sidebar:not(:hover) .guest-account-note, .guest-sidebar:not(:hover) .guest-detail { display: none; }
+        .guest-sidebar .guest-sidebar-footer .sidebar-section { opacity: .8; }
+        .guest-sidebar .new-chat-btn:disabled { opacity: .72; cursor: default; }
+        #guest-coin-counter:hover .coin-tooltip, #guest-coin-counter:focus-within .coin-tooltip { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        #guest-token-note { position: absolute; top: calc(100% + 5px); right: 0; width: min(250px, calc(100vw - 24px)); color: var(--muted); font-size: 11px; line-height: 1.35; text-align: right; }
+        #guest-token-note[hidden] { display: none; }
+        #guest-token-note:not([hidden]) { display: block; }
+        #guest-home .guest-bot-avatar { flex: 0 0 36px; width: 36px; height: 36px; max-width: 36px; max-height: 36px; margin-top: 20px; border: 1px solid var(--accent-2); border-radius: 50%; object-fit: cover; object-position: 100% center; }
+        #guest-sidebar-toggle { top: calc(var(--title-height) + 16px); left: 68px; }
+        .guest-sidebar:hover ~ #guest-sidebar-toggle { left: 268px; }
+        #guest-chat-form { left: calc(60px + (100vw - 60px)/2); width: min(calc(100vw - 84px),750px); }
+        .sidebar:hover ~ #guest-chat-shell form { left: calc(260px + (100vw - 260px)/2); width: min(calc(100vw - 284px),750px); }
+        #guest-chat-shell.collapsed form { left: 50%; width: min(calc(100vw - 24px),750px); }
+        #guest-chat-input { width: 100%; max-height: 160px; padding: 16px; font-size: 15px; color: var(--mini-text-color); background: var(--input-bg-color); border-radius: 8px; border: 1px solid rgba(255,255,255,.08); resize: none; overflow-y: auto; overflow-wrap: anywhere; line-height: 1.4; }
+        #guest-chat-input:focus { outline: none; border-color: var(--accent); }
+        #guest-gap-blocker { flex-shrink: 0; width: 10px; align-self: stretch; background-color: var(--bg-color); }
+        #guest-send { flex-shrink: 0; width: 46px; height: 46px; border-radius: 8px; border: 0; background: var(--accent); color: rgb(24,22,19); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        #guest-send:disabled { background: var(--input-bg-color); color: var(--big-text-color); cursor: not-allowed; }
+        #guest-send svg { width: 22px; height: 22px; }
+        #guest-chat-shell .black-out { left: calc(60px + max(0px,(100vw - 60px - 800px)/2)); width: calc(100vw - 60px); }
+        .sidebar:hover ~ #guest-chat-shell .black-out { left: calc(260px + max(0px,(100vw - 260px - 800px)/2)); width: calc(100vw - 260px); }
+        #guest-chat-shell.collapsed .black-out { left: max(0px,(100vw - 800px)/2); width: min(800px,100vw); }
+        .guest-ended { position: fixed; left: calc(60px + (100vw - 60px)/2); bottom: 76px; z-index: 6; display: none; align-items: center; justify-content: space-between; gap: 12px; width: min(calc(100vw - 84px),750px); padding: 11px 14px; transform: translateX(-50%); border: 1px solid rgba(205,163,90,.32); border-radius: 6px; background: var(--chat-float-color); color: var(--big-text-color); font-size: 12px; }
+        .sidebar:hover ~ #guest-chat-shell .guest-ended { left: calc(260px + (100vw - 260px)/2); width: min(calc(100vw - 284px),750px); }
+        #guest-chat-shell.collapsed .guest-ended { left: 50%; width: min(calc(100vw - 24px),750px); }
+        .guest-ended.visible { display: flex; }
+        .guest-ended-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+        .guest-ended-actions button { padding: 7px 10px; border: 1px solid rgba(255,255,255,.14); border-radius: 4px; background: transparent; color: var(--mini-text-color); font: inherit; cursor: pointer; }
+        .guest-ended-actions [data-mode="signup"] { border-color: var(--accent); background: var(--accent); color: rgb(24,22,19); }
+        #guest-auth-overlay { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(0,0,0,.68); }
+        #guest-auth-overlay.visible { display: flex; }
+        #guest-auth-box { position: relative; left: auto; bottom: auto; transform: none; z-index: auto; display: block; width: min(420px,100%); max-height: min(90vh,760px); overflow-y: auto; padding: 24px; border: 1px solid rgba(205,163,90,.4); border-radius: 6px; background: var(--chat-float-color); }
+        #guest-auth-box h2 { margin-bottom: 6px; color: var(--mini-text-color); text-align: center; font-size: 22px; }
+        #guest-auth-box > p { margin-bottom: 18px; color: var(--big-text-color); text-align: center; font-size: 13px; line-height: 1.45; }
+        #guest-auth-box label { display: block; margin: 13px 0 6px; color: var(--big-text-color); font-size: 12px; font-weight: 700; }
+        #guest-auth-box input:not([type="checkbox"]):not([type="range"]) { width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: rgba(255,255,255,.03); color: var(--mini-text-color); font: inherit; }
+        #guest-auth-box input[type="range"] { width: 100%; accent-color: var(--accent); }
+        .guest-bot-check-row { display: flex; align-items: center; gap: 12px; }
+        #guest-bot-check { flex: 1; min-width: 0; }
+        #guest-bot-check-value { flex: 0 0 32px; color: var(--accent-text); font-size: 15px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+        #guest-auth-box .guest-terms { display: flex; align-items: flex-start; gap: 9px; color: var(--big-text-color); font-size: 12px; line-height: 1.5; }
+        #guest-auth-box .guest-terms input { flex: 0 0 auto; margin-top: 3px; accent-color: var(--accent); }
+        #guest-auth-box a { color: var(--accent); }
+        #guest-auth-error { min-height: 1.4em; margin-top: 10px; color: #f0b4aa; font-size: 12px; }
+        #guest-auth-submit { width: 100%; margin-top: 8px; padding: 12px; border: 0; border-radius: 4px; background: var(--accent); color: rgb(24,22,19); font: inherit; font-weight: 700; cursor: pointer; }
+        #guest-auth-submit:disabled { opacity: .6; cursor: wait; }
+        #guest-auth-close { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: transparent; color: var(--mini-text-color); cursor: pointer; }
+
+        .settings-overlay { position: fixed; inset: 0; z-index: 110; display: none; align-items: center; justify-content: center; padding: 20px; background: var(--overlay, rgba(0,0,0,.62)); }
+        .settings-overlay.visible { display: flex; }
+        .settings-dialog { display: flex; flex-direction: column; width: min(1080px,100%); height: min(760px,calc(100dvh - 40px)); overflow: hidden; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--chat-float-color); color: var(--mini-text-color); box-shadow: 0 24px 70px rgba(0,0,0,.5); }
+        .settings-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 22px 26px 18px; border-bottom: 1px solid var(--line); }
+        .settings-dialog-header h2 { font-size: 21px; font-weight: 650; }
+        .settings-dialog-header p { margin-top: 4px; color: var(--muted); font-size: 13px; }
+        .settings-dialog-close { flex: 0 0 34px; width: 34px; height: 34px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--soft-fill); color: var(--big-text-color); font: inherit; font-size: 21px; line-height: 1; cursor: pointer; }
+        .settings-dialog-close:hover { color: var(--accent-text); border-color: var(--accent); }
+        .settings-dialog-layout { display: grid; grid-template-columns: 200px minmax(0,1fr); flex: 1; min-height: 0; }
+        .settings-section-nav { display: flex; flex-direction: column; gap: 4px; padding: 18px 12px; overflow-y: auto; border-right: 1px solid var(--line); background: rgba(0,0,0,.08); }
+        .settings-section-tab { width: 100%; padding: 11px 12px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--big-text-color); text-align: left; font: inherit; font-size: 13px; cursor: pointer; }
+        .settings-section-tab:hover { background: var(--soft-fill); color: var(--mini-text-color); }
+        .settings-section-tab.active { border-color: var(--line); background: var(--active-bg); color: var(--mini-text-color); }
+        .settings-dialog-content { min-width: 0; overflow-y: auto; padding: 24px 28px 34px; }
+        .settings-section[hidden] { display: none; }
+        .settings-section h3 { margin-bottom: 16px; color: var(--accent-text); font-size: 14px; font-weight: 700; text-transform: uppercase; }
+        .settings-section .settings-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--line); color: var(--big-text-color); font-size: 14px; }
+        .settings-section .settings-row strong { color: var(--mini-text-color); font-weight: 600; }
+        .settings-section .wallet-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+        .settings-section .wallet-row:first-of-type { padding-top: 0; }
+        .settings-section .wallet-row:last-of-type { border-bottom: 0; }
+        .wallet-label { display: flex; flex-direction: column; gap: 3px; }
+        .wallet-label .label-title { color: var(--mini-text-color); font-size: 14px; font-weight: 600; }
+        .wallet-label .label-desc { color: var(--muted); font-size: 12px; }
+        .wallet-amount { display: flex; align-items: center; gap: 8px; color: var(--coin-color); font-size: 16px; font-weight: 700; }
+        .wallet-amount img { width: 21px; height: 21px; border-radius: 50%; }
+        .settings-inline-link { display: inline-block; margin-top: 18px; color: var(--accent-text); font-size: 13px; text-underline-offset: 3px; }
+        .plan-section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 22px; }
+        .plan-section-heading .eyebrow { margin-bottom: 7px; color: var(--accent-text); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .plan-section-heading h3 { margin-bottom: 6px; color: var(--mini-text-color); font-size: 23px; text-transform: none; }
+        .plan-section-heading p, .settings-coin-store > p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .plan-current { display: flex; flex-direction: column; gap: 4px; min-width: 150px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 4px; background: var(--soft-fill); color: var(--muted); font-size: 11px; }
+        .plan-current > strong { color: var(--accent-text); font-size: 14px; }
+        .plan-current span strong { color: var(--mini-text-color); font-weight: 600; }
+        .settings-plans { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; align-items: stretch; }
+        .settings-plan { display: flex; flex-direction: column; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--soft-fill); }
+        .settings-plan.plus { border-color: var(--accent); }
+        .settings-plan.pro { border-color: var(--accent-2); }
+        .settings-plan h4 { margin-bottom: 6px; color: var(--mini-text-color); font-size: 17px; }
+        .settings-plan > p { min-height: 34px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+        .settings-plan-price { margin: 12px 0; color: var(--coin-color); font-size: 22px; font-weight: 700; }
+        .settings-plan-price span { color: var(--muted); font-size: 11px; font-weight: 400; }
+        .settings-plan .details-title { margin-bottom: 8px; color: var(--accent-text); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .settings-plan .details { display: flex; flex: 1; flex-direction: column; gap: 6px; }
+        .settings-plan .detail { min-height: 34px; padding: 8px; border-radius: 3px; font-size: 10px; line-height: 1.35; }
+        .settings-plan .choose { width: 100%; margin-top: 12px; padding: 9px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--accent); color: var(--on-accent); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .settings-plan .choose:disabled { opacity: .6; cursor: default; }
+        .settings-coin-store { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+        .settings-coin-store h3 { margin-bottom: 6px; color: var(--mini-text-color); font-size: 17px; text-transform: none; }
+        .settings-coin-store > p { margin-bottom: 11px; }
+        .settings-coin-store .coin-rule { margin-bottom: 12px; padding: 10px 12px; border-left: 2px solid var(--coin-color); border-radius: 3px; background: var(--soft-fill); color: var(--muted); font-size: 11px; line-height: 1.45; }
+        .settings-coin-packages { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+        .settings-coin-packages article { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--soft-fill); }
+        .settings-coin-packages article span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .settings-coin-packages strong { color: var(--coin-color); font-size: 11px; }
+        .settings-coin-packages small { color: var(--muted); font-size: 10px; }
+        .settings-coin-packages .choose { flex: 0 0 auto; padding: 7px 9px; border: 0; border-radius: 3px; background: var(--accent); color: var(--on-accent); font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+        .plan-notice-overlay { position: fixed; inset: 0; z-index: 125; display: none; align-items: center; justify-content: center; padding: 18px; background: var(--overlay,rgba(0,0,0,.62)); }
+        .plan-notice-overlay.visible { display: flex; }
+        .plan-notice { width: min(380px,100%); padding: 23px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--chat-float-color); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
+        .plan-notice h2 { margin-bottom: 9px; color: var(--coin-color); font-size: 18px; }
+        .plan-notice p { margin-bottom: 16px; color: var(--big-text-color); font-size: 13px; line-height: 1.5; }
+        .plan-notice button { width: 100%; padding: 10px 14px; border: 0; border-radius: 4px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
+        .settings-section-description { margin: -7px 0 16px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+        .settings-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+        .settings-section-heading h3 { margin-bottom: 12px; }
+        .settings-danger-zone { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--danger-border,rgba(200,80,70,.3)); }
+        .settings-danger-zone h4 { margin-bottom: 6px; color: var(--danger-text,rgb(220,120,110)); font-size: 13px; text-transform: uppercase; }
+        .settings-danger-zone p { margin-bottom: 14px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+        .settings-section .btn { max-width: 260px; margin-top: 16px; }
+        .settings-section .btn-logout,
+        .settings-section .btn-danger { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding: 10px 16px; border: 1px solid var(--line-strong); border-radius: 4px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; }
+        .settings-section .btn-logout { color: var(--mini-text-color); background: var(--input-bg-color); }
+        .settings-section .btn-logout:hover { border-color: var(--accent); background: var(--hover-bg); }
+        .settings-section .btn-danger { border-color: var(--danger-color,rgb(200,80,70)); color: white; background: var(--danger-color,rgb(200,80,70)); }
+        .settings-section .btn-danger:hover { filter: brightness(1.12); }
+        .settings-plan { position: relative; overflow: hidden; }
+        .settings-plan.free { border: 1px solid #55b878; }
+        .settings-plan.plus { border: 1px solid #d5a744; }
+        .settings-plan.pro { border: 1px solid #65cfe0; }
+        .settings-plan.is-current { box-shadow: 0 0 0 1px currentColor, 0 8px 24px rgba(0,0,0,.12); }
+        .settings-plan.free.is-current { color: #55b878; }
+        .settings-plan.plus.is-current { color: #d5a744; }
+        .settings-plan.pro.is-current { color: #65cfe0; }
+        .settings-plan h4 { display: flex; align-items: center; gap: 7px; color: var(--mini-text-color); }
+        .settings-plan h4 .plan-emoji { font-size: 17px; line-height: 1; }
+        .current-plan-badge { position: absolute; top: 0; right: 0; padding: 5px 9px; border-bottom-left-radius: 5px; background: currentColor; color: var(--on-accent); font-size: 10px; font-weight: 800; }
+        .current-plan-badge[hidden] { display: none; }
+        .settings-plan.free .current-plan-badge { background: #55b878; color: #10251a; }
+        .settings-plan.plus .current-plan-badge { background: #d5a744; color: #211907; }
+        .settings-plan.pro .current-plan-badge { background: #65cfe0; color: #08232a; }
+        .sidebar-user-profile { display: flex; align-items: center; gap: 10px; min-height: 42px; margin-top: auto; padding: 10px 7px 0; border-top: 1px solid var(--line); color: var(--big-text-color); }
+        .sidebar-user-avatar { display: grid; flex: 0 0 32px; width: 32px; height: 32px; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--active-bg); color: var(--mini-text-color); font-size: 13px; font-weight: 800; text-transform: uppercase; }
+        .sidebar-user-name { min-width: 0; overflow: hidden; color: var(--mini-text-color); font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar:not(:hover) .sidebar-user-name { display: none; }
+        .sidebar:not(:hover) .sidebar-user-profile { justify-content: center; padding-right: 0; padding-left: 0; }
+        .settings-section .settings-theme { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 8px 0; color: var(--big-text-color); font-size: 14px; }
+        .settings-section .settings-theme select { min-width: 190px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); font: inherit; }
+        .settings-section .gift-row { display: grid; grid-template-columns: minmax(140px,1fr) 120px; gap: 10px; }
+        .settings-section .gift-row input { min-width: 0; padding: 11px 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); font: inherit; font-size: 13px; }
+        .settings-section .gift-row input:nth-child(3) { grid-column: 1 / -1; }
+        .settings-section .gift-row .btn-gift { width: auto; max-width: none; margin: 0; padding: 10px 14px; border: 0; border-radius: 4px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
+        .gift-message { min-height: 1.3em; margin-top: 12px; color: var(--muted); font-size: 13px; }
+        .gift-message.ok { color: var(--accent-text); }
+        .gift-message.bad { color: var(--danger-text); }
+        #delete-modal { position: fixed; inset: 0; z-index: 120; display: none; align-items: center; justify-content: center; padding: 18px; background: var(--overlay,rgba(0,0,0,.6)); }
+        #delete-modal.visible { display: flex; }
+        #delete-modal .modal-box { width: min(420px,100%); padding: 24px; border: 1px solid var(--danger-border,rgba(200,80,70,.4)); border-radius: 6px; background: var(--chat-float-color); }
+        #delete-modal .modal-box h3 { margin: 0 0 8px; color: var(--mini-text-color); font-size: 18px; text-transform: none; }
+        #delete-modal .modal-box p { margin: 0 0 16px; color: var(--big-text-color); font-size: 13px; line-height: 1.5; }
+        #delete-confirm-input { width: 100%; margin-bottom: 16px; padding: 11px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); font: inherit; }
+        #delete-modal .bot-check { margin-bottom: 18px; }
+        #delete-modal .bot-check label { display: block; margin-bottom: 8px; color: var(--big-text-color); font-size: 13px; }
+        #delete-modal .bot-check-row { display: flex; align-items: center; gap: 12px; }
+        #delete-modal .bot-check-row input { flex: 1; accent-color: var(--accent); }
+        #delete-modal .bot-check-value { min-width: 32px; color: var(--accent-text); text-align: center; }
+        #delete-modal .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        #delete-modal .modal-actions button { padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: 4px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+        #delete-cancel { background: var(--soft-fill); color: var(--mini-text-color); }
+        #delete-confirm { border-color: var(--danger-color,rgb(200,80,70)) !important; background: var(--danger-color,rgb(200,80,70)); color: #fff; }
+
+        @media (max-width: 700px) {
+            .settings-overlay { padding: 10px; }
+            .settings-dialog { width: 100%; height: calc(100dvh - 20px); }
+            .settings-dialog-header { padding: 16px 16px 13px; }
+            .settings-dialog-layout { grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(0,1fr); }
+            .settings-section-nav { flex-direction: row; gap: 5px; padding: 9px 10px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; border-right: 0; border-bottom: 1px solid var(--line); }
+            .settings-section-nav::-webkit-scrollbar { display: none; }
+            .settings-section-tab { flex: 0 0 auto; width: auto; padding: 9px 11px; text-align: center; white-space: nowrap; }
+            .settings-dialog-content { padding: 18px 16px 24px; }
+            .settings-section .settings-theme { align-items: flex-start; flex-direction: column; }
+            .settings-section .settings-theme select { width: 100%; }
+            .settings-section .gift-row { grid-template-columns: minmax(0,1fr) 100px; }
+            .plan-section-heading { flex-direction: column; }
+            .plan-current { width: 100%; }
+            .settings-plans, .settings-coin-packages { grid-template-columns: 1fr; }
+            .settings-plan { min-height: 0; }
         }
 
-        #title-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            object-position: 110% center;
+        @media (max-width: 760px) {
+            .guest-chat-welcome { padding: 20px 12px; gap: 10px; }
+            .guest-chat-welcome h2 { font-size: 19px; }
+            .guest-proof-grid { grid-template-columns: 1fr; width: min(480px,100%); }
+            .guest-proof-item { padding: 7px 0; }
         }
 
-        #title-model {
-            grid-column: 1;
-            justify-self: start;
-            margin-left: 20px;
-            display: flex;
-            align-items: center;
+        @media (max-width: 700px) {
+            html .guest-sidebar:not(:hover) .guest-account-note,
+            html .guest-sidebar:not(:hover) .guest-detail { display: block; }
+            html #guest-title-model { grid-column: 1; margin: 0 8px 0 0; min-width: 0; max-width: 100%; }
+            html #guest-coin-counter { grid-column: 3; margin-right: 10px; }
+            html #guest-chat-shell, html .guest-sidebar:hover ~ #guest-chat-shell { margin-left: 0; height: calc(100dvh - var(--title-height)); }
+            html #guest-chat-place { height: calc(100dvh - var(--title-height)); }
+            html #guest-chat-shell form, html .guest-sidebar:hover ~ #guest-chat-shell form, html #guest-chat-shell.collapsed form { left: 50% !important; width: calc(100vw - 24px) !important; }
+            html #guest-chat-shell .black-out, html .guest-sidebar:hover ~ #guest-chat-shell .black-out, html #guest-chat-shell.collapsed .black-out { left: 0 !important; width: 100vw !important; }
+            html #guest-chat-input { font-size: 16px !important; }
+            html #guest-sidebar-toggle, html .guest-sidebar:hover ~ #guest-sidebar-toggle, html body.sidebar-collapsed #guest-sidebar-toggle { top: 13px; left: 10px; }
+            html #guest-home .title { grid-template-columns: minmax(0, 1fr) auto auto; padding-left: 52px; }
+            html #guest-home #title-main { display: none; }
         }
 
-        .model-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border-radius: 4px;
-            background: rgba(205, 163, 90, 0.1);
-            border: 1px solid rgba(205, 163, 90, 0.25);
-            color: var(--accent);
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #coin-counter {
-            grid-column: 3;
-            justify-self: end;
-            margin-right: 20px;
-            position: relative;
-        }
-
-        .coin-display {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: default;
-            padding: 7px 14px;
-            border-radius: 4px;
-            border: 1px solid rgba(216, 168, 74, 0.35);
-            background-color: var(--input-bg-color);
-            color: var(--coin-color);
-            font-size: 14px;
-            font-weight: 700;
-            white-space: nowrap;
-            transition: background-color 0.15s ease;
-        }
-
-        .coin-display:hover {
-            background-color: rgba(216, 168, 74, 0.12);
-        }
-
-        .coin-icon-small {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .coin-tooltip {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            min-width: 250px;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(216, 168, 74, 0.3);
-            background: var(--chat-float-color);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-4px);
-            transition: opacity 0.15s ease, transform 0.15s ease;
-            z-index: 20;
-        }
-
-        #coin-counter:hover .coin-tooltip {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
-        }
-
-        .coin-tooltip-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            font-size: 13px;
-            color: var(--big-text-color);
-        }
-
-        .coin-tooltip-row strong {
-            color: var(--mini-text-color);
-            font-weight: 700;
-        }
-
-        .coin-tooltip-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.08);
-            margin: 6px 0;
-        }
-
-        .coin-progress {
-            margin-top: 10px;
-        }
-
-        .coin-progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--big-text-color);
-            margin-bottom: 6px;
-        }
-
-        .coin-progress-bar {
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.08);
-            overflow: hidden;
-        }
-
-        .coin-progress-fill {
-            height: 100%;
-            border-radius: 3px;
-            background: linear-gradient(90deg, var(--accent), var(--coin-color));
-            transition: width 1s linear;
-            width: 0%;
-        }
-
-        .chat-shell {
-            margin-left: 60px;
-            height: calc(100vh - var(--title-height));
-            transition: margin-left 0.2s ease;
-        }
-
-        .sidebar:hover ~ .chat-shell {
-            margin-left: 260px;
-        }
-
-        .chat-shell.collapsed {
-            margin-left: 0;
+        @media (prefers-reduced-motion: reduce) {
+            .guest-bot-message.loading::after { animation-duration: 1.8s; }
         }
 
         .sidebar {
@@ -1388,9 +1479,288 @@
         .sidebar:not(:hover) .chat-item-row.disabled .chat-item {
             opacity: 0.45;
         }
+
+        #page-loading {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            color: var(--big-text-color);
+            font-size: 15px;
+        }
+
+        #page-loading[hidden] {
+            display: none;
+        }
+
+        #guest-home {
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 24px;
+            color: var(--mini-text-color);
+        }
+
+        .guest-header,
+        .guest-layout {
+            width: min(1120px, 100%);
+            margin: 0 auto;
+        }
+
+        .guest-header {
+            min-height: 54px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 34px;
+        }
+
+        .guest-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .guest-brand img,
+        .guest-welcome img {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .guest-account-actions,
+        .guest-ended-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .guest-account-actions button,
+        .guest-ended-actions button {
+            min-height: 40px;
+            padding: 9px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--mini-text-color);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .guest-account-actions [data-mode="signup"],
+        .guest-ended-actions [data-mode="signup"] {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: rgb(24, 22, 19);
+        }
+
+        .guest-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 260px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .guest-heading { margin-bottom: 18px; }
+        .guest-heading p { max-width: 660px; margin-top: 8px; color: var(--big-text-color); line-height: 1.55; }
+        .guest-eyebrow { margin-bottom: 8px; color: var(--accent); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .guest-heading h1 { font-size: 30px; line-height: 1.2; }
+
+        .guest-panel {
+            height: min(62vh, 590px);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            background: var(--chat-float-color);
+        }
+
+        .guest-panel-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--big-text-color);
+            font-size: 12px;
+        }
+
+        #guest-coins { color: var(--coin-color); font-weight: 700; white-space: nowrap; }
+        .guest-transcript { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; }
+        .guest-welcome { margin: auto; max-width: 420px; text-align: center; }
+        .guest-welcome img { width: 50px; height: 50px; margin-bottom: 10px; }
+        .guest-welcome h2 { margin-bottom: 7px; color: var(--accent); font-size: 18px; }
+        .guest-welcome p { color: var(--big-text-color); font-size: 13px; line-height: 1.5; }
+        .guest-message { max-width: min(84%, 650px); padding: 11px 13px; border-radius: 6px; color: var(--mini-text-color); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .guest-message.user { align-self: flex-end; background: var(--user-bubble); }
+        .guest-message.assistant { align-self: flex-start; border-left: 2px solid var(--accent); background: rgba(255,255,255,0.045); }
+        .guest-message.error { color: #f0b4aa; }
+        .guest-message.loading::after { content: ""; display: inline-block; width: 9px; height: 9px; margin-left: 7px; border: 2px solid var(--big-text-color); border-top-color: var(--accent); border-radius: 50%; animation: guest-spin .8s linear infinite; }
+        @keyframes guest-spin { to { transform: rotate(360deg); } }
+        .guest-form { position: static; left: auto; bottom: auto; transform: none; width: auto; z-index: auto; display: flex; align-items: flex-end; gap: 8px; padding: 11px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+        #guest-input { flex: 1; min-width: 0; min-height: 44px; max-height: 130px; resize: vertical; padding: 11px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 4px; background: var(--input-bg-color); color: var(--mini-text-color); font: inherit; font-size: 14px; line-height: 1.4; }
+        #guest-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .guest-ended { display: none; align-items: center; justify-content: space-between; gap: 12px; padding: 13px; border-top: 1px solid rgba(255,255,255,0.08); color: var(--big-text-color); font-size: 13px; line-height: 1.45; }
+        .guest-ended.visible { display: flex; }
+        .guest-info { padding: 17px; border: 1px solid rgba(255,255,255,0.09); border-radius: 6px; background: rgba(255,255,255,0.025); }
+        .guest-info h2 { margin-bottom: 13px; font-size: 16px; }
+        .guest-info h3 { margin: 13px 0 4px; font-size: 13px; }
+        .guest-info p { color: var(--big-text-color); font-size: 12px; line-height: 1.5; }
+        .guest-info a { display: inline-block; margin-top: 14px; color: var(--big-text-color); font-size: 12px; text-underline-offset: 3px; }
+
+        #guest-auth-overlay { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(0,0,0,.68); }
+        #guest-auth-overlay.visible { display: flex; }
+        #guest-auth-box { position: relative; left: auto; bottom: auto; transform: none; z-index: auto; display: block; width: min(420px, 100%); max-height: min(90vh, 760px); overflow-y: auto; padding: 24px; border: 1px solid rgba(205,163,90,.4); border-radius: 6px; background: var(--chat-float-color); }
+        #guest-auth-box h2 { margin-bottom: 6px; color: var(--mini-text-color); text-align: center; font-size: 22px; }
+        #guest-auth-box > p { margin-bottom: 18px; color: var(--big-text-color); text-align: center; font-size: 13px; line-height: 1.45; }
+        #guest-auth-box label { display: block; margin: 13px 0 6px; color: var(--big-text-color); font-size: 12px; font-weight: 700; }
+        #guest-auth-box input:not([type="checkbox"]):not([type="range"]) { width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: rgba(255,255,255,.03); color: var(--mini-text-color); font: inherit; }
+        #guest-auth-box input[type="range"] { width: 100%; accent-color: var(--accent); }
+        #guest-auth-box .guest-terms { display: flex; align-items: flex-start; gap: 9px; color: var(--big-text-color); font-size: 12px; line-height: 1.5; }
+        #guest-auth-box .guest-terms input { flex: 0 0 auto; margin-top: 3px; accent-color: var(--accent); }
+        #guest-auth-box a { color: var(--accent); }
+        #guest-auth-error { min-height: 1.4em; margin-top: 10px; color: #f0b4aa; font-size: 12px; }
+        #guest-auth-submit { width: 100%; margin-top: 8px; padding: 12px; border: 0; border-radius: 4px; background: var(--accent); color: rgb(24,22,19); font: inherit; font-weight: 700; cursor: pointer; }
+        #guest-auth-submit:disabled { opacity: .6; cursor: wait; }
+        #guest-auth-close { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: transparent; color: var(--mini-text-color); cursor: pointer; }
+
+        @media (max-width: 760px) {
+            #guest-home { padding: 15px; }
+            .guest-header { margin-bottom: 24px; }
+            .guest-layout { grid-template-columns: 1fr; }
+            .guest-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+            .guest-info h2, .guest-info > p, .guest-info a { grid-column: 1 / -1; }
+            .guest-info h3 { margin-top: 8px; }
+            .guest-panel { height: min(58dvh, 520px); min-height: 360px; }
+            .guest-heading h1 { font-size: 26px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .guest-message.loading::after { animation-duration: 1.8s; }
+        }
     </style>
 </head>
 <body>
+    <div id="page-loading" aria-live="polite">Loading Snortle...</div>
+
+    <div id="guest-home" hidden>
+        <h1 class="title">
+            <span id="guest-title-model"><span class="model-badge">Snortle Pancake 2</span></span>
+            <span id="title-main"><img id="title-icon" src="/views/images/snortle.png" alt="">Snortle AI</span>
+            <span id="guest-coin-counter">
+                <span class="coin-display"><img class="coin-icon-small" src="/views/images/snortz-coin.png" alt=""><span id="guest-coins">3.000</span></span>
+                <div class="coin-tooltip" id="guest-coin-tooltip">
+                    <div class="coin-tooltip-row"><span>Guest allowance</span><strong>3.000</strong></div>
+                    <div class="coin-tooltip-row"><span>Spent</span><strong id="guest-spent">0.000</strong></div>
+                    <div class="coin-tooltip-divider"></div>
+                    <div class="coin-tooltip-row"><span>Remaining</span><strong id="guest-remaining">3.000</strong></div>
+                    <div class="coin-tooltip-divider"></div>
+                    <div class="coin-progress-label"><span>Guest chat limit</span><span>1 chat</span></div>
+                </div>
+                <em id="guest-token-note" hidden>Your response may have stopped at the 768-token limit.</em>
+            </span>
+        </h1>
+
+        <aside class="sidebar guest-sidebar" id="guest-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand"><img src="/views/images/snortle.png" alt=""><span class="brand-text">Snortle AI</span></div>
+            </div>
+            <button class="new-chat-btn" type="button" disabled><span class="icon">+</span><span class="label">Guest chat</span></button>
+            <div class="sidebar-actions">
+                <a class="sidebar-link active" href="/"><span class="icon">💬</span><span class="label">Chat</span></a>
+                <button class="sidebar-link" type="button" data-mode="login"><span class="icon">↪</span><span class="label">Log in</span></button>
+                <button class="sidebar-link" type="button" data-mode="signup"><span class="icon">＋</span><span class="label">Sign up</span></button>
+            </div>
+            <div class="sidebar-section">Chats</div>
+            <div class="chat-list"><div class="chat-item-row"><button class="chat-item active" type="button" title="Guest chat"><span class="chat-initial">G</span><span class="chat-title">Guest chat</span></button></div></div>
+            <div class="guest-sidebar-footer">
+                <div class="sidebar-section">About Snortle</div>
+                <div class="guest-detail">Low-pollution CPU inference, steady generation speed, hand-picked training data, and a focus on quality and parameter efficiency.</div>
+                <a class="sidebar-link" href="/terms"><span class="icon">§</span><span class="label">Terms of Service</span></a>
+                <a class="sidebar-link" href="/data"><span class="icon">⌕</span><span class="label">Training data &amp; citations</span></a>
+                <div class="sidebar-section">Guest session</div>
+                <div class="guest-account-note">One temporary chat with 3 free Snortz Coins.</div>
+            </div>
+        </aside>
+        <button class="sidebar-toggle is-open" id="guest-sidebar-toggle" type="button" aria-label="Toggle sidebar" title="Show or hide details">‹</button>
+
+        <div class="chat-shell" id="guest-chat-shell">
+            <main id="guest-chat-place" role="log" aria-live="polite" aria-relevant="additions text">
+                <div id="guest-top-spacer"></div>
+                <section class="guest-chat-welcome" id="guest-chat-welcome">
+                    <img src="/views/images/snortle.png" alt="">
+                    <h2>A low-pollution AI with a steady pace</h2>
+                    <p>Try one temporary chat with Snortle Pancake 2. Your guest allowance includes 3 Snortz Coins.</p>
+                    <div class="guest-welcome-actions"><button type="button" data-mode="login">Log in</button><button type="button" data-mode="signup">Create account</button></div>
+                    <div class="guest-proof-grid" aria-label="About Snortle">
+                        <div class="guest-proof-item"><strong>Low-pollution by design</strong><span>Inference runs on CPUs, designed to use less energy than GPU-heavy alternatives.</span></div>
+                        <div class="guest-proof-item"><strong>Steady generation speed</strong><span>Snortle is designed to keep its pace consistent over time, rather than slowing as usage grows.</span></div>
+                        <div class="guest-proof-item"><strong>Hand-picked data</strong><span>Training data is selected by hand; quality takes priority.</span></div>
+                        <div class="guest-proof-item"><strong>Parameter efficiency</strong><span>Our stated estimate is roughly 2–3× compared with GPT and similar models.</span></div>
+                    </div>
+                </section>
+                <div id="guest-spacer"></div>
+            </main>
+            <div class="black-out">
+                <form id="guest-chat-form">
+                    <textarea id="guest-chat-input" autocomplete="off" placeholder="Message Snortle..." rows="1" aria-label="Message Snortle" disabled></textarea>
+                    <div id="guest-gap-blocker"></div>
+                    <button type="submit" id="guest-send" aria-label="Send" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <section class="generation-controls" id="guest-generation-controls">
+            <button class="generation-controls-toggle" id="guest-generation-toggle" type="button" aria-expanded="false" aria-controls="guest-generation-panel">
+                <span class="generation-controls-toggle-icon">⚙</span>
+                <span>Generation settings</span>
+                <span class="generation-controls-chevron">⌄</span>
+            </button>
+            <button class="generation-controls-backdrop" id="guest-generation-backdrop" type="button" aria-label="Close generation settings" tabindex="-1"></button>
+            <div class="generation-controls-panel" id="guest-generation-panel" hidden>
+                <div class="generation-controls-header"><div><strong>Generation settings</strong><span>Adjust how Snortle generates the next response.</span></div><button class="generation-reset" id="guest-generation-reset" type="button">Reset</button></div>
+                <div class="generation-slider-grid">
+                    <label class="generation-setting"><span class="generation-setting-top"><span class="generation-setting-name">Randomness</span><output id="guest-randomness-value">Level 5</output></span><input id="guest-randomness" type="range" min="0" max="10" step="1" value="5"><span class="generation-level-marks" aria-hidden="true"><span>0 · Steady</span><span>5</span><span>10 · Varied</span></span><span class="generation-setting-help">Lower is more predictable; higher is more varied.</span><span class="generation-setting-technical" id="guest-randomness-technical"></span></label>
+                    <label class="generation-setting"><span class="generation-setting-top"><span class="generation-setting-name">Response length</span><output id="guest-length-value">Level 8</output></span><input id="guest-length" type="range" min="0" max="10" step="1" value="8"><span class="generation-level-marks" aria-hidden="true"><span>0 · Short</span><span>5</span><span>10 · 768 tokens</span></span><span class="generation-setting-help">Choose how much room Snortle has to answer.</span><span class="generation-setting-technical" id="guest-length-technical"></span></label>
+                    <label class="generation-setting"><span class="generation-setting-top"><span class="generation-setting-name">Repetition control</span><output id="guest-repetition-value">Level 2</output></span><input id="guest-repetition" type="range" min="0" max="10" step="1" value="2"><span class="generation-level-marks" aria-hidden="true"><span>0 · Natural</span><span>5</span><span>10 · Strong</span></span><span class="generation-setting-help">Higher levels discourage repeating the same words and phrases.</span><span class="generation-setting-technical" id="guest-repetition-technical"></span></label>
+                </div>
+            </div>
+        </section>
+        <div class="guest-ended" id="guest-ended" role="status"><span id="guest-ended-copy">Your guest Snortz Coins are used up. Create an account to keep chatting.</span><div class="guest-ended-actions"><button type="button" data-mode="login">Log in</button><button type="button" data-mode="signup">Sign up</button></div></div>
+    </div>
+
+    <div id="guest-auth-overlay" aria-hidden="true">
+        <form id="guest-auth-box" novalidate>
+            <button id="guest-auth-close" type="button" aria-label="Close">×</button>
+            <h2 id="guest-auth-title">Welcome back</h2>
+            <p id="guest-auth-subtitle">Log in to keep your conversations.</p>
+            <label for="guest-username">Username</label>
+            <input id="guest-username" name="username" type="text" autocomplete="username" required>
+            <label for="guest-password">Password</label>
+            <input id="guest-password" name="password" type="password" autocomplete="current-password" minlength="6" required>
+            <div id="guest-signup-fields" hidden>
+                <label for="guest-confirm-password">Re-enter password</label>
+                <input id="guest-confirm-password" name="confirmPassword" type="password" autocomplete="new-password">
+                <label class="guest-terms"><input id="guest-terms-agreement" type="checkbox"><span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and have reviewed the <a href="/data" target="_blank" rel="noopener">training data citations</a>.</span></label>
+                <label id="guest-bot-check-label" for="guest-bot-check">Bot check</label>
+                <div class="guest-bot-check-row">
+                    <input id="guest-bot-check" type="range" min="0" max="20" value="0">
+                    <span id="guest-bot-check-value">0</span>
+                </div>
+            </div>
+            <div id="guest-auth-error" role="alert"></div>
+            <button id="guest-auth-submit" type="submit">Log in</button>
+        </form>
+    </div>
+
+    <div id="chat-app" hidden>
     <h1 class="title">
         <span id="title-model">
             <span class="model-badge" id="modelPicker">No chat selected</span>
@@ -1405,14 +1775,14 @@
                 <span id="total-coin-amount">30.000</span>
             </div>
             <div class="coin-tooltip" id="coin-tooltip">
-                <div class="coin-tooltip-row"><span>Free</span><strong id="free-coin-amount">30.000</strong></div>
+                <div class="coin-tooltip-row"><span>Free</span><strong id="free-coin-amount">30.000 / 50</strong></div>
                 <div class="coin-tooltip-row"><span>Purchased</span><strong id="paid-coin-amount">0.000</strong></div>
                 <div class="coin-tooltip-divider"></div>
                 <div class="coin-tooltip-row"><span>Total</span><strong id="total-coin-tooltip">30.000</strong></div>
                 <div class="coin-tooltip-divider"></div>
                 <div class="coin-progress">
                     <div class="coin-progress-label">
-                        <span>Next free coins</span>
+                        <span id="next-free-coin-label">Next 3 coins</span>
                         <span id="coin-countdown">--:--:--</span>
                     </div>
                     <div class="coin-progress-bar">
@@ -1435,15 +1805,17 @@
         <select class="model-picker" id="planPicker" aria-label="Temporary plan selection"></select>
         <div class="model-lock">Temporary testing plan selector.</div>
         <div class="sidebar-actions">
-            <a class="sidebar-link" href="/"><span class="icon">🏠</span><span class="label">Home</span></a>
-            <a class="sidebar-link" href="/chat"><span class="icon">💬</span><span class="label">Chat</span></a>
-            <a class="sidebar-link" href="/plans"><span class="icon">💳</span><span class="label">Plans</span></a>
-            <a class="sidebar-link" href="/settings"><span class="icon">⚙️</span><span class="label">Settings</span></a>
+            <a class="sidebar-link" href="/"><span class="icon">💬</span><span class="label">Chat</span></a>
+            <button class="sidebar-link" id="settings-open" type="button" aria-haspopup="dialog"><span class="icon">⚙️</span><span class="label">Settings</span></button>
         </div>
         <div class="sidebar-section">Chats</div>
         <input type="text" class="chat-search" id="chatSearch" placeholder="Search chats..." autocomplete="off">
         <div class="chat-list" id="chatList">
             <div class="chat-list-empty">Click + New chat to begin.</div>
+        </div>
+        <div class="sidebar-user-profile" aria-label="Signed-in user">
+            <span class="sidebar-user-avatar" id="sidebar-user-avatar" aria-hidden="true">?</span>
+            <span class="sidebar-user-name" id="sidebar-user-name"></span>
         </div>
     </div>
 
@@ -1467,62 +1839,6 @@
             <button id="scroll-to-bottom-btn" type="button" aria-label="Scroll to bottom">↓</button>
         </div>
         <div class="black-out">
-                <section class="generation-controls" id="generation-controls">
-                    <button class="generation-controls-toggle" id="generation-controls-toggle"
-                            type="button" aria-expanded="false" aria-controls="generation-controls-panel">
-                        <span class="generation-controls-toggle-icon">⚙</span>
-                        <span>Generation settings</span>
-                        <span class="generation-controls-chevron">⌄</span>
-                    </button>
-
-                    <button class="generation-controls-backdrop" id="generation-controls-backdrop" type="button" aria-label="Close generation settings" tabindex="-1"></button>
-
-                    <div class="generation-controls-panel" id="generation-controls-panel" hidden>
-                        <div class="generation-controls-header">
-                            <div>
-                                <strong>Generation settings</strong>
-                                <span>Adjust how Snortle generates the next response.</span>
-                            </div>
-                            <button class="generation-reset" id="generation-reset" type="button">Reset</button>
-                        </div>
-
-                        <div class="generation-slider-grid">
-                            <label class="generation-setting">
-                                <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Randomness</span>
-                                    <output id="randomness-level-value">Level 5</output>
-                                </span>
-                                <input id="randomness-level" type="range" min="0" max="10" step="1" value="5">
-                                <span class="generation-level-marks" aria-hidden="true"><span>0 · Steady</span><span>5</span><span>10 · Varied</span></span>
-                                <span class="generation-setting-help">Lower is more predictable; higher is more varied.</span>
-                                <span class="generation-setting-technical" id="randomness-technical">Temperature 0.60 · Top K 30</span>
-                            </label>
-
-                            <label class="generation-setting">
-                                <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Response length</span>
-                                    <output id="response-length-level-value">Level 2</output>
-                                </span>
-                                <input id="response-length-level" type="range" min="0" max="10" step="1" value="2">
-                                <span class="generation-level-marks" aria-hidden="true"><span>0 · Short</span><span>5</span><span>10 · Long</span></span>
-                                <span class="generation-setting-help">Choose how much room Snortle has to answer.</span>
-                                <span class="generation-setting-technical" id="response-length-technical">Up to 128 tokens</span>
-                            </label>
-
-                            <label class="generation-setting">
-                                <span class="generation-setting-top">
-                                    <span class="generation-setting-name">Repetition control</span>
-                                    <output id="repetition-level-value">Level 2</output>
-                                </span>
-                                <input id="repetition-level" type="range" min="0" max="10" step="1" value="2">
-                                <span class="generation-level-marks" aria-hidden="true"><span>0 · Natural</span><span>5</span><span>10 · Strong</span></span>
-                                <span class="generation-setting-help">Higher levels discourage repeating the same words and phrases.</span>
-                                <span class="generation-setting-technical" id="repetition-technical">Penalty 1.05 · checks last 64 tokens</span>
-                            </label>
-                        </div>
-                    </div>
-                </section>
-
                 <form id="form">
                     <textarea id="chat-input" autocomplete="off" placeholder="Connecting..." rows="1"></textarea>
                     <div id="gap-blocker"></div>
@@ -1569,34 +1885,133 @@
         <button id="no-chat-new-btn" type="button">+ New chat</button>
     </div>
 
+    <div class="settings-overlay" id="settings-overlay" aria-hidden="true">
+        <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title">
+            <header class="settings-dialog-header">
+                <div><h2 id="settings-dialog-title">Settings</h2><p>Manage your account, coins, and chat preferences.</p></div>
+                <button class="settings-dialog-close" id="settings-close" type="button" aria-label="Close settings">×</button>
+            </header>
+            <div class="settings-dialog-layout">
+                <nav class="settings-section-nav" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
+                    <button class="settings-section-tab active" id="settings-tab-wallet" type="button" role="tab" aria-selected="true" aria-controls="settings-panel-wallet" data-settings-target="wallet">Wallet</button>
+                    <button class="settings-section-tab" id="settings-tab-plan" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-plan" data-settings-target="plan">Plan</button>
+                    <button class="settings-section-tab" id="settings-tab-badges" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-badges" data-settings-target="badges">Badges</button>
+                    <button class="settings-section-tab" id="settings-tab-gifts" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-gifts" data-settings-target="gifts">Gift coins</button>
+                    <button class="settings-section-tab" id="settings-tab-preferences" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-preferences" data-settings-target="preferences">Preferences</button>
+                    <button class="settings-section-tab" id="settings-tab-generation" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-generation" data-settings-target="generation">Generation</button>
+                    <button class="settings-section-tab" id="settings-tab-account" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-account" data-settings-target="account">Account</button>
+                </nav>
+                <div class="settings-dialog-content">
+                    <section class="settings-section" id="settings-panel-wallet" role="tabpanel" aria-labelledby="settings-tab-wallet" data-settings-panel="wallet">
+                        <h3>Snortz Coin Wallets</h3>
+                        <div class="wallet-row"><div class="wallet-label"><span class="label-title">Free wallet</span><span class="label-desc">Refills automatically over time</span></div><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""><strong id="free-wallet-amount">0.000</strong></span></div>
+                        <div class="wallet-row"><div class="wallet-label"><span class="label-title">Purchased wallet</span><span class="label-desc">From purchases and gifts</span></div><span class="wallet-amount"><img src="/views/images/snortz-coin.png" alt=""><strong id="purchased-wallet-amount">0.000</strong></span></div>
+                    </section>
+                    <section class="settings-section" id="settings-panel-plan" role="tabpanel" aria-labelledby="settings-tab-plan" data-settings-panel="plan" hidden>
+                        <div class="plan-section-heading"><div><div class="eyebrow">Choose your pace</div><h3>Plans that fit your thinking.</h3><p>Paid plan purchases are not available yet. Free-plan access is unchanged.</p></div><div class="plan-current"><span>Current plan</span><strong id="current-plan">Free</strong><span>Next free coins in <strong id="next-coins-time">--:--:--</strong></span></div></div>
+                        <div class="settings-plans" aria-label="Snortle plans">
+                            <article class="settings-plan free" data-plan-card="free"><span class="current-plan-badge" hidden>Current plan</span><h4><span class="plan-emoji" aria-hidden="true">🌱</span>Free</h4><p>A starting point for trying Snortle.</p><div class="settings-plan-price">$0 <span>/ month</span></div><div class="details-title">Plan details</div><div class="details"><div class="detail">Access to free models</div><div class="detail">50 Snortz Coin allowance</div><div class="detail">3 Snortz Coins an hour</div></div><button class="choose" id="plan-free" type="button" data-purchase-type="free-plan">Current plan</button></article>
+                            <article class="settings-plan plus" data-plan-card="plus"><span class="current-plan-badge" hidden>Current plan</span><h4><span class="plan-emoji" aria-hidden="true">✨</span>Plus</h4><p>More room for regular conversations.</p><div class="settings-plan-price">$0.49 <span>/ month</span></div><div class="details-title">Plan details</div><div class="details"><div class="detail">Access to free and mid-tier models</div><div class="detail">100 Snortz Coin allowance</div><div class="detail">8 Snortz Coins an hour</div></div><button class="choose purchase-unavailable" type="button" data-purchase-type="plan">Choose Plus</button></article>
+                            <article class="settings-plan pro" data-plan-card="pro"><span class="current-plan-badge" hidden>Current plan</span><h4><span class="plan-emoji" aria-hidden="true">💎</span>Pro</h4><p>The full Snortle experience for heavy use.</p><div class="settings-plan-price">$0.99 <span>/ month</span></div><div class="details-title">Plan details</div><div class="details"><div class="detail">Access to all models (including top models)</div><div class="detail">500 Snortz Coin allowance</div><div class="detail">15 Snortz Coins an hour</div></div><button class="choose purchase-unavailable" type="button" data-purchase-type="plan">Choose Pro</button></article>
+                        </div>
+                        <section class="settings-coin-store" aria-labelledby="settings-coin-store-title">
+                            <h3 id="settings-coin-store-title">Buy Snortz Coins</h3>
+                            <p>Coin purchases are not available yet. Clicking Buy will not charge you or change your balance.</p>
+                            <div class="coin-rule">Purchased coins last forever and do not expire. They are stored separately in an infinite-capacity wallet. Free coins are always spent before wallet coins.</div>
+                            <div class="settings-coin-packages">
+                                <article><span><strong>1,000 Snortz Coins</strong><small>$0.49</small></span><button class="choose purchase-unavailable" type="button" data-purchase-type="coins">Buy</button></article>
+                                <article><span><strong>3,000 Snortz Coins</strong><small>$0.99</small></span><button class="choose purchase-unavailable" type="button" data-purchase-type="coins">Buy</button></article>
+                                <article><span><strong>10,000 Snortz Coins</strong><small>$1.99</small></span><button class="choose purchase-unavailable" type="button" data-purchase-type="coins">Buy</button></article>
+                            </div>
+                        </section>
+                    </section>
+                    <section class="settings-section" id="settings-panel-badges" role="tabpanel" aria-labelledby="settings-tab-badges" data-settings-panel="badges" hidden>
+                        <h3>Badges</h3>
+                        <div class="badge-grid" id="badge-grid"></div>
+                    </section>
+                    <section class="settings-section" id="settings-panel-gifts" role="tabpanel" aria-labelledby="settings-tab-gifts" data-settings-panel="gifts" hidden>
+                        <h3>Gift coins</h3>
+                        <p class="settings-section-description">Send purchased Snortz Coins to another person. Free coins can't be gifted.</p>
+                        <div class="gift-row">
+                            <input id="gift-username" type="text" placeholder="Their username" autocomplete="off" aria-label="Recipient username">
+                            <input id="gift-amount" type="number" min="1" step="any" placeholder="Amount" aria-label="Gift amount">
+                            <input id="gift-note-input" type="text" maxlength="500" placeholder="Optional message" aria-label="Gift message">
+                            <button class="btn btn-gift" id="gift-btn" type="button">Send gift</button>
+                        </div>
+                        <div class="gift-message" id="gift-message" role="status"></div>
+                    </section>
+                    <section class="settings-section" id="settings-panel-preferences" role="tabpanel" aria-labelledby="settings-tab-preferences" data-settings-panel="preferences" hidden>
+                        <h3>Preferences</h3>
+                        <label class="settings-theme" for="theme-select">Theme
+                            <select id="theme-select"><option value="dark">Dark</option><option value="light">Light</option><option value="green">Eco green</option><option value="futuristic">Futuristic</option></select>
+                        </label>
+                    </section>
+                    <section class="settings-section" id="settings-panel-generation" role="tabpanel" aria-labelledby="settings-tab-generation" data-settings-panel="generation" hidden>
+                        <div class="settings-section-heading"><div><h3>Generation settings</h3><p class="settings-section-description">Adjust how Snortle generates the next response.</p></div><button class="generation-reset" id="generation-reset" type="button">Reset</button></div>
+                        <div class="generation-slider-grid">
+                            <label class="generation-setting"><span class="generation-setting-top"><span class="generation-setting-name">Randomness</span><output id="randomness-level-value">Level 5</output></span><input id="randomness-level" type="range" min="0" max="10" step="1" value="5"><span class="generation-level-marks" aria-hidden="true"><span>0 · Steady</span><span>5</span><span>10 · Varied</span></span><span class="generation-setting-help">Lower is more predictable; higher is more varied.</span><span class="generation-setting-technical" id="randomness-technical">Temperature 0.60 · Top K 30</span></label>
+                            <label class="generation-setting"><span class="generation-setting-top"><span class="generation-setting-name">Response length</span><output id="response-length-level-value">Level 2</output></span><input id="response-length-level" type="range" min="0" max="10" step="1" value="2"><span class="generation-level-marks" aria-hidden="true"><span>0 · Short</span><span>5</span><span>10 · Long</span></span><span class="generation-setting-help">Choose how much room Snortle has to answer.</span><span class="generation-setting-technical" id="response-length-technical">Up to 128 tokens</span></label>
+                            <label class="generation-setting"><span class="generation-setting-top"><span class="generation-setting-name">Repetition control</span><output id="repetition-level-value">Level 2</output></span><input id="repetition-level" type="range" min="0" max="10" step="1" value="2"><span class="generation-level-marks" aria-hidden="true"><span>0 · Natural</span><span>5</span><span>10 · Strong</span></span><span class="generation-setting-help">Higher levels discourage repeating the same words and phrases.</span><span class="generation-setting-technical" id="repetition-technical">Penalty 1.05 · checks last 64 tokens</span></label>
+                        </div>
+                    </section>
+                    <section class="settings-section" id="settings-panel-account" role="tabpanel" aria-labelledby="settings-tab-account" data-settings-panel="account" hidden>
+                        <h3>Account</h3>
+                        <div class="settings-row"><span>Signed in as</span><strong id="current-username">--</strong></div>
+                        <button class="btn btn-logout" id="logout-btn" type="button">Log out</button>
+                        <div class="settings-danger-zone"><h4>Danger zone</h4><p>Permanently delete your account and all associated data. This can't be undone.</p><button class="btn btn-danger" id="settings-delete-account-btn" type="button">Delete account</button></div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal-overlay" id="delete-modal" aria-hidden="true">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+            <h3 id="delete-modal-title">Delete account</h3>
+            <p>Type <strong>delete account</strong> below to confirm. This is permanent.</p>
+            <input id="delete-confirm-input" type="text" placeholder="Type here..." autocomplete="off">
+            <div class="bot-check"><label>Bot check: slide to <span id="delete-bot-target">10</span></label><div class="bot-check-row"><input id="delete-bot-check" type="range" min="0" max="20" value="0"><span class="bot-check-value" id="delete-bot-value">0</span></div></div>
+            <div class="modal-actions"><button class="modal-cancel" id="delete-cancel" type="button">Cancel</button><button class="modal-confirm" id="delete-confirm" type="button">Delete</button></div>
+        </div>
+    </div>
+    <div class="plan-notice-overlay" id="plan-notice-overlay" aria-hidden="true">
+        <section class="plan-notice" role="dialog" aria-modal="true" aria-labelledby="plan-notice-title" aria-describedby="plan-notice-message">
+            <h2 id="plan-notice-title">Purchases aren't available yet</h2>
+            <p id="plan-notice-message"></p>
+            <button id="plan-notice-close" type="button">Got it</button>
+        </section>
+    </div>
+    </div>
+
     <script type="module">
+        import { initializeGuestEntry } from "/views/guest-entry.js";
+
         async function requireAuth() {
             try {
                 const response = await fetch('/api/session-status');
-                const data = await response.json();
-                if (!data.loggedIn) {
-                    window.location.href = '/';
-                    return false;
-                }
-                return data;
+                return await response.json();
             } catch (error) {
-                window.location.href = '/';
-                return false;
+                return null;
             }
         }
 
         const sessionData = await requireAuth();
-        if (!sessionData) {
-            throw new Error('Not authenticated');
-        }
+        if (!sessionData?.loggedIn) {
+            document.getElementById("page-loading").hidden = true;
+            document.getElementById("guest-home").hidden = false;
+            initializeGuestEntry();
+        } else {
+            document.getElementById("page-loading").hidden = true;
+            document.getElementById("chat-app").hidden = false;
 
         const isAdmin = sessionData && sessionData.username === 'admin';
         let freeCoinBalance = Number(sessionData.freeSnortzCoins ?? sessionData.snortzCoins ?? 20);
         let purchasedCoinBalance = Number(sessionData.purchasedSnortzCoins ?? 0);
         let coinBalance = freeCoinBalance + purchasedCoinBalance;
         let nextFreeCoinGrant = sessionData.nextFreeCoinGrant ? Number(sessionData.nextFreeCoinGrant) : null;
+        let hourlyFreeCoinGrant = Number(sessionData.hourlyFreeCoins ?? 0);
 
-        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+        const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
 
         const input = document.getElementById("chat-input");
         const form = document.getElementById("form");
@@ -1604,6 +2019,7 @@
         const freeCoinAmount = document.getElementById("free-coin-amount");
         const paidCoinAmount = document.getElementById("paid-coin-amount");
         const coinCountdown = document.getElementById("coin-countdown");
+        const nextFreeCoinLabel = document.getElementById("next-free-coin-label");
         const totalCoinAmount = document.getElementById("total-coin-amount");
         const totalCoinTooltip = document.getElementById("total-coin-tooltip");
         const coinProgressFill = document.getElementById("coin-progress-fill");
@@ -1631,10 +2047,11 @@
         const chatList = document.getElementById("chatList");
         const starterPrompts = document.getElementById("starter-prompts");
 
-        const generationControls = document.getElementById("generation-controls");
-        const generationControlsToggle = document.getElementById("generation-controls-toggle");
-        const generationControlsPanel = document.getElementById("generation-controls-panel");
-        const generationControlsBackdrop = document.getElementById("generation-controls-backdrop");
+        const settingsOverlay = document.getElementById("settings-overlay");
+        const settingsOpen = document.getElementById("settings-open");
+        const settingsClose = document.getElementById("settings-close");
+        const settingsTabs = [...document.querySelectorAll(".settings-section-tab")];
+        const settingsPanels = [...document.querySelectorAll("[data-settings-panel]")];
         const generationReset = document.getElementById("generation-reset");
 
         const generationSettings = {
@@ -1654,7 +2071,18 @@
         };
         const { DEFAULT_PROFILE: DEFAULT_GENERATION_PROFILE, LEVELS: GENERATION_LEVEL_PRESETS, normalizeProfile: normalizeGenerationProfile, toModelSettings } = window.GenerationProfiles;
         const GENERATION_SETTINGS_STORAGE_KEY = "snortle-generation-settings";
-        
+        const DEFAULT_MODEL_ID = "Snortle-AI/Snortle-Pancake-2";
+
+        function updateSidebarProfile() {
+            const username = String(sessionData.username || "Guest").trim();
+            if (currentUsername) currentUsername.textContent = username;
+            if (sidebarUserName) sidebarUserName.textContent = username;
+            if (sidebarUserAvatar) {
+                sidebarUserAvatar.textContent = Array.from(username)[0]?.toLocaleUpperCase() || "?";
+                sidebarUserAvatar.title = username;
+            }
+        }
+
         starterPrompts.addEventListener("click", function (event) {
             if (!chatReady) return;
             const btn = event.target.closest(".starter-btn");
@@ -1663,14 +2091,32 @@
             form.requestSubmit();
         });
 
-        // These elements may not exist (settings is now a separate page)
         const freeWalletAmount = document.getElementById("free-wallet-amount");
         const purchasedWalletAmount = document.getElementById("purchased-wallet-amount");
         const currentPlan = document.getElementById("current-plan");
         const nextCoinsTime = document.getElementById("next-coins-time");
         const logoutBtn = document.getElementById("logout-btn");
         const deleteAccountBtn = document.getElementById("delete-account-btn");
+        const settingsDeleteAccountBtn = document.getElementById("settings-delete-account-btn");
         const themeSelect = document.getElementById("theme-select");
+        const currentUsername = document.getElementById("current-username");
+        const sidebarUserName = document.getElementById("sidebar-user-name");
+        const sidebarUserAvatar = document.getElementById("sidebar-user-avatar");
+        const giftBtn = document.getElementById("gift-btn");
+        const giftMessage = document.getElementById("gift-message");
+        const badgeGrid = document.getElementById("badge-grid");
+        const deleteModal = document.getElementById("delete-modal");
+        const deleteInput = document.getElementById("delete-confirm-input");
+        const deleteBotCheck = document.getElementById("delete-bot-check");
+        const deleteBotTargetLabel = document.getElementById("delete-bot-target");
+        const deleteBotValueLabel = document.getElementById("delete-bot-value");
+        const deleteCancel = document.getElementById("delete-cancel");
+        const deleteConfirm = document.getElementById("delete-confirm");
+
+        updateSidebarProfile();
+        const planNoticeOverlay = document.getElementById("plan-notice-overlay");
+        const planNoticeMessage = document.getElementById("plan-notice-message");
+        const planNoticeClose = document.getElementById("plan-notice-close");
         const newAnswer = document.getElementById("new-answer");
         const chatPlace = document.getElementById("chat-place");
         const scrollToBottomBtn = document.getElementById("scroll-to-bottom-btn");
@@ -1744,11 +2190,12 @@
             catalogData.models.forEach((model) => {
                 const option = document.createElement('option');
                 option.value = model.space;
-                option.textContent = `${model.name} (${model.tier}${model.available === false ? ", test Space" : ""})`;
+                option.textContent = `${model.name} (${model.tier}${model.available === false ? ", unavailable" : ""})`;
                 option.title = model.description || '';
-                option.disabled = catalogData.modelAccess[model.tier] > plan.modelAccess;
+                option.disabled = model.available === false || catalogData.modelAccess[model.tier] > plan.modelAccess;
                 createChatModel.appendChild(option);
             });
+            createChatModel.value = DEFAULT_MODEL_ID;
             renderCreateChatModelGuide();
             updateCreateChatModelHelp();
         }
@@ -1881,7 +2328,7 @@
         let activeChatId = null;
         let chatReady = false;
         let chatLoadToken = 0;
-        let activeModelId = "Snortle-AI/Snortle-Pancake-1";
+        let activeModelId = DEFAULT_MODEL_ID;
         let activePlanId = sessionData.planId || "free";
         let chatMessages = [];
         const chatMessagesById = new Map();
@@ -2020,7 +2467,10 @@
 
         function updateCoinDisplay() {
             coinBalance = freeCoinBalance + purchasedCoinBalance;
-            freeCoinAmount.textContent = freeCoinBalance.toFixed(3);
+            const activePlan = catalogData?.plans.find((plan) => plan.id === activePlanId);
+            const freeCoinAllowance = Number(activePlan?.coinAllowance || (activePlanId === 'plus' ? 100 : activePlanId === 'pro' ? 500 : 50));
+            freeCoinAmount.textContent = `${freeCoinBalance.toFixed(3)} / ${freeCoinAllowance}`;
+            if (nextFreeCoinLabel) nextFreeCoinLabel.textContent = `Next ${hourlyFreeCoinGrant} coins`;
             paidCoinAmount.textContent = purchasedCoinBalance.toFixed(3);
             if (totalCoinAmount) totalCoinAmount.textContent = coinBalance.toFixed(3);
             if (totalCoinTooltip) totalCoinTooltip.textContent = coinBalance.toFixed(3);
@@ -2101,6 +2551,8 @@
                 if (!response.ok || !data.loggedIn) return;
                 freeCoinBalance = Number(data.freeSnortzCoins || 0);
                 purchasedCoinBalance = Number(data.purchasedSnortzCoins || 0);
+                activePlanId = data.planId || activePlanId;
+                hourlyFreeCoinGrant = Number(data.hourlyFreeCoins ?? hourlyFreeCoinGrant);
                 nextFreeCoinGrant = data.nextFreeCoinGrant ? Number(data.nextFreeCoinGrant) : null;
                 updateCoinDisplay();
             } catch (error) {
@@ -2200,6 +2652,217 @@
             deleteInput.focus();
         });
 
+        function selectSettingsSection(sectionName, focusTab = false) {
+            if (!settingsPanels.some((panel) => panel.dataset.settingsPanel === sectionName)) sectionName = "wallet";
+            settingsTabs.forEach((tab) => {
+                const isSelected = tab.dataset.settingsTarget === sectionName;
+                tab.classList.toggle("active", isSelected);
+                tab.setAttribute("aria-selected", String(isSelected));
+                tab.tabIndex = isSelected ? 0 : -1;
+                if (isSelected && focusTab) tab.focus();
+            });
+            settingsPanels.forEach((panel) => {
+                panel.hidden = panel.dataset.settingsPanel !== sectionName;
+            });
+            if (sectionName === "badges") loadSettingsBadges();
+            if (sectionName === "plan") updateSettingsPlanButtons();
+        }
+
+        function updateSettingsPlanButtons() {
+            document.querySelectorAll(".settings-plan").forEach((planCard) => {
+                const planId = [...planCard.classList].find((className) => ["free", "plus", "pro"].includes(className));
+                const button = planCard.querySelector(".choose");
+                if (!button || !planId) return;
+                const isCurrent = planId === activePlanId;
+                const currentBadge = planCard.querySelector(".current-plan-badge");
+                planCard.classList.toggle("is-current", isCurrent);
+                if (currentBadge) currentBadge.hidden = !isCurrent;
+                button.textContent = isCurrent ? "Current plan" : `Choose ${planId.charAt(0).toUpperCase()}${planId.slice(1)}`;
+                button.disabled = isCurrent;
+                button.dataset.purchaseType = planId === "free" ? "free-plan" : "plan";
+                button.classList.toggle("purchase-unavailable", planId !== "free");
+            });
+        }
+
+        function openSettings(sectionName = "wallet") {
+            updateSidebarProfile();
+            if (themeSelect) themeSelect.value = getSnortleTheme();
+            updateSettingsPlanButtons();
+            updateCoinDisplay();
+            selectSettingsSection(sectionName);
+            settingsOverlay.classList.add("visible");
+            settingsOverlay.setAttribute("aria-hidden", "false");
+            settingsClose.focus();
+        }
+
+        function closeSettings() {
+            settingsOverlay.classList.remove("visible");
+            settingsOverlay.setAttribute("aria-hidden", "true");
+            const currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.has("settings")) {
+                currentUrl.searchParams.delete("settings");
+                currentUrl.searchParams.delete("section");
+                history.replaceState(null, "", currentUrl);
+            }
+            settingsOpen.focus();
+        }
+
+        async function loadSettingsBadges() {
+            try {
+                const response = await fetch('/api/badges');
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Could not load badges.');
+                badgeGrid.replaceChildren();
+                result.badges.forEach((badge) => {
+                    const item = document.createElement('div');
+                    item.className = 'badge-item' + (badge.earned ? ' earned' : '');
+                    const icon = document.createElement('div');
+                    icon.className = 'badge-icon';
+                    icon.textContent = badge.icon;
+                    const name = document.createElement('div');
+                    name.className = 'badge-name';
+                    name.textContent = badge.name;
+                    const description = document.createElement('div');
+                    description.className = 'badge-desc';
+                    description.textContent = badge.earned || !badge.progress ? badge.description : `${badge.description} (${badge.progress})`;
+                    item.append(icon, name, description);
+                    badgeGrid.appendChild(item);
+                });
+            } catch (error) {
+                badgeGrid.textContent = error.message || 'Could not load badges.';
+            }
+        }
+
+        settingsOpen.addEventListener("click", () => openSettings());
+        settingsClose.addEventListener("click", closeSettings);
+        settingsOverlay.addEventListener("click", (event) => {
+            if (event.target === settingsOverlay) closeSettings();
+        });
+        settingsTabs.forEach((tab, index) => {
+            tab.addEventListener("click", () => selectSettingsSection(tab.dataset.settingsTarget));
+            tab.addEventListener("keydown", (event) => {
+                if (!["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+                event.preventDefault();
+                const nextIndex = event.key === "Home" ? 0
+                    : event.key === "End" ? settingsTabs.length - 1
+                    : (index + (event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1) + settingsTabs.length) % settingsTabs.length;
+                selectSettingsSection(settingsTabs[nextIndex].dataset.settingsTarget, true);
+            });
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            if (planNoticeOverlay.classList.contains("visible")) {
+                closePlanNotice();
+            } else if (deleteModal.classList.contains("visible")) {
+                deleteCancel.click();
+            } else if (settingsOverlay.classList.contains("visible")) {
+                closeSettings();
+            }
+        });
+
+        document.querySelectorAll(".settings-plan .choose, .settings-coin-packages .choose").forEach((button) => {
+            button.addEventListener("click", () => {
+                const purchaseType = button.dataset.purchaseType;
+                planNoticeMessage.textContent = purchaseType === "coins"
+                    ? "Coin checkout is not available yet. Your coin balance has not changed, and you have not been charged."
+                    : purchaseType === "free-plan"
+                        ? "Plan changes are not available yet. Your current plan has not changed."
+                        : "Paid plan checkout is not available yet. Your current plan has not changed, and you have not been charged.";
+                planNoticeOverlay.classList.add("visible");
+                planNoticeOverlay.setAttribute("aria-hidden", "false");
+                planNoticeClose.focus();
+            });
+        });
+        function closePlanNotice() {
+            planNoticeOverlay.classList.remove("visible");
+            planNoticeOverlay.setAttribute("aria-hidden", "true");
+        }
+        planNoticeClose.addEventListener("click", closePlanNotice);
+        planNoticeOverlay.addEventListener("click", (event) => {
+            if (event.target === planNoticeOverlay) closePlanNotice();
+        });
+
+        if (themeSelect) {
+            themeSelect.value = getSnortleTheme();
+            themeSelect.addEventListener("change", () => setSnortleTheme(themeSelect.value));
+        }
+
+        if (giftBtn) giftBtn.addEventListener("click", async () => {
+            const recipient = document.getElementById('gift-username').value.trim();
+            const amount = Number(document.getElementById('gift-amount').value);
+            const message = document.getElementById('gift-note-input').value.trim();
+            if (!recipient || !(amount >= 1)) {
+                giftMessage.textContent = 'Enter a username and an amount of at least 1.';
+                giftMessage.className = 'gift-message bad';
+                return;
+            }
+            giftBtn.disabled = true;
+            try {
+                const response = await fetch('/api/gift-coins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: recipient, amount, message })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Gift failed.');
+                giftMessage.textContent = `Sent ${amount} coins to ${recipient}.`;
+                giftMessage.className = 'gift-message ok';
+                document.getElementById('gift-amount').value = '';
+                document.getElementById('gift-note-input').value = '';
+                await refreshSessionCoins();
+            } catch (error) {
+                giftMessage.textContent = error.message || 'Gift failed.';
+                giftMessage.className = 'gift-message bad';
+            } finally {
+                giftBtn.disabled = false;
+            }
+        });
+
+        let deleteBotTarget = 0;
+        let deleteBotValue = 0;
+        if (settingsDeleteAccountBtn) settingsDeleteAccountBtn.addEventListener("click", () => {
+            deleteBotTarget = Math.floor(Math.random() * 21);
+            deleteBotTargetLabel.textContent = String(deleteBotTarget);
+            deleteBotCheck.value = "0";
+            deleteBotValueLabel.textContent = "0";
+            deleteBotValue = 0;
+            deleteInput.value = "";
+            deleteModal.classList.add("visible");
+            deleteModal.setAttribute("aria-hidden", "false");
+            deleteInput.focus();
+        });
+        deleteBotCheck.addEventListener("input", () => {
+            deleteBotValue = Number(deleteBotCheck.value);
+            deleteBotValueLabel.textContent = String(deleteBotValue);
+        });
+        deleteCancel.addEventListener("click", () => {
+            deleteModal.classList.remove("visible");
+            deleteModal.setAttribute("aria-hidden", "true");
+        });
+        deleteModal.addEventListener("click", (event) => {
+            if (event.target === deleteModal) deleteCancel.click();
+        });
+        deleteConfirm.addEventListener("click", async () => {
+            if (deleteInput.value !== "delete account") {
+                window.alert('Please type "delete account" to confirm.');
+                return;
+            }
+            if (deleteBotValue !== deleteBotTarget) {
+                window.alert(`Please slide to ${deleteBotTarget}.`);
+                return;
+            }
+            try {
+                const response = await fetch('/api/delete-account', { method: 'POST' });
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.message || 'Failed to delete account.');
+                }
+                window.location.href = '/';
+            } catch (error) {
+                window.alert(error.message || 'Failed to delete account.');
+            }
+        });
+
         sidebarToggle.addEventListener("click", function() {
             sidebarToggle.classList.remove("attention-pulse");
             const isCollapsed = sidebar.classList.toggle("collapsed");
@@ -2211,7 +2874,7 @@
 
         newChatBtn.addEventListener("click", function() {
             chatNameInput.value = "";
-            createChatModel.value = "";
+            createChatModel.value = DEFAULT_MODEL_ID;
             updateCreateChatModelHelp();
             createChatModelGuide.hidden = true;
             createChatModelInfo.setAttribute("aria-expanded", "false");
@@ -2377,30 +3040,6 @@
             }
             applyGenerationSettings(DEFAULT_GENERATION_PROFILE);
         }
-
-        function toggleGenerationControls(forceOpen) {
-            const shouldOpen = forceOpen === undefined
-                ? generationControlsPanel.hidden
-                : Boolean(forceOpen);
-
-            generationControlsPanel.hidden = !shouldOpen;
-            generationControls.classList.toggle("open", shouldOpen);
-            generationControlsToggle.setAttribute("aria-expanded", String(shouldOpen));
-        }
-
-        generationControlsToggle.addEventListener("click", function() {
-            toggleGenerationControls();
-        });
-
-        generationControlsBackdrop.addEventListener("click", function() {
-            toggleGenerationControls(false);
-        });
-
-        document.addEventListener("keydown", function(event) {
-            if (event.key === "Escape" && !generationControlsPanel.hidden) {
-                toggleGenerationControls(false);
-            }
-        });
 
         Object.keys(generationSettings).forEach(function(key) {
             generationSettings[key].addEventListener("input", function() {
@@ -2732,7 +3371,7 @@
             const result = await response.json();
             if (loadToken !== chatLoadToken) return;
             activeChatId = result.chat.id;
-            activeModelId = result.chat.modelId || "Snortle-AI/Snortle-Pancake-1";
+            activeModelId = result.chat.modelId || DEFAULT_MODEL_ID;
             updateLockedModelLabel(activeModelId);
             sessionId = activeChatId;
             
@@ -2813,7 +3452,10 @@
                 }
 
                 activePlanId = planPicker.value;
+                const selectedPlan = catalogData.plans.find((plan) => plan.id === activePlanId);
+                hourlyFreeCoinGrant = Number(selectedPlan?.hourlyFreeCoins ?? hourlyFreeCoinGrant);
                 updateModelOptions();
+                updateCoinDisplay();
                 updateSendAvailability();
                 nextFreeCoinGrant = Date.now() + HOUR_IN_MS_CLIENT;
                 updateCoinCountdown();
@@ -2826,6 +3468,10 @@
         resizeInput();
         updateCoinDisplay();
         updateCoinCountdown();
+        const settingsParams = new URLSearchParams(window.location.search);
+        if (settingsParams.get("settings") === "1") {
+            openSettings(settingsParams.get("section") || "wallet");
+        }
 
         const giftNotices = Array.isArray(sessionData.pendingGifts)
             ? sessionData.pendingGifts.map((gift) => {
@@ -2852,6 +3498,7 @@
         input.addEventListener("keydown", function(event) {
             if (event.key === "Enter" && !event.shiftKey && !window.matchMedia("(pointer: coarse)").matches) {
                 event.preventDefault();
+                if (event.repeat) return;
                 if (coinBalance < CANNOT_PROMPT_THRESHOLD || !canSendInActiveChat() || !activeChatId || !chatReady || !client) return;
                 form.requestSubmit();
             }
@@ -3079,11 +3726,14 @@
 
             userBox.classList.add("user-box");
             user.classList.add("user");
-            appendExpandableMessage(user, userPrompt, "message-user-content");
-
-            spacer.before(userBox);
+            // User messages: ignore markdown, show raw text
+            const content = document.createElement("div");
+            content.className = "message-user-content message-text-content";
+            content.textContent = userPrompt;
+            user.appendChild(content);
             userBox.appendChild(user);
 
+            spacer.before(userBox);
             chatMessages.push({ role: "user", content: userPrompt });
             chatMessagesById.set(activeChatId, chatMessages);
             await saveChat();
@@ -3108,6 +3758,7 @@
         });
 
         scrollDown();
+        }
     </script>
 </body>
 </html>

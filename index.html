@@ -663,7 +663,7 @@
                 <div class="info-item">
                     <div class="info-kicker">Availability</div>
                     <h3>One model, ready to try</h3>
-                    <p>The tryout uses Snortle Pancake 1. Other models and paid purchases are not available yet.</p>
+                    <p>The tryout uses Snortle Pancake 2. Other models and paid purchases are not available yet.</p>
                 </div>
                 <a class="terms-link" href="/terms">Terms of Service</a>
                 <a class="terms-link" href="/data">Training data &amp; citations</a>
@@ -717,6 +717,7 @@
     </div>
 
     <script src="/views/text-length.js"></script>
+    <script src="/passwordRules.js"></script>
     <script>
         const authOverlay = document.getElementById('authOverlay');
         const authTitle = document.getElementById('authTitle');
@@ -1075,9 +1076,9 @@
                 }
                 termsAgreement.setCustomValidity('');
 
-                const hasStrongPassword = enteredPassword.length >= 6 && /\d/.test(enteredPassword) && /[a-z]/.test(enteredPassword) && /[A-Z]/.test(enteredPassword) && /[^A-Za-z0-9]/.test(enteredPassword);
-                if (!hasStrongPassword) {
-                    password.setCustomValidity('Use at least 6 characters with a number, lowercase letter, uppercase letter, and punctuation mark.');
+                const passwordError = window.PasswordRules.getPasswordError(enteredPassword, enteredUsername);
+                if (passwordError) {
+                    password.setCustomValidity(passwordError);
                     password.reportValidity();
                     return;
                 }

@@ -4,6 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 require('dotenv').config();
 const catalog = require('./catalog');
+const { getPasswordError } = require('./passwordRules');
 const { getBadges, recordUserMessages } = require('./badgeProgress');
 const { summarizeUsers } = require('./adminRisk');
 const { getPersistedState, persistState } = require('./data/mongoStore');
@@ -25,7 +26,7 @@ const sessions = new Map();
 const guestSessions = new Map();
 const botChallenges = new Map();
 const STARTING_FREE_SNORTZ_COINS = 20;
-const DEFAULT_MODEL_ID = catalog.models[0].space;
+const DEFAULT_MODEL_ID = 'Snortle-AI/Snortle-Pancake-2';
 const DEFAULT_PLAN_ID = 'free';
 const HOUR_IN_MS = 60 * 60 * 1000;
 const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * HOUR_IN_MS; // log out after 7 days of no activity
@@ -121,10 +122,6 @@ const mimeTypes = {
 
 function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString('hex');
-}
-
-function hasStrongPassword(password) {
-  return password.length >= 6 && /\d/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password) && /[^A-Za-z0-9]/.test(password);
 }
 
 function sendJson(res, statusCode, payload) {
@@ -318,6 +315,7 @@ const server = http.createServer(async (req, res) => {
       const result = await guestTryout.generate({
         token,
         prompt,
+        generationProfile: body.generationProfile,
         signal: abortController.signal,
         onEvent: async (event) => sendEvent('update', event)
       });
@@ -362,9 +360,8 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 400, { success: false, message: 'Username must be 32 characters or less.' });
     }
 
-    if (!hasStrongPassword(password)) {
-      return sendJson(res, 400, { success: false, message: 'Password must be at least 6 characters and include a number, lowercase letter, uppercase letter, and punctuation mark.' });
-    }
+    const passwordError = getPasswordError(password, trimmedUsername);
+    if (passwordError) return sendJson(res, 400, { success: false, message: passwordError });
 
     const expectedBotAnswer = botChallenges.get(botCheckToken);
     botChallenges.delete(botCheckToken);
@@ -657,6 +654,9 @@ const server = http.createServer(async (req, res) => {
     const selectedModel = catalog.models.find((model) => model.space === body.modelId);
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     if (!title) return sendJson(res, 400, { success: false, message: 'Chat name is required.' });
+    if (selectedModel?.available === false) {
+      return sendJson(res, 503, { success: false, message: `${selectedModel.name} is currently unavailable.` });
+    }
     const planId = sessionData.planId || DEFAULT_PLAN_ID;
     if (selectedModel && !canUseModel(planId, selectedModel)) {
       return sendJson(res, 403, { success: false, message: 'Your current plan does not unlock this model.' });
@@ -827,6 +827,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/settings.html') {
+    res.writeHead(302, { Location: '/settings' });
+    res.end();
+    return;
+  }
+
   if (url.pathname === '/views/chat.html') {
     res.writeHead(302, { Location: '/chat' });
     res.end();
@@ -845,15 +851,19 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  let requestPath = url.pathname === '/' ? '/index.html' : url.pathname;
+  let requestPath = url.pathname === '/' ? '/views/chat.html' : url.pathname;
   if (url.pathname === '/chat') {
     requestPath = '/views/chat.html';
   }
   if (url.pathname === '/plans') {
-    requestPath = '/views/plans.html';
+    res.writeHead(302, { Location: '/chat?settings=1&section=plan' });
+    res.end();
+    return;
   }
   if (url.pathname === '/settings') {
-    requestPath = '/views/settings.html';
+    res.writeHead(302, { Location: '/chat?settings=1' });
+    res.end();
+    return;
   }
   if (url.pathname === '/admin') {
     requestPath = '/views/admin.html';
@@ -885,14 +895,6 @@ const server = http.createServer(async (req, res) => {
 
   if (!filePath.startsWith(rootDir)) {
     return sendJson(res, 403, { success: false, message: 'Forbidden' });
-  }
-
-  if (filePath.endsWith('chat.html') || filePath.endsWith('views/chat.html') || url.pathname === '/chat') {
-    if (!getAuthenticatedSession(req)) {
-      res.writeHead(302, { Location: '/' });
-      res.end();
-      return;
-    }
   }
 
   if (filePath.endsWith('plans.html') || filePath.endsWith('views/plans.html') || url.pathname === '/plans') {

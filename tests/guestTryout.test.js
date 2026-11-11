@@ -93,13 +93,64 @@ test('guest generation debits observed cumulative cost and cancels at the allowa
   });
 
   assert.equal(progress.length, 2);
-  assert.equal(progress[0].remainingCoins, 2);
+  assert.equal(progress[0].remainingCoins, 1);
   assert.equal(progress[1].remainingCoins, 0);
   assert.equal(progress[1].exhausted, true);
   assert.equal(result.exhausted, true);
   assert.equal(result.output, 'A longer answer');
   assert.equal(mock.wasCancelled(), true);
   assert.equal(sessions.get(hashGuestToken(guest.token)).remainingCoins, 0);
+});
+
+test('guest generation caps response length at 768 tokens and reports the token limit', async () => {
+  const sessions = new Map();
+  let submittedSettings;
+  const client = {
+    submit(_endpoint, settings) {
+      submittedSettings = settings;
+      return {
+        async *[Symbol.asyncIterator]() {
+          yield { type: 'data', data: [{ output: 'A capped response', think_time: 0, gen_token_count: 768 }] };
+        },
+        cancel() {}
+      };
+    }
+  };
+  const manager = createGuestTryoutManager({ sessions, save: async () => {}, connectClient: async () => client });
+  const guest = await manager.getOrCreate('');
+  const events = [];
+  const result = await manager.generate({
+    token: guest.token,
+    prompt: 'Test prompt',
+    generationProfile: { randomness: 5, responseLength: 10, repetitionControl: 2 },
+    onEvent: async (event) => events.push(event)
+  });
+
+  assert.equal(submittedSettings.max_tokens, 768);
+  assert.equal(events[0].tokenLimitReached, true);
+  assert.equal(result.tokenLimitReached, true);
+  assert.equal(result.generatedTokens, 768);
+});
+
+test('guest generation defaults to 512 tokens without a saved profile', async () => {
+  const sessions = new Map();
+  let submittedSettings;
+  const client = {
+    submit(_endpoint, settings) {
+      submittedSettings = settings;
+      return {
+        async *[Symbol.asyncIterator]() {
+          yield { type: 'data', data: [{ output: 'Default guest response', think_time: 0, gen_token_count: 100 }] };
+        },
+        cancel() {}
+      };
+    }
+  };
+  const manager = createGuestTryoutManager({ sessions, save: async () => {}, connectClient: async () => client });
+  const guest = await manager.getOrCreate('');
+
+  await manager.generate({ token: guest.token, prompt: 'Test prompt', onEvent: async () => {} });
+  assert.equal(submittedSettings.max_tokens, 512);
 });
 
 test('exhausted guests cannot start another generation', async () => {
@@ -213,6 +264,6 @@ test('refreshing a known guest session does not consume the new-session limit', 
 });
 
 test('generation cost uses the account coin formula and ignores negative metrics', () => {
-  assert.equal(calculateGenerationCost({ think_time: 30, gen_token_count: 750 }), 2);
+  assert.equal(calculateGenerationCost({ think_time: 30, gen_token_count: 750 }), 3.5);
   assert.equal(calculateGenerationCost({ think_time: -30, gen_token_count: -1 }), 0);
 });

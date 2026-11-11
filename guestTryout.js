@@ -1,10 +1,11 @@
 const crypto = require('crypto');
 const countUserCharacters = require('./views/text-length');
+const { DEFAULT_PROFILE, normalizeProfile, toModelSettings } = require('./generationProfiles');
 
 const GUEST_STARTING_COINS = 3;
 const GUEST_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_GUEST_SESSIONS = 100000;
-const MODEL_ID = 'Snortle-AI/Snortle-Pancake-1';
+const MODEL_ID = 'Snortle-AI/Snortle-Pancake-2';
 
 function hashGuestToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -13,7 +14,7 @@ function hashGuestToken(token) {
 function calculateGenerationCost(data) {
   const thinkingSeconds = Math.max(0, Number(data?.think_time) || 0);
   const generatedTokens = Math.max(0, Number(data?.gen_token_count) || 0);
-  return thinkingSeconds / 30 + generatedTokens / 750;
+  return (thinkingSeconds / 30) * 2 + (generatedTokens / 750) * 1.5;
 }
 
 function allowGuestSessionRequest({ known, address, creationLimiter }) {
@@ -64,7 +65,7 @@ function createGuestTryoutManager({ sessions, save, connectClient, now = Date.no
     };
   }
 
-  async function generate({ token, prompt, signal, onEvent }) {
+  async function generate({ token, prompt, generationProfile, signal, onEvent }) {
     if (typeof prompt !== 'string' || !prompt.trim()) {
       throw Object.assign(new Error('Enter a message to try Snortle.'), { statusCode: 400 });
     }
@@ -89,6 +90,9 @@ function createGuestTryoutManager({ sessions, save, connectClient, now = Date.no
     let chargedCost = 0;
     let latestData = null;
     let exhausted = false;
+    const guestDefaultProfile = { ...DEFAULT_PROFILE, responseLength: 8 };
+    const modelSettings = toModelSettings(normalizeProfile(generationProfile || guestDefaultProfile));
+    modelSettings.max_tokens = Math.min(768, modelSettings.max_tokens);
     let lastPersistedCoins = Number(session.remainingCoins);
     const cancelSubmission = () => {
       try { submission?.cancel(); } catch {}
@@ -103,11 +107,7 @@ function createGuestTryoutManager({ sessions, save, connectClient, now = Date.no
       submission = modelClient.submit('/predict', {
         prompt: prompt.trim(),
         session_id: `guest-${key.slice(0, 24)}`,
-        max_tokens: 128,
-        top_k: 40,
-        temperature: 0.8,
-        repeat_penalty: 1,
-        repeat_window: 64
+        ...modelSettings
       });
 
       for await (const event of submission) {
@@ -116,6 +116,8 @@ function createGuestTryoutManager({ sessions, save, connectClient, now = Date.no
         const data = event.data && event.data[0];
         if (!data) continue;
         latestData = data;
+        const generatedTokens = Math.max(0, Number(data.gen_token_count) || 0);
+        const tokenLimitReached = generatedTokens >= modelSettings.max_tokens;
 
         const observedCost = calculateGenerationCost(data);
         const additionalCost = Math.max(0, observedCost - chargedCost);
@@ -133,6 +135,9 @@ function createGuestTryoutManager({ sessions, save, connectClient, now = Date.no
         await onEvent({
           output: typeof data.output === 'string' ? data.output : '',
           remainingCoins: Number(session.remainingCoins.toFixed(3)),
+          spent: Number(chargedCost.toFixed(3)),
+          generatedTokens,
+          tokenLimitReached,
           exhausted
         });
 
@@ -146,6 +151,9 @@ function createGuestTryoutManager({ sessions, save, connectClient, now = Date.no
       return {
         output: typeof latestData.output === 'string' ? latestData.output : '',
         remainingCoins: Number(session.remainingCoins.toFixed(3)),
+        spent: Number(chargedCost.toFixed(3)),
+        generatedTokens: Math.max(0, Number(latestData.gen_token_count) || 0),
+        tokenLimitReached: Math.max(0, Number(latestData.gen_token_count) || 0) >= modelSettings.max_tokens,
         exhausted
       };
     } finally {
